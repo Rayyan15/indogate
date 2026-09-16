@@ -49,7 +49,7 @@ class DashboardController extends Controller
             'status' => 'pending',
         ]);
 
-        $path = $request->file('proof')->store('payment_proofs', 'public');
+        $path = $request->file('proof')->store('payment_proofs', 'local');
 
         PaymentProof::create([
             'payment_id' => $payment->id,

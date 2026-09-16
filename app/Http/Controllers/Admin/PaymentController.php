@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\PaymentProof;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
@@ -57,6 +58,15 @@ class PaymentController extends Controller
             ->log('Payment rejected');
 
         return redirect()->route('admin.payments.index')->with('success', 'Payment rejected.');
+    }
+
+    public function downloadProof(PaymentProof $proof)
+    {
+        if (!Storage::disk('local')->exists($proof->file_path)) {
+            abort(404, 'Payment proof not found.');
+        }
+
+        return Storage::disk('local')->download($proof->file_path);
     }
 
     // Unused resource methods

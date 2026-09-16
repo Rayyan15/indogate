@@ -20,6 +20,8 @@ class Customer extends Model
 
     protected $casts = [
         'preferences' => 'array',
+        'passport_number' => 'encrypted',
+        'phone' => 'encrypted',
     ];
 
     public function user()
