@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * PRD §6 V11 belum terjawab — belum ada penutur asli untuk review.
+ * Terjemahan berikut kualitas mesin, ditandai untuk review profesional
+ * sebelum go-live (lihat docs/progress/M2-*.md).
+ */
+return [
+    'partner' => [
+        'eyebrow' => 'المخزون / الشركاء',
+        'index_title' => 'الشركاء',
+        'index_lede' => 'الفنادق والفيلات وموردو المركبات الذين يزودون مخزونك.',
+        'add_partner' => '+ إضافة شريك',
+        'name' => 'الاسم',
+        'type' => 'النوع',
+        'city' => 'المدينة',
+        'contact' => 'جهة الاتصال',
+        'items_count' => 'العناصر',
+        'active' => 'نشط',
+        'inactive' => 'غير نشط',
+        'no_partners_yet' => 'لا يوجد شركاء بعد',
+        'no_partners_text' => 'أضف فندقًا أو فيلا أو موردًا للمركبات لبدء بناء المخزون.',
+        'form_edit_title' => 'تعديل الشريك',
+        'form_create_title' => 'إضافة شريك',
+        'name_locale' => 'الاسم (:locale)',
+        'type_select' => '— اختر النوع —',
+        'all_types' => 'جميع الأنواع',
+        'hotel' => 'فندق',
+        'villa' => 'فيلا',
+        'vehicle_vendor' => 'مورد مركبات',
+    ],
+
+    'item' => [
+        'eyebrow' => 'المخزون / العناصر',
+        'index_title' => 'عناصر المخزون',
+        'index_lede' => 'الغرف والمركبات والتذاكر والأنشطة المقدمة من شركائك.',
+        'add_item' => '+ إضافة عنصر',
+        'name' => 'الاسم',
+        'partner' => 'الشريك',
+        'type' => 'النوع',
+        'rates_count' => 'الأسعار',
+        'all_partners' => 'جميع الشركاء',
+        'all_types' => 'جميع الأنواع',
+        'no_items_yet' => 'لا توجد عناصر مخزون بعد',
+        'no_items_text' => 'أضف عنصرًا واربطه بشريك.',
+        'back_to_items' => '← رجوع إلى عناصر المخزون',
+        'create_title' => 'إضافة عنصر مخزون',
+        'edit_title' => 'تعديل عنصر مخزون',
+        'basic_info' => 'المعلومات الأساسية',
+        'name_locale' => 'الاسم (:locale)',
+        'description_locale' => 'الوصف (:locale)',
+        'partner_select' => '— اختر الشريك —',
+        'type_select' => '— اختر النوع —',
+        'capacity' => 'السعة',
+        'capacity_hint' => 'اختياري',
+        'save' => 'حفظ',
+        'saved' => 'تم الحفظ. يمكنك الآن إدارة الأسعار والصور وتواريخ الحظر أدناه.',
+        'save_first_note' => 'احفظ العنصر أولاً لإدارة الأسعار والصور وتواريخ الحظر.',
+        'room' => 'غرفة',
+        'vehicle' => 'مركبة',
+        'ticket' => 'تذكرة',
+        'activity' => 'نشاط',
+
+        'rates_title' => 'أسعار التكلفة',
+        'rate_from' => 'ساري من',
+        'rate_to' => 'ساري حتى',
+        'rate_cost' => 'التكلفة (أصغر وحدة)',
+        'rate_currency' => 'العملة',
+        'add_rate' => 'إضافة سعر',
+        'no_rates_yet' => 'لا توجد فترات أسعار بعد',
+
+        'media_title' => 'معرض الصور',
+        'upload_photos' => 'رفع الصور',
+        'upload_button' => 'رفع',
+        'no_media_yet' => 'لم يتم رفع صور بعد',
+        'move_up' => 'تحريك لأعلى',
+        'move_down' => 'تحريك لأسفل',
+
+        'blackout_title' => 'تواريخ الحظر',
+        'blackout_date' => 'التاريخ',
+        'blackout_reason' => 'السبب',
+        'add_blackout' => 'إضافة تاريخ حظر',
+        'no_blackout_yet' => 'لا توجد تواريخ حظر',
+    ],
+
+    'common' => [
+        'status' => 'الحالة',
+        'actions' => 'إجراءات',
+        'edit' => 'تعديل',
+        'delete' => 'حذف',
+        'cancel' => 'إلغاء',
+    ],
+];

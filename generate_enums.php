@@ -1,7 +1,7 @@
 <?php
 
-$enumsDir = __DIR__ . '/app/Enums';
-if (!is_dir($enumsDir)) {
+$enumsDir = __DIR__.'/app/Enums';
+if (! is_dir($enumsDir)) {
     mkdir($enumsDir, 0755, true);
 }
 
@@ -35,7 +35,7 @@ $enums = [
         'ID' => 'id',
         'EN' => 'en',
         'AR' => 'ar',
-    ]
+    ],
 ];
 
 foreach ($enums as $name => $cases) {

@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
+use App\Support\Branch\BelongsToBranch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Payment extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use BelongsToBranch, LogsActivity, SoftDeletes;
 
-    protected $fillable = ['booking_id', 'amount', 'status', 'verified_by', 'verified_at'];
+    protected $fillable = ['branch_id', 'booking_id', 'amount', 'status', 'verified_by', 'verified_at'];
 
     protected $casts = [
         'verified_at' => 'datetime',

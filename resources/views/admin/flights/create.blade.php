@@ -1,54 +1,43 @@
 <x-admin-layout>
-    <x-slot name="header">Add New Flight Route</x-slot>
+    <x-slot name="header">{{ __('admin.flights.create_title') }}</x-slot>
 
-    <div class="mb-6">
-        <a href="{{ route('admin.flights.index') }}" class="btn-secondary text-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to Flights
-        </a>
-    </div>
+    <x-ui.page-header :eyebrow="__('admin.flights.eyebrow')" :title="__('admin.flights.create_title')" />
+
+    <x-ui.button variant="ghost" :href="route('admin.flights.index')" class="mb-6">{{ __('admin.flights.back_to_flights') }}</x-ui.button>
 
     <div class="max-w-3xl">
-        <div class="admin-card p-8">
-            <form action="{{ route('admin.flights.store') }}" method="POST">
+        <x-ui.panel>
+            <form action="{{ route('admin.flights.store') }}" method="POST" class="space-y-6">
                 @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div class="md:col-span-2">
-                        <label class="admin-label">Airline / Carrier</label>
-                        <input type="text" name="airline" value="{{ old('airline') }}" placeholder="e.g. Garuda Indonesia" class="admin-input" required>
-                        @error('airline') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
+                        <x-ui.field :label="__('admin.flights.airline_carrier')" :error="$errors->first('airline')">
+                            <input type="text" name="airline" value="{{ old('airline') }}" placeholder="{{ __('admin.flights.airline_placeholder') }}" class="admin-input" required>
+                        </x-ui.field>
                     </div>
-                    <div>
-                        <label class="admin-label">Origin City / Airport Code</label>
-                        <input type="text" name="origin" value="{{ old('origin') }}" placeholder="e.g. CGK (Jakarta)" class="admin-input" required>
-                        @error('origin') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="admin-label">Destination City / Airport Code</label>
-                        <input type="text" name="destination" value="{{ old('destination') }}" placeholder="e.g. JED (Jeddah)" class="admin-input" required>
-                        @error('destination') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="admin-label">Departure Date & Time</label>
+                    <x-ui.field :label="__('admin.flights.origin')" :error="$errors->first('origin')">
+                        <input type="text" name="origin" value="{{ old('origin') }}" placeholder="{{ __('admin.flights.origin_placeholder') }}" class="admin-input" required>
+                    </x-ui.field>
+                    <x-ui.field :label="__('admin.flights.destination')" :error="$errors->first('destination')">
+                        <input type="text" name="destination" value="{{ old('destination') }}" placeholder="{{ __('admin.flights.destination_placeholder') }}" class="admin-input" required>
+                    </x-ui.field>
+                    <x-ui.field :label="__('admin.flights.departure_datetime')" :error="$errors->first('departure_at')">
                         <input type="datetime-local" name="departure_at" value="{{ old('departure_at') }}" class="admin-input" required>
-                        @error('departure_at') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="admin-label">Seat Quota</label>
-                        <input type="number" min="1" name="seat_quota" value="{{ old('seat_quota', 200) }}" placeholder="e.g. 200" class="admin-input" required>
-                        @error('seat_quota') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
-                    </div>
+                    </x-ui.field>
+                    <x-ui.field :label="__('admin.flights.seat_quota')" :error="$errors->first('seat_quota')">
+                        <input type="number" min="1" name="seat_quota" value="{{ old('seat_quota', 200) }}" placeholder="{{ __('admin.flights.seat_quota_placeholder') }}" class="admin-input font-mono" required>
+                    </x-ui.field>
                     <div class="md:col-span-2">
-                        <label class="admin-label">Base Price (IDR)</label>
-                        <input type="number" step="1000" min="0" name="base_price" value="{{ old('base_price') }}" placeholder="e.g. 5000000" class="admin-input" required>
-                        @error('base_price') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
+                        <x-ui.field :label="__('admin.flights.base_price_idr')" :error="$errors->first('base_price')">
+                            <input type="number" step="1000" min="0" name="base_price" value="{{ old('base_price') }}" placeholder="{{ __('admin.flights.base_price_placeholder') }}" class="admin-input font-mono" required>
+                        </x-ui.field>
                     </div>
                 </div>
-                <div class="mt-8 flex gap-3">
-                    <button type="submit" class="btn-primary">Save Flight Route</button>
-                    <a href="{{ route('admin.flights.index') }}" class="btn-secondary">Cancel</a>
+                <div class="flex gap-3 border-t border-neutral-200 pt-6">
+                    <x-ui.button variant="primary" type="submit">{{ __('admin.flights.save_flight') }}</x-ui.button>
+                    <x-ui.button variant="secondary" :href="route('admin.flights.index')">{{ __('admin.common.cancel') }}</x-ui.button>
                 </div>
             </form>
-        </div>
+        </x-ui.panel>
     </div>
 </x-admin-layout>

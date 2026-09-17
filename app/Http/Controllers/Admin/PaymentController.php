@@ -3,30 +3,40 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BookingConfirmed;
 use App\Models\Payment;
 use App\Models\PaymentProof;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', Payment::class);
+
         $payments = Payment::with('booking.customer')->where('status', 'pending')->latest()->paginate(10);
+
         return view('admin.payments.index', compact('payments'));
     }
 
     public function show(Payment $payment)
     {
+        $this->authorize('view', $payment);
+
         $payment->load('booking.customer', 'proofs');
+
         return view('admin.payments.show', compact('payment'));
     }
 
     public function verify(Request $request, Payment $payment)
     {
+        $this->authorize('verify', $payment);
+
         $payment->update([
-            'status'      => 'verified',
+            'status' => 'verified',
             'verified_by' => Auth::id(),
             'verified_at' => now(),
         ]);
@@ -36,7 +46,7 @@ class PaymentController extends Controller
 
         // Send email notification via queue
         if ($payment->booking->customer && $payment->booking->customer->user) {
-            \Illuminate\Support\Facades\Mail::to($payment->booking->customer->user->email)->send(new \App\Mail\BookingConfirmed($payment->booking));
+            Mail::to($payment->booking->customer->user->email)->send(new BookingConfirmed($payment->booking));
         }
 
         activity()
@@ -49,6 +59,8 @@ class PaymentController extends Controller
 
     public function reject(Payment $payment)
     {
+        $this->authorize('verify', $payment);
+
         $payment->update(['status' => 'rejected']);
         $payment->booking->update(['status' => 'payment_rejected']);
 
@@ -62,7 +74,7 @@ class PaymentController extends Controller
 
     public function downloadProof(PaymentProof $proof)
     {
-        if (!Storage::disk('local')->exists($proof->file_path)) {
+        if (! Storage::disk('local')->exists($proof->file_path)) {
             abort(404, 'Payment proof not found.');
         }
 
@@ -71,8 +83,12 @@ class PaymentController extends Controller
 
     // Unused resource methods
     public function create() {}
+
     public function store(Request $request) {}
+
     public function edit(Payment $payment) {}
+
     public function update(Request $request, Payment $payment) {}
+
     public function destroy(Payment $payment) {}
 }

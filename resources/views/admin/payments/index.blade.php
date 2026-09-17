@@ -1,56 +1,39 @@
 <x-admin-layout>
-    <x-slot name="header">Payment Verifications</x-slot>
+    <x-slot name="header">{{ __('nav.payments') }}</x-slot>
 
-    <div class="mb-6">
-        <p class="text-slate-500 text-sm">Review and verify all incoming payment proofs.</p>
-    </div>
+    <x-ui.page-header :eyebrow="__('admin.payments.eyebrow')" :title="__('admin.payments.index_title')" :lede="__('admin.payments.index_lede')" />
 
-    <div class="admin-card overflow-x-auto">
-        <table class="admin-table w-full">
-            <thead>
-                <tr>
-                    <th class="text-left">Payment ID</th>
-                    <th class="text-left">Booking Ref</th>
-                    <th class="text-left">Customer</th>
-                    <th class="text-left">Amount</th>
-                    <th class="text-left">Status</th>
-                    <th class="text-left">Submitted</th>
-                    <th class="text-right pr-5">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($payments as $payment)
-                <tr>
-                    <td><span class="font-mono font-medium text-white">#{{ $payment->id }}</span></td>
-                    <td><span class="font-mono text-slate-400">{{ substr($payment->booking->booking_number ?? '', 0, 8) }}</span></td>
-                    <td>{{ $payment->booking->customer->user->name ?? 'N/A' }}</td>
-                    <td style="color: #D4AF37; font-weight: 600;">IDR {{ number_format($payment->amount) }}</td>
-                    <td>
-                        @if($payment->status === 'verified')
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="background: rgba(16,185,129,0.1); color: #34d399;">Verified</span>
-                        @elseif($payment->status === 'rejected')
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="background: rgba(239,68,68,0.1); color: #f87171;">Rejected</span>
-                        @else
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="background: rgba(245,158,11,0.1); color: #fbbf24;">Pending</span>
-                        @endif
-                    </td>
-                    <td class="text-slate-400 text-xs">{{ $payment->created_at->format('d M Y, H:i') }}</td>
-                    <td class="text-right pr-5">
-                        <a href="{{ route('admin.payments.show', $payment) }}" class="btn-view">Review</a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="7" class="py-16 text-center text-slate-600 text-sm">
-                        <div class="flex flex-col items-center gap-2" style="color: #34d399;">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <p>All caught up! No payments to review.</p>
-                        </div>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-        <div class="px-5 py-4 border-t border-white/5">{{ $payments->links() }}</div>
-    </div>
+    <x-ui.table>
+        <x-slot name="head">
+            <x-ui.th>{{ __('admin.payments.payment') }}</x-ui.th>
+            <x-ui.th>{{ __('admin.payments.booking_ref') }}</x-ui.th>
+            <x-ui.th>{{ __('admin.payments.customer') }}</x-ui.th>
+            <x-ui.th numeric>{{ __('admin.payments.amount') }}</x-ui.th>
+            <x-ui.th>{{ __('admin.common.status') }}</x-ui.th>
+            <x-ui.th>{{ __('admin.payments.submitted') }}</x-ui.th>
+            <x-ui.th numeric>{{ __('admin.common.actions') }}</x-ui.th>
+        </x-slot>
+        @forelse($payments as $payment)
+        <x-ui.tr>
+            <x-ui.td class="font-mono font-semibold text-neutral-900">#{{ $payment->id }}</x-ui.td>
+            <x-ui.td class="font-mono text-neutral-500">{{ substr($payment->booking->booking_number ?? '', 0, 8) }}</x-ui.td>
+            <x-ui.td>{{ $payment->booking->customer->user->name ?? 'N/A' }}</x-ui.td>
+            <x-ui.td numeric>IDR {{ number_format($payment->amount) }}</x-ui.td>
+            <x-ui.td>
+                <x-ui.status :status="$payment->status === 'verified' ? 'paid' : ($payment->status === 'rejected' ? 'cancelled' : 'pending')">
+                    {{ __('admin.common.booking_status.' . $payment->status) }}
+                </x-ui.status>
+            </x-ui.td>
+            <x-ui.td class="font-mono text-neutral-500">{{ $payment->created_at->format('d M Y, H:i') }}</x-ui.td>
+            <x-ui.td numeric>
+                <x-ui.button variant="ghost" :href="route('admin.payments.show', $payment)">{{ __('admin.common.review') }}</x-ui.button>
+            </x-ui.td>
+        </x-ui.tr>
+        @empty
+        <tr><td colspan="7" class="p-0">
+            <x-ui.empty :title="__('admin.payments.all_caught_up')" :text="__('admin.payments.no_pending_text')" />
+        </td></tr>
+        @endforelse
+    </x-ui.table>
+    <div class="mt-5">{{ $payments->links() }}</div>
 </x-admin-layout>

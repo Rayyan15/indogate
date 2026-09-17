@@ -1,119 +1,44 @@
 <x-customer-layout>
     <x-slot name="header">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-light text-white tracking-wide">
-                Finalize <span class="text-gold font-bold">Booking</span>
-            </h2>
-        </div>
+        <h2 class="font-display text-3xl font-light tracking-tight text-neutral-900">{{ __('customer.checkout.title') }}</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Main Form / Action Area -->
-                <div class="lg:col-span-2 space-y-8">
-                    
-                    <!-- Concierge Details -->
-                    <div class="card-premium rounded-2xl p-8 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-gold opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-                        
-                        <div class="relative z-10">
-                            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-slate-800 border border-gold flex items-center justify-center text-gold">1</div>
-                                Guest Details
-                            </h3>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                                    <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Primary Guest</p>
-                                    <p class="font-medium text-white">{{ Auth::user()->name }}</p>
-                                </div>
-                                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                                    <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Contact Email</p>
-                                    <p class="font-medium text-white">{{ Auth::user()->email }}</p>
-                                </div>
-                            </div>
-                            
-                            <p class="text-sm text-slate-400">
-                                Need to update details or add special requests? Please <a href="{{ route('profile.edit') }}" class="text-gold hover:underline">edit your profile</a> before finalizing.
-                            </p>
+    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <main class="space-y-6 lg:col-span-8">
+                <x-ui.panel :eyebrow="__('customer.checkout.step1')" :title="__('customer.checkout.guest_details')">
+                    <div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <div class="rounded border border-neutral-200 bg-neutral-50 p-4">
+                            <x-ui.eyebrow>{{ __('customer.checkout.primary_guest') }}</x-ui.eyebrow>
+                            <p class="mt-1 text-sm font-medium text-neutral-900">{{ Auth::user()->name }}</p>
+                        </div>
+                        <div class="rounded border border-neutral-200 bg-neutral-50 p-4">
+                            <x-ui.eyebrow>{{ __('customer.checkout.contact_email') }}</x-ui.eyebrow>
+                            <p class="mt-1 text-sm font-medium text-neutral-900">{{ Auth::user()->email }}</p>
                         </div>
                     </div>
+                    <p class="text-sm text-neutral-500">{!! str_replace(':link', '<a href="'.route('profile.edit').'" class="text-blue-600 underline-offset-2 hover:text-blue-700 hover:underline">'.__('customer.checkout.edit_profile_link').'</a>', e(__('customer.checkout.edit_profile_note'))) !!}</p>
+                </x-ui.panel>
 
-                    <!-- Payment Details -->
-                    <div class="card-premium rounded-2xl p-8">
-                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-slate-800 border border-gold flex items-center justify-center text-gold">2</div>
-                            Secure Payment
-                        </h3>
-                        
-                        <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-8 flex flex-col md:flex-row gap-6 items-center">
-                            <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center border border-slate-600 shrink-0">
-                                <svg class="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                            </div>
-                            <div>
-                                <h4 class="text-lg font-medium text-white mb-2">Manual Bank Transfer</h4>
-                                <p class="text-slate-400 text-sm">
-                                    To ensure the highest level of security and personalized service, we process payments via verified bank transfers. 
-                                    After completing your booking here, you will receive a Booking ID and instructions to upload your payment proof securely from your dashboard.
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <form action="{{ route('checkout.store') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="w-full btn-gold py-4 rounded-xl font-bold tracking-wider uppercase shadow-xl flex items-center justify-center gap-3 text-lg group">
-                                Confirm & Reserve Itinerary
-                                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                            </button>
-                            <p class="text-center text-xs text-slate-500 mt-4">By clicking confirm, you agree to our Terms of Service & Cancellation Policy.</p>
-                        </form>
-                    </div>
-                </div>
+                <x-ui.panel :eyebrow="__('customer.checkout.step2')" :title="__('customer.checkout.secure_payment')">
+                    <x-ui.note class="mb-6">
+                        <span class="mb-1 block font-semibold text-neutral-900">{{ __('customer.checkout.bank_transfer') }}</span>
+                        {{ __('customer.checkout.bank_transfer_note') }}
+                    </x-ui.note>
 
-                <!-- Sidebar Summary -->
-                <div>
-                    <div class="card-premium rounded-2xl p-6 sticky top-28">
-                        <h3 class="text-lg font-bold text-white mb-6">Order Summary</h3>
-                        
-                        <div class="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                            @foreach($cart as $item)
-                                <div class="flex justify-between items-start gap-4 pb-4 border-b border-slate-700/50 last:border-0 last:pb-0">
-                                    <div>
-                                        <p class="font-medium text-slate-300 text-sm line-clamp-2">{{ $item['name'] }}</p>
-                                        <p class="text-xs text-slate-500 mt-1">Qty: {{ $item['quantity'] }}</p>
-                                    </div>
-                                    <div class="font-medium text-white whitespace-nowrap">
-                                        IDR {{ number_format($item['price'] * $item['quantity']) }}
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        
-                        <div class="mt-6 pt-4 border-t border-slate-700">
-                            <div class="flex justify-between items-end">
-                                <span class="text-slate-400">Total Amount</span>
-                                <span class="font-bold text-2xl text-gold">IDR {{ number_format($totalAmount) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-            </div>
+                    <form action="{{ route('checkout.store') }}" method="POST">
+                        @csrf
+                        <x-ui.button variant="primary" type="submit" class="w-full py-3.5 text-sm">{{ __('customer.checkout.confirm_reserve') }}</x-ui.button>
+                        <p class="mt-4 text-center text-[11px] text-neutral-400">{{ __('customer.checkout.terms_note') }}</p>
+                    </form>
+                </x-ui.panel>
+            </main>
+
+            <aside class="lg:col-span-4">
+                <x-ui.folio :eyebrow="__('customer.checkout.order_summary')" :title="__('customer.checkout.your_itinerary')"
+                    :rows="collect($cart)->map(fn($item) => [$item['name'] . ' (×' . $item['quantity'] . ')', 'IDR ' . number_format($item['price'] * $item['quantity'])])->all()"
+                    :total-label="__('customer.checkout.total_amount')" :total="'IDR ' . number_format($totalAmount)" />
+            </aside>
         </div>
     </div>
-    
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(30, 41, 59, 0.5); 
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(212, 175, 55, 0.5); 
-            border-radius: 4px;
-        }
-    </style>
 </x-customer-layout>

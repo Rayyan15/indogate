@@ -2,12 +2,28 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Support\Branch\BelongsToBranch;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\HasTranslations;
 
 class Hotel extends Model
 {
-    use HasFactory;
+    use BelongsToBranch, HasFactory, HasTranslations;
 
-    protected $fillable = ['name', 'location', 'star_rating', 'base_price_per_night'];
+    protected $fillable = ['branch_id', 'name', 'description', 'location', 'star_rating', 'base_price_per_night'];
+
+    /**
+     * PRD M2 step 9: spatie/laravel-translatable, not a plain array cast —
+     * gives per-locale accessors ($hotel->name resolves current locale,
+     * getTranslation('name', 'ar') for an explicit one).
+     */
+    public array $translatable = ['name', 'description'];
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
 }

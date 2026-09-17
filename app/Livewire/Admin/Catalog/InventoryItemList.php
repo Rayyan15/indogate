@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Livewire\Admin\Catalog;
+
+use App\Domain\Catalog\Models\InventoryItem;
+use App\Domain\Catalog\Models\Partner;
+use Illuminate\Contracts\View\View;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+class InventoryItemList extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+
+    public string $partnerFilter = '';
+
+    public string $typeFilter = '';
+
+    public function mount(): void
+    {
+        $this->authorize('viewAny', InventoryItem::class);
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPartnerFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingTypeFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function render(): View
+    {
+        $items = InventoryItem::query()
+            ->with('partner')
+            ->withCount('rates')
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->when($this->partnerFilter, fn ($q) => $q->where('partner_id', $this->partnerFilter))
+            ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter))
+            ->latest()
+            ->paginate(10);
+
+        return view('livewire.admin.catalog.inventory-item-list', [
+            'items' => $items,
+            'partners' => Partner::orderBy('id')->get(),
+        ]);
+    }
+}

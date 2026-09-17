@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingItem;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
@@ -40,8 +41,8 @@ class CheckoutController extends Controller
         DB::beginTransaction();
         try {
             $customer = Auth::user()->customer;
-            if (!$customer) {
-                $customer = \App\Models\Customer::create([
+            if (! $customer) {
+                $customer = Customer::create([
                     'user_id' => Auth::id(),
                     'full_name' => Auth::user()->name,
                 ]);
@@ -72,7 +73,8 @@ class CheckoutController extends Controller
             return redirect()->route('customer.bookings.show', $booking)->with('success', 'Booking created successfully. Please proceed to payment.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Checkout failed: ' . $e->getMessage());
+
+            return back()->with('error', 'Checkout failed: '.$e->getMessage());
         }
     }
 }

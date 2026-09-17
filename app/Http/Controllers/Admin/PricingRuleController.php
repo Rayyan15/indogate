@@ -11,6 +11,7 @@ class PricingRuleController extends Controller
     public function index()
     {
         $rules = PricingRule::latest()->paginate(10);
+
         return view('admin.pricing.index', compact('rules'));
     }
 
@@ -57,6 +58,7 @@ class PricingRuleController extends Controller
     public function destroy(PricingRule $pricing_rule)
     {
         $pricing_rule->delete();
+
         return redirect()->route('admin.pricing.index')->with('success', 'Pricing rule deleted successfully.');
     }
 }

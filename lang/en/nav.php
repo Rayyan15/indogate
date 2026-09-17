@@ -1,0 +1,23 @@
+<?php
+
+return [
+    'overview' => 'Overview',
+    'dashboard' => 'Dashboard',
+    'operations' => 'Operations',
+    'bookings' => 'Bookings',
+    'payments' => 'Payments',
+    'inventory' => 'Inventory',
+    'hotels' => 'Hotels',
+    'flights' => 'Flights',
+    'drivers' => 'Drivers',
+    'catalog' => 'Catalog',
+    'partners' => 'Partners',
+    'inventory_items' => 'Inventory Items',
+    'configuration' => 'Configuration',
+    'pricing' => 'Dynamic Pricing',
+    'administration' => 'Administration',
+    'users' => 'Manage Users',
+    'sign_out' => 'Sign Out',
+    'view_site' => 'View Site',
+    'admin' => 'Admin',
+];

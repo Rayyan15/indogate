@@ -14,6 +14,7 @@ class HotelController extends Controller
     public function index()
     {
         $hotels = Hotel::paginate(10);
+
         return view('admin.hotels.index', compact('hotels'));
     }
 
@@ -81,6 +82,7 @@ class HotelController extends Controller
     public function destroy(Hotel $hotel)
     {
         $hotel->delete();
+
         return redirect()->route('admin.hotels.index')->with('success', 'Hotel deleted successfully.');
     }
 }
