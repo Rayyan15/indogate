@@ -19,5 +19,7 @@ return [
     'users' => 'Kelola User',
     'sign_out' => 'Keluar',
     'view_site' => 'Lihat Situs',
+    'expand_sidebar' => 'Perluas sidebar',
+    'collapse_sidebar' => 'Ciutkan sidebar',
     'admin' => 'Admin',
 ];

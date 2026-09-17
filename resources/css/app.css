@@ -13,19 +13,25 @@
  */
 @layer components {
     .sidebar-link {
-        @apply flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium text-neutral-600 transition-colors mb-0.5;
+        @apply flex items-center gap-3 border-s-2 border-transparent px-4 py-2.5 text-sm font-medium text-neutral-600 transition-colors mb-0.5;
     }
     .sidebar-link:hover {
         @apply text-neutral-900 bg-neutral-100;
     }
     .sidebar-link.active {
-        @apply text-red-700 bg-red-50;
+        @apply border-red-600 bg-red-50 text-red-700;
     }
     .sidebar-link.active svg {
         @apply text-red-600;
     }
     .sidebar-link svg {
         @apply text-neutral-400 shrink-0;
+    }
+    .sidebar-badge {
+        @apply ms-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 font-mono text-[10px] font-semibold text-neutral-0;
+    }
+    aside[data-collapsed="true"] .sidebar-link {
+        @apply justify-center px-0;
     }
 
     .admin-table thead tr {

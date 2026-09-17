@@ -19,5 +19,7 @@ return [
     'users' => 'Manage Users',
     'sign_out' => 'Sign Out',
     'view_site' => 'View Site',
+    'expand_sidebar' => 'Expand sidebar',
+    'collapse_sidebar' => 'Collapse sidebar',
     'admin' => 'Admin',
 ];

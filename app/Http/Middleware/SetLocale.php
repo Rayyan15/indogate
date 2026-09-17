@@ -20,6 +20,17 @@ use Symfony\Component\HttpFoundation\Response;
  * genuine {locale} route parameter is resolved by the router per-request
  * and doesn't have that problem.
  */
+/**
+ * Must run before Illuminate\Auth\Middleware\Authenticate — bootstrap/app.php
+ * pins this into Laravel's middlewarePriority list ahead of
+ * AuthenticatesRequests. Without that, the framework's default priority
+ * list (SetLocale isn't in it) silently reorders 'auth' ahead of
+ * 'setLocale' regardless of the order they're written in routes/web.php,
+ * so URL::defaults(['locale' => ...]) never runs before an unauthenticated
+ * request's redirect-to-login tries route('login') — a 500
+ * (UrlGenerationException: missing 'locale') instead of a clean redirect.
+ * Reproduced empirically via Kernel::handle() in tinker, see M3 progress doc.
+ */
 class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
