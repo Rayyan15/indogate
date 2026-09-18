@@ -96,14 +96,40 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                     <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.inventory_items') }}</span>
                 </a>
+                <a href="{{ route('admin.packages.index') }}" class="sidebar-link {{ request()->routeIs('admin.packages.*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 12l-8 4-8-4m16 0l-8-4-8 4m16 0v6l-8 4-8-4v-6"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.packages') }}</span>
+                </a>
+            </x-ui.nav-group>
+            @endcan
+
+            @can('booking.manage')
+            <x-ui.nav-group key="package-bookings" :label="__('nav.package_bookings')" :active="request()->routeIs('admin.package-bookings.*')">
+                <a href="{{ route('admin.package-bookings.index') }}" class="sidebar-link {{ request()->routeIs('admin.package-bookings.*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.package_bookings') }}</span>
+                </a>
+            </x-ui.nav-group>
+            @endcan
+
+            @can('lead.manage')
+            <x-ui.nav-group key="leads" :label="__('nav.leads')" :active="request()->routeIs('admin.leads.*')">
+                <a href="{{ route('admin.leads.index') }}" class="sidebar-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.leads') }}</span>
+                </a>
             </x-ui.nav-group>
             @endcan
 
             @can('pricing.manage')
-            <x-ui.nav-group key="configuration" :label="__('nav.configuration')" :active="request()->routeIs('admin.pricing.*')">
+            <x-ui.nav-group key="configuration" :label="__('nav.configuration')" :active="request()->routeIs('admin.pricing.*') || request()->routeIs('admin.pricing-engine.*')">
                 <a href="{{ route('admin.pricing.index') }}" class="sidebar-link {{ request()->routeIs('admin.pricing.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                     <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.pricing') }}</span>
+                </a>
+                <a href="{{ route('admin.pricing-engine.currencies') }}" class="sidebar-link {{ request()->routeIs('admin.pricing-engine.*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .672-3 1.5S10.343 11 12 11s3 .672 3 1.5-1.343 1.5-3 1.5m0-6c1.11 0 2.08.402 2.599 1M12 8V6.5M12 8v.01M12 16v1.5m0-1.5c-1.11 0-2.08-.402-2.599-1M12 22a10 10 0 100-20 10 10 0 000 20z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.pricing_engine') }}</span>
                 </a>
             </x-ui.nav-group>
             @endcan

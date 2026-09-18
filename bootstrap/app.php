@@ -1,7 +1,11 @@
 <?php
 
+use App\Console\Commands\ExpireQuotations;
+use App\Console\Commands\TransitionBookingStatuses;
+use App\Http\Middleware\EnsureLocaleUrlDefault;
 use App\Http\Middleware\SetActiveBranch;
 use App\Http\Middleware\SetLocale;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command(ExpireQuotations::class)->everyMinute();
+        $schedule->command(TransitionBookingStatuses::class)->hourly();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => RoleMiddleware::class,
@@ -25,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->appendToGroup('web', SetActiveBranch::class);
+        $middleware->appendToGroup('web', EnsureLocaleUrlDefault::class);
 
         // Laravel's default middlewarePriority list bubbles Authenticate
         // ahead of any custom alias not in that list — including

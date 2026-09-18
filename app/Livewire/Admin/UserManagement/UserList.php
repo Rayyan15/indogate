@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\UserManagement;
 
+use App\Livewire\Concerns\Sortable;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
@@ -10,7 +11,9 @@ use Livewire\WithPagination;
 
 class UserList extends Component
 {
-    use WithPagination;
+    use Sortable, WithPagination;
+
+    private const SORTABLE_FIELDS = ['name', 'email', 'is_active', 'created_at'];
 
     public string $search = '';
 
@@ -35,13 +38,15 @@ class UserList extends Component
 
     public function render(): View
     {
-        $users = User::query()
-            ->with(['branch', 'roles'])
-            ->when($this->search, fn ($query) => $query
-                ->where('name', 'like', "%{$this->search}%")
-                ->orWhere('email', 'like', "%{$this->search}%"))
-            ->latest()
-            ->paginate(10);
+        $users = $this->applySort(
+            User::query()
+                ->with(['branch', 'roles'])
+                ->when($this->search, fn ($query) => $query
+                    ->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('email', 'like', "%{$this->search}%")),
+            self::SORTABLE_FIELDS,
+            defaultField: 'created_at',
+        )->paginate(10);
 
         return view('livewire.admin.user-management.user-list', ['users' => $users]);
     }

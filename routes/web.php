@@ -1,7 +1,11 @@
 <?php
 
+use App\Domain\Booking\Models\PackageBooking;
 use App\Domain\Catalog\Models\InventoryItem;
+use App\Domain\Lead\Models\Lead;
+use App\Domain\Packaging\Models\Package;
 use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\BookingGuestDocumentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DriverController;
 use App\Http\Controllers\Admin\FlightRouteController;
@@ -12,8 +16,11 @@ use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\LeadCaptureController;
+use App\Http\Controllers\Public\QuotationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return redirect('/'.app()->getLocale());
@@ -39,6 +46,31 @@ Route::prefix('{locale}')
             Route::middleware('permission:catalog.manage')->resource('drivers', DriverController::class);
             Route::middleware('permission:pricing.manage')->resource('pricing-rules', PricingRuleController::class)->names('pricing');
 
+            Route::middleware('permission:catalog.manage')->prefix('packages')->name('packages.')->group(function () {
+                Route::view('/', 'admin.packaging.index')->name('index');
+                Route::view('/create', 'admin.packaging.builder')->name('create');
+                Route::get('/{package}/edit', fn (Package $package) => view('admin.packaging.builder', ['package' => $package]))->name('edit');
+
+                // The 'local' disk (storage/app/private) is not web-servable via
+                // the public /storage symlink — stream it through a signed route
+                // instead, same pattern as PaymentController::downloadProof.
+                Route::get('/{package}/export/{path}', function (Package $package, string $path) {
+                    $fullPath = "package-exports/{$package->id}/{$path}";
+                    abort_unless(Storage::disk('local')->exists($fullPath), 404);
+
+                    return Storage::disk('local')->download($fullPath);
+                })->where('path', '[A-Za-z0-9_.\-]+')->middleware('signed')->name('export-download');
+            });
+
+            Route::middleware('permission:pricing.manage')->prefix('pricing-engine')->name('pricing-engine.')->group(function () {
+                Route::view('/currencies', 'admin.pricing-engine.currencies')->name('currencies');
+                Route::view('/exchange-rates', 'admin.pricing-engine.exchange-rates')->name('exchange-rates');
+                Route::view('/seasons', 'admin.pricing-engine.seasons')->name('seasons');
+                Route::view('/margin-rules', 'admin.pricing-engine.margin-rules')->name('margin-rules');
+                Route::view('/channel-costs', 'admin.pricing-engine.channel-costs')->name('channel-costs');
+                Route::view('/simulator', 'admin.pricing-engine.simulator')->name('simulator');
+            });
+
             Route::middleware('permission:catalog.manage')->prefix('catalog')->name('catalog.')->group(function () {
                 Route::view('/partners', 'admin.catalog.partners')->name('partners.index');
                 Route::view('/inventory-items', 'admin.catalog.inventory-items')->name('inventory-items.index');
@@ -61,6 +93,31 @@ Route::prefix('{locale}')
             });
 
             Route::middleware('permission:user.manage')->get('/users', fn () => view('admin.users.index'))->name('users.index');
+
+            Route::middleware('permission:lead.manage')->prefix('leads')->name('leads.')->group(function () {
+                Route::view('/', 'admin.lead.index')->name('index');
+                Route::view('/create', 'admin.lead.form')->name('create');
+                Route::get('/{lead}/edit', fn (Lead $lead) => view('admin.lead.form', ['lead' => $lead]))->name('edit');
+            });
+
+            Route::middleware('permission:booking.manage')->prefix('package-bookings')->name('package-bookings.')->group(function () {
+                Route::view('/', 'admin.booking.index')->name('index');
+                Route::get('/{packageBooking}', fn (PackageBooking $packageBooking) => view('admin.booking.show', ['packageBooking' => $packageBooking]))->name('show');
+
+                // Passport document: signed URL + throttle is the technical
+                // block on bulk download (PRD M7 step 9) — no zip/bulk
+                // endpoint exists anywhere in this app.
+                Route::get('/guests/{guest}/passport', [BookingGuestDocumentController::class, 'download'])
+                    ->middleware(['signed', 'throttle:20,1'])
+                    ->name('guests.passport-download');
+
+                Route::get('/{packageBooking}/voucher/{path}', function (PackageBooking $packageBooking, string $path) {
+                    $fullPath = "booking-exports/{$packageBooking->id}/{$path}";
+                    abort_unless(Storage::disk('local')->exists($fullPath), 404);
+
+                    return Storage::disk('local')->download($fullPath);
+                })->where('path', '[A-Za-z0-9_.\-]+')->middleware('signed')->name('voucher-download');
+            });
         });
 
         Route::middleware('auth')->group(function () {
@@ -84,6 +141,12 @@ Route::prefix('{locale}')
                 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
             });
         });
+
+        // Public, no-auth — token is the security boundary for the
+        // quotation link; the lead form is throttled against spam.
+        Route::get('/contact', fn () => view('public.lead-form'))->name('leads.public-form');
+        Route::post('/leads', [LeadCaptureController::class, 'store'])->middleware('throttle:10,1')->name('leads.public-store');
+        Route::get('/q/{quotation}', [QuotationController::class, 'show'])->name('quotations.public-show');
 
         require __DIR__.'/auth.php';
     });

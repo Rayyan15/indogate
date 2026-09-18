@@ -4,13 +4,17 @@ namespace App\Livewire\Admin\Catalog;
 
 use App\Domain\Catalog\Models\InventoryItem;
 use App\Domain\Catalog\Models\Partner;
+use App\Livewire\Concerns\Sortable;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class InventoryItemList extends Component
 {
-    use WithPagination;
+    use Sortable, WithPagination;
+
+    /** Name is a translatable JSON column — deliberately not sortable, see Sortable trait docblock. */
+    private const SORTABLE_FIELDS = ['type', 'is_active', 'created_at'];
 
     public string $search = '';
 
@@ -40,14 +44,16 @@ class InventoryItemList extends Component
 
     public function render(): View
     {
-        $items = InventoryItem::query()
-            ->with('partner')
-            ->withCount('rates')
-            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
-            ->when($this->partnerFilter, fn ($q) => $q->where('partner_id', $this->partnerFilter))
-            ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter))
-            ->latest()
-            ->paginate(10);
+        $items = $this->applySort(
+            InventoryItem::query()
+                ->with('partner')
+                ->withCount('rates')
+                ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
+                ->when($this->partnerFilter, fn ($q) => $q->where('partner_id', $this->partnerFilter))
+                ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter)),
+            self::SORTABLE_FIELDS,
+            defaultField: 'created_at',
+        )->paginate(10);
 
         return view('livewire.admin.catalog.inventory-item-list', [
             'items' => $items,

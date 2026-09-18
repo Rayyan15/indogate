@@ -27,6 +27,8 @@ Yang sudah dipastikan lewat baca kode (bukan lihat langsung):
 
 **Tindak lanjut yang disarankan:** uji manual di perangkat/DevTools sungguhan (toggle device toolbar, putar orientasi) sebelum modul ini dianggap 100% selesai untuk DoD "responsive ke semua resolusi". Kalau ketemu bagian yang kepotong/numpuk, laporkan spesifik untuk diperbaiki.
 
+Re-cek 2026-09-18 (audit gap pra-M6): logic re-diverifikasi baca kode sekali lagi — `admin.blade.php` overlay pakai `-translate-x-full` (default, di bawah `lg`) → `translate-x-0` (`mobileOpen=true`), backdrop `lg:hidden`, RTL-aware (`rtl:translate-x-full`). Pola standard overlay-sidebar, tidak ada red flag. Batasan tool browser automation di environment ini (viewport render tidak berubah sungguhan) sama seperti sebelumnya — tidak dicoba ulang ketiga kali karena hasilnya sudah diketahui gagal dengan cara yang sama. Kesimpulan tidak berubah: perlu uji perangkat sungguhan sebelum modul ini 100% dianggap selesai untuk DoD responsive.
+
 ## Hasil pengujian
 
 - 64 test tetap PASS, 0 regresi.

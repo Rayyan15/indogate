@@ -17,7 +17,16 @@ $map = [
     'rejected'        => 'border-danger/20 bg-danger/10 text-danger',
 ];
 $cls = $map[$status] ?? $map['draft'];
+// "Aktif" (paid/verified) and in-flight (in_progress) states pulse gently
+// to read as "live now" — terminal/inactive states (cancelled, expired,
+// completed, draft) never animate, an ended state shouldn't look alive.
+$isLive = in_array($status, ['paid', 'verified', 'in_progress'], true);
 @endphp
 <span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 whitespace-nowrap rounded border px-2 py-0.5 text-[11px] font-medium $cls"]) }}>
-    <span class="h-1.5 w-1.5 rounded-full bg-current"></span>{{ $slot }}
+    <span class="relative flex h-1.5 w-1.5">
+        @if($isLive)
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-75"></span>
+        @endif
+        <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-current"></span>
+    </span>{{ $slot }}
 </span>

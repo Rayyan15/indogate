@@ -1,0 +1,53 @@
+<?php
+
+return [
+    'eyebrow' => 'Lead',
+    'list' => [
+        'index_title' => 'Lead',
+        'index_lede' => 'Kelola permintaan masuk dari formulir web dan pencatatan manual.',
+        'name' => 'Nama',
+        'phone' => 'Telepon',
+        'status' => 'Status',
+        'source' => 'Sumber',
+        'assignee' => 'Penanggung Jawab',
+        'all_statuses' => 'Semua Status',
+        'all_sources' => 'Semua Sumber',
+        'create' => 'Tambah Lead',
+        'edit' => 'Ubah',
+        'no_data' => 'Belum ada lead',
+        'view_list' => 'Tampilan Daftar',
+        'view_kanban' => 'Tampilan Kanban',
+        'due_only' => 'Perlu follow-up',
+        'follow_up' => 'Follow-up',
+        'overdue' => 'Terlambat',
+        'due_today' => 'Hari ini',
+    ],
+    'status' => [
+        'new' => 'Baru',
+        'contacted' => 'Dihubungi',
+        'qualified' => 'Terkualifikasi',
+        'quoted' => 'Ditawarkan',
+        'won' => 'Menang',
+        'lost' => 'Kalah',
+    ],
+    'source' => [
+        'manual' => 'Manual',
+        'website' => 'Website',
+    ],
+    'form' => [
+        'create_title' => 'Lead Baru',
+        'edit_title' => 'Ubah Lead',
+        'country' => 'Negara',
+        'locale' => 'Bahasa',
+        'lost_reason' => 'Alasan Kalah',
+        'follow_up' => 'Tanggal Follow-up',
+        'save' => 'Simpan',
+        'activity_log' => 'Riwayat Aktivitas',
+        'no_activity' => 'Belum ada aktivitas',
+    ],
+    'public' => [
+        'title' => 'Hubungi Kami',
+        'submit' => 'Kirim',
+        'thanks' => 'Terima kasih, tim kami akan segera menghubungi Anda.',
+    ],
+];

@@ -1,13 +1,12 @@
 <div>
     <x-ui.page-header :eyebrow="__('catalog.partner.eyebrow')" :title="__('catalog.partner.index_title')" :lede="__('catalog.partner.index_lede')">
         <x-slot name="actions">
-            <input type="text" wire:model.live.debounce.300ms="search" placeholder="{{ __('catalog.partner.name') }}…" class="admin-input w-48">
-            <select wire:model.live="typeFilter" class="admin-input w-44">
-                <option value="">{{ __('catalog.partner.all_types') }}</option>
-                <option value="hotel">{{ __('catalog.partner.hotel') }}</option>
-                <option value="villa">{{ __('catalog.partner.villa') }}</option>
-                <option value="vehicle_vendor">{{ __('catalog.partner.vehicle_vendor') }}</option>
-            </select>
+            <x-ui.search-input :placeholder="__('catalog.partner.name').'…'" class="w-48" />
+            <x-ui.filter-select model="typeFilter" class="w-44" :placeholder="__('catalog.partner.all_types')" :options="[
+                'hotel' => __('catalog.partner.hotel'),
+                'villa' => __('catalog.partner.villa'),
+                'vehicle_vendor' => __('catalog.partner.vehicle_vendor'),
+            ]" />
             <x-ui.button variant="primary" type="button" wire:click="$dispatch('create-partner')">{{ __('catalog.partner.add_partner') }}</x-ui.button>
         </x-slot>
     </x-ui.page-header>
@@ -15,8 +14,8 @@
     <x-ui.table>
         <x-slot name="head">
             <x-ui.th>{{ __('catalog.partner.name') }}</x-ui.th>
-            <x-ui.th>{{ __('catalog.partner.type') }}</x-ui.th>
-            <x-ui.th>{{ __('catalog.partner.city') }}</x-ui.th>
+            <x-ui.th sortable field="type" :sort-field="$sortField" :sort-direction="$sortDirection">{{ __('catalog.partner.type') }}</x-ui.th>
+            <x-ui.th sortable field="city" :sort-field="$sortField" :sort-direction="$sortDirection">{{ __('catalog.partner.city') }}</x-ui.th>
             <x-ui.th>{{ __('catalog.partner.items_count') }}</x-ui.th>
             <x-ui.th>{{ __('catalog.common.status') }}</x-ui.th>
             <x-ui.th numeric>{{ __('catalog.common.actions') }}</x-ui.th>
@@ -29,7 +28,9 @@
                 <x-ui.td class="font-mono">{{ $partner->inventory_items_count }}</x-ui.td>
                 <x-ui.td><x-ui.status :status="$partner->is_active ? 'paid' : 'cancelled'">{{ $partner->is_active ? __('catalog.partner.active') : __('catalog.partner.inactive') }}</x-ui.status></x-ui.td>
                 <x-ui.td numeric>
-                    <x-ui.button variant="ghost" type="button" wire:click="$dispatch('edit-partner', { partnerId: {{ $partner->id }} })">{{ __('catalog.common.edit') }}</x-ui.button>
+                    <x-ui.icon-button type="button" wire:click="$dispatch('edit-partner', { partnerId: {{ $partner->id }} })" :title="__('catalog.common.edit')">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </x-ui.icon-button>
                 </x-ui.td>
             </x-ui.tr>
         @empty

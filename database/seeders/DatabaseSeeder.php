@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             BranchSeeder::class,
             RolesAndPermissionsSeeder::class,
             CatalogSeeder::class,
+            PricingSeeder::class,
         ]);
     }
 }

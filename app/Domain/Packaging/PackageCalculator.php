@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Domain\Packaging;
+
+use App\Domain\Catalog\Models\Rate;
+use App\Domain\Packaging\Models\Package;
+use App\Domain\Pricing\Converter;
+use App\Domain\Pricing\Exceptions\ExchangeRateNotFoundException;
+use App\Domain\Pricing\Exceptions\NoApplicableMarginRuleException;
+use App\Domain\Pricing\Money;
+use App\Domain\Pricing\PricingEngine;
+use App\Domain\Pricing\PricingLineItem;
+use App\Domain\Pricing\PricingRequest;
+use App\Domain\Pricing\RuleResolver;
+use App\Enums\InventoryItemType;
+use App\Enums\PaymentChannel;
+use DateTimeInterface;
+
+/**
+ * Pure orchestration over PricingEngine, no persistence side effects.
+ *
+ * Pax scaling (PRD "perhitungan per pax dan konfigurasi kamar", confirmed
+ * with owner): ROOM item qty is the explicit room count the builder enters
+ * — it never scales with pax, because occupancy is a configuration
+ * decision, not a derived multiple. Every other product type scales by
+ * ceil(pax / package.base_pax).
+ *
+ * A missing Rate or an unresolvable margin rule for one line is a soft
+ * failure — that line is flagged rate_missing and excluded from the
+ * totals, the rest of the package still prices out (confirmed with owner).
+ */
+class PackageCalculator
+{
+    public function __construct(
+        private readonly PricingEngine $pricingEngine = new PricingEngine(new RuleResolver, new Converter),
+    ) {}
+
+    public function calculate(
+        Package $package,
+        int $pax,
+        DateTimeInterface $previewDate,
+        PaymentChannel $channel,
+        string $displayCurrency,
+    ): PackageCalculationResult {
+        $itemResults = [];
+
+        foreach ($package->items as $item) {
+            $anchorDate = (clone $previewDate)->modify("+{$item->day_from} days");
+
+            $rate = Rate::query()
+                ->where('inventory_item_id', $item->inventory_item_id)
+                ->whereDate('valid_from', '<=', $anchorDate)
+                ->whereDate('valid_to', '>=', $anchorDate)
+                ->first();
+
+            if (! $rate) {
+                $itemResults[] = new PackageItemResult($item->id, $item->inventory_item_id, 0, null, rateMissing: true);
+
+                continue;
+            }
+
+            $isRoom = $item->inventoryItem->type === InventoryItemType::ROOM;
+            $effectiveQty = $isRoom ? $item->qty : $item->qty * (int) ceil($pax / max(1, $package->base_pax));
+            $lineQty = $isRoom ? $effectiveQty * ($item->nights ?? 1) : $effectiveQty;
+
+            $request = new PricingRequest(
+                branchId: $package->branch_id,
+                productType: $item->inventoryItem->type,
+                departureDate: $anchorDate,
+                items: [new PricingLineItem(Money::of($rate->cost_minor, $rate->currency), $lineQty)],
+                channel: $channel,
+                displayCurrency: $displayCurrency,
+            );
+
+            try {
+                $breakdown = $this->pricingEngine->calculate($request);
+                $itemResults[] = new PackageItemResult($item->id, $item->inventory_item_id, $effectiveQty, $breakdown, rateMissing: false);
+            } catch (NoApplicableMarginRuleException|ExchangeRateNotFoundException) {
+                $itemResults[] = new PackageItemResult($item->id, $item->inventory_item_id, $effectiveQty, null, rateMissing: true);
+            }
+        }
+
+        $resolved = array_filter($itemResults, fn (PackageItemResult $r) => $r->breakdown !== null);
+
+        $sum = fn (callable $pick) => array_reduce(
+            $resolved,
+            fn (Money $carry, PackageItemResult $r) => $carry->add($pick($r->breakdown)),
+            Money::zero('IDR'),
+        );
+
+        $displayCurrencyUpper = strtoupper($displayCurrency);
+        $sumDisplay = array_reduce(
+            $resolved,
+            fn (Money $carry, PackageItemResult $r) => $carry->add($r->breakdown->displayPrice),
+            Money::zero($displayCurrencyUpper),
+        );
+
+        return new PackageCalculationResult(
+            itemResults: $itemResults,
+            grandCostTotal: $sum(fn ($b) => $b->costTotal),
+            grandMarginMinor: $sum(fn ($b) => $b->marginMinor),
+            grandChannelCost: $sum(fn ($b) => $b->channelCost),
+            grandSellIdrMinor: $sum(fn ($b) => $b->sellIdrMinor),
+            grandDisplayPrice: $sumDisplay,
+        );
+    }
+}

@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Catalog;
 
 use App\Domain\Catalog\Models\Partner;
+use App\Livewire\Concerns\Sortable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -10,7 +11,10 @@ use Livewire\WithPagination;
 
 class PartnerList extends Component
 {
-    use WithPagination;
+    use Sortable, WithPagination;
+
+    /** Name is a translatable JSON column — deliberately not sortable, see Sortable trait docblock. */
+    private const SORTABLE_FIELDS = ['type', 'city', 'created_at'];
 
     public string $search = '';
 
@@ -36,12 +40,14 @@ class PartnerList extends Component
 
     public function render(): View
     {
-        $partners = Partner::query()
-            ->withCount('inventoryItems')
-            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
-            ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter))
-            ->latest()
-            ->paginate(10);
+        $partners = $this->applySort(
+            Partner::query()
+                ->withCount('inventoryItems')
+                ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
+                ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter)),
+            self::SORTABLE_FIELDS,
+            defaultField: 'created_at',
+        )->paginate(10);
 
         return view('livewire.admin.catalog.partner-list', ['partners' => $partners]);
     }

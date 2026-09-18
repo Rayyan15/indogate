@@ -1,0 +1,53 @@
+<?php
+
+return [
+    'eyebrow' => 'Leads',
+    'list' => [
+        'index_title' => 'Leads',
+        'index_lede' => 'Manage incoming requests from the web form and manual entries.',
+        'name' => 'Name',
+        'phone' => 'Phone',
+        'status' => 'Status',
+        'source' => 'Source',
+        'assignee' => 'Assigned To',
+        'all_statuses' => 'All Statuses',
+        'all_sources' => 'All Sources',
+        'create' => 'Add Lead',
+        'edit' => 'Edit',
+        'no_data' => 'No leads yet',
+        'view_list' => 'List View',
+        'view_kanban' => 'Kanban View',
+        'due_only' => 'Needs follow-up',
+        'follow_up' => 'Follow-up',
+        'overdue' => 'Overdue',
+        'due_today' => 'Due today',
+    ],
+    'status' => [
+        'new' => 'New',
+        'contacted' => 'Contacted',
+        'qualified' => 'Qualified',
+        'quoted' => 'Quoted',
+        'won' => 'Won',
+        'lost' => 'Lost',
+    ],
+    'source' => [
+        'manual' => 'Manual',
+        'website' => 'Website',
+    ],
+    'form' => [
+        'create_title' => 'New Lead',
+        'edit_title' => 'Edit Lead',
+        'country' => 'Country',
+        'locale' => 'Language',
+        'lost_reason' => 'Lost Reason',
+        'follow_up' => 'Follow-up Date',
+        'save' => 'Save',
+        'activity_log' => 'Activity Log',
+        'no_activity' => 'No activity yet',
+    ],
+    'public' => [
+        'title' => 'Contact Us',
+        'submit' => 'Submit',
+        'thanks' => 'Thank you, our team will reach out shortly.',
+    ],
+];
