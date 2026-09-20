@@ -10,7 +10,7 @@ class PackageBookingPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('booking.manage');
+        return $user->can('booking.manage') || $user->can('payment.verify');
     }
 
     public function view(User $user, PackageBooking $booking): bool

@@ -12,16 +12,12 @@ class Customer extends Model
     protected $fillable = [
         'user_id',
         'full_name',
-        'phone',
         'nationality',
         'passport_number',
-        'preferences',
     ];
 
     protected $casts = [
-        'preferences' => 'array',
         'passport_number' => 'encrypted',
-        'phone' => 'encrypted',
     ];
 
     public function user()

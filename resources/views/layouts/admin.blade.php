@@ -50,6 +50,13 @@
                 <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.dashboard') }}</span>
             </a>
 
+            @canany(['report.margin.view', 'lead.manage', 'booking.manage', 'payment.verify'])
+            <a href="{{ route('admin.reports.index') }}" class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.reports') }}</span>
+            </a>
+            @endcanany
+
             @canany(['booking.manage', 'payment.verify'])
             <x-ui.nav-group key="operations" :label="__('nav.operations')" :active="request()->routeIs(['admin.bookings.*', 'admin.payments.*'])">
                 @can('booking.manage')
@@ -112,6 +119,50 @@
             </x-ui.nav-group>
             @endcan
 
+            @can('driver.assign')
+            <x-ui.nav-group key="fleet" :label="__('nav.fleet')" :active="request()->routeIs('admin.fleet.*')">
+                <a href="{{ route('admin.fleet.calendar') }}" class="sidebar-link {{ request()->routeIs('admin.fleet.calendar') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.fleet_calendar') }}</span>
+                </a>
+                <a href="{{ route('admin.fleet.drivers') }}" class="sidebar-link {{ request()->routeIs('admin.fleet.drivers') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.drivers') }}</span>
+                </a>
+                <a href="{{ route('admin.fleet.vehicles') }}" class="sidebar-link {{ request()->routeIs('admin.fleet.vehicles') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.vehicles') }}</span>
+                </a>
+            </x-ui.nav-group>
+            @endcan
+
+            @if(auth()->user()->can('payment.verify') || auth()->user()->can('report.margin.view'))
+            <x-ui.nav-group key="finance" :label="__('nav.finance')" :active="request()->routeIs('admin.finance.*')">
+                @can('payment.verify')
+                <a href="{{ route('admin.finance.payments') }}" class="sidebar-link {{ request()->routeIs('admin.finance.payments') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.payments') }}</span>
+                </a>
+                @endcan
+                <a href="{{ route('admin.finance.receivables') }}" class="sidebar-link {{ request()->routeIs('admin.finance.receivables') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.receivables') }}</span>
+                </a>
+                @can('payment.verify')
+                <a href="{{ route('admin.finance.vendor-payments') }}" class="sidebar-link {{ request()->routeIs('admin.finance.vendor-payments') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.vendor_payments') }}</span>
+                </a>
+                @endcan
+                @can('report.margin.view')
+                <a href="{{ route('admin.finance.margin-report') }}" class="sidebar-link {{ request()->routeIs('admin.finance.margin-report') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.margin_report') }}</span>
+                </a>
+                @endcan
+            </x-ui.nav-group>
+            @endif
+
             @can('lead.manage')
             <x-ui.nav-group key="leads" :label="__('nav.leads')" :active="request()->routeIs('admin.leads.*')">
                 <a href="{{ route('admin.leads.index') }}" class="sidebar-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}">
@@ -134,14 +185,22 @@
             </x-ui.nav-group>
             @endcan
 
-            @can('user.manage')
-            <x-ui.nav-group key="administration" :label="__('nav.administration')" :active="request()->routeIs('admin.users.*')">
+            @canany(['user.manage', 'activitylog.view'])
+            <x-ui.nav-group key="administration" :label="__('nav.administration')" :active="request()->routeIs('admin.users.*') || request()->routeIs('admin.security.*')">
+                @can('user.manage')
                 <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 10-8 0"></path></svg>
                     <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.users') }}</span>
                 </a>
+                @endcan
+                @can('activitylog.view')
+                <a href="{{ route('admin.security.audit-logs.index') }}" class="sidebar-link {{ request()->routeIs('admin.security.*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.audit_logs') }}</span>
+                </a>
+                @endcan
             </x-ui.nav-group>
-            @endcan
+            @endcanany
         </nav>
 
         <!-- User info at bottom -->
@@ -183,6 +242,7 @@
                 str_starts_with($routeName, 'admin.pricing')                 => 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
                 str_starts_with($routeName, 'admin.users')                   => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 10-8 0',
                 str_starts_with($routeName, 'admin.dashboard')               => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+                str_starts_with($routeName, 'admin.reports')                 => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
                 default                                                       => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
             };
         @endphp

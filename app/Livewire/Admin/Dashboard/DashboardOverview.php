@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Livewire\Admin\Dashboard;
+
+use App\Domain\Booking\Models\PackageBooking;
+use App\Domain\Lead\Models\Lead;
+use App\Domain\Reporting\Services\DashboardMetricsService;
+use App\Domain\Reporting\Services\ReportExportService;
+use App\Models\Branch;
+use App\Support\Branch\CurrentBranch;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class DashboardOverview extends Component
+{
+    public ?int $branchId = null;
+
+    public string $period = DashboardMetricsService::PERIOD_THIS_MONTH;
+
+    public ?string $customStart = null;
+
+    public ?string $customEnd = null;
+
+    protected $queryString = [
+        'period' => ['except' => DashboardMetricsService::PERIOD_THIS_MONTH],
+        'branchId' => ['except' => null],
+    ];
+
+    public function mount(): void
+    {
+        $user = Auth::user();
+
+        if (! $user || ! $user->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+        } else {
+            $this->branchId = session('active_branch_id', CurrentBranch::id());
+        }
+    }
+
+    public function updatedPeriod(): void
+    {
+        if ($this->period !== DashboardMetricsService::PERIOD_CUSTOM) {
+            $this->customStart = null;
+            $this->customEnd = null;
+        }
+    }
+
+    public function setPeriod(string $newPeriod): void
+    {
+        $this->period = $newPeriod;
+    }
+
+    public function setBranch(?int $newBranchId): void
+    {
+        if (Auth::user()?->can('branch.switch')) {
+            $this->branchId = ($newBranchId && $newBranchId > 0) ? $newBranchId : null;
+        }
+    }
+
+    public function export(string $type = 'sales'): StreamedResponse
+    {
+        $service = new DashboardMetricsService;
+        [$startDate, $endDate] = $service->resolveDateRange($this->period, $this->customStart, $this->customEnd);
+        $exportService = new ReportExportService;
+
+        $branchQuery = function ($query) {
+            if ($this->branchId) {
+                $query->withoutGlobalScopes()->where('branch_id', $this->branchId);
+            }
+        };
+
+        $dateRange = now()->format('Ymd');
+        $branchTag = $this->branchId ? "cabang-{$this->branchId}" : 'gabungan';
+
+        if ($type === 'leads') {
+            $leads = Lead::query()
+                ->tap($branchQuery)
+                ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+                ->latest()
+                ->get();
+
+            $content = $exportService->exportLeadConversion($leads);
+            $filename = "laporan-konversi-lead-{$branchTag}-{$dateRange}.csv";
+        } elseif ($type === 'operations') {
+            $bookings = PackageBooking::query()
+                ->tap($branchQuery)
+                ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+                ->latest()
+                ->get();
+
+            $content = $exportService->exportBookings($bookings);
+            $filename = "laporan-operasional-{$branchTag}-{$dateRange}.csv";
+        } else {
+            abort_unless(Auth::user()?->can('report.margin.view') || Auth::user()?->can('payment.verify'), 403);
+
+            $bookings = PackageBooking::query()
+                ->with(['payments', 'vendorPayments', 'quotation.items', 'quotation.lead', 'quotation.package'])
+                ->tap($branchQuery)
+                ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+                ->latest()
+                ->get();
+
+            $content = $exportService->exportSalesMargin($bookings);
+            $filename = "laporan-penjualan-margin-{$branchTag}-{$dateRange}.csv";
+        }
+
+        return response()->streamDownload(function () use ($content) {
+            echo $content;
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function render(): View
+    {
+        $metricsService = new DashboardMetricsService;
+        $metrics = $metricsService->getMetrics(
+            $this->branchId,
+            $this->period,
+            $this->customStart,
+            $this->customEnd
+        );
+
+        $branches = Branch::where('is_active', true)->get(['id', 'name', 'code']);
+
+        $canViewFinancials = Auth::user()?->can('report.margin.view') || Auth::user()?->can('payment.verify');
+        $canSwitchBranch = (bool) Auth::user()?->can('branch.switch');
+
+        return view('livewire.admin.dashboard.dashboard-overview', [
+            'metrics' => $metrics,
+            'branches' => $branches,
+            'canViewFinancials' => $canViewFinancials,
+            'canSwitchBranch' => $canSwitchBranch,
+        ]);
+    }
+}

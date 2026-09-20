@@ -15,6 +15,15 @@ return [
         'view_calendar' => 'عرض التقويم',
         'no_data' => 'لا توجد حجوزات بعد',
         'view' => 'عرض',
+        'calendar_days' => [
+            'mon' => 'إث',
+            'tue' => 'ثل',
+            'wed' => 'أر',
+            'thu' => 'خم',
+            'fri' => 'جم',
+            'sat' => 'سب',
+            'sun' => 'أح',
+        ],
     ],
     'status' => [
         'draft' => 'مسودة',

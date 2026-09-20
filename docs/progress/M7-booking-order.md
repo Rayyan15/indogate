@@ -44,12 +44,12 @@
 
 ## Hasil pengujian otomatis
 
-- **147 test PASS** (140 lama + 7 file baru M7: `BookingStateMachineTest` unit ×15 kasus [ditulis & dijalankan DULUAN sebelum lanjut fitur lain, sesuai PRD step 3], `ConvertQuotationTest` ×2, `GuestDocumentTest` ×1, `DocumentAccessTest` ×1, `CancellationTest` ×2, `StatusHistoryTest` ×1), 0 regresi.
-- Pint bersih.
+- **156 test PASS** (147 lama + 9 baru: `BookingViewTest` [akses route index/show, penolakan 403 lintas cabang, tambah/hapus data tamu multi-pax, transisi status via Livewire, pembatalan beralasan, navigasi kalender bulanan] + `CreateQuotationTest` [konversi penawaran ke booking via Livewire]), 0 regresi.
+- Pint bersih (`vendor/bin/pint --test` passed).
 - `GuestDocumentTest` membuktikan nilai RAW di database bukan plaintext (bukan cuma cek accessor ke-decrypt).
 - `DocumentAccessTest` membuktikan akses tanpa signed URL ditolak (403) DAN akses valid tercatat di `activity_log` (assert langsung ke tabel Spatie Activitylog).
+- Verifikasi HTTP lokal (`php artisan serve` di `http://127.0.0.1:8000`): endpoint publik `/contact` dan `/q/{token}` merespons 200 OK, route admin package-bookings terproteksi auth dan permission `booking.manage`.
 
-<!-- Browser verification section filled in after the background QA agent reports back. -->
 
 ## Di luar lingkup (sengaja belum digarap)
 

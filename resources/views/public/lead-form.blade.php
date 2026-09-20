@@ -23,15 +23,18 @@
 
             <div>
                 <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('lead.list.name') }}</label>
-                <input type="text" name="name" required class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+                <input type="text" name="name" value="{{ old('name') }}" required class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+                @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('lead.list.phone') }}</label>
-                <input type="text" name="phone" required class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+                <input type="text" name="phone" value="{{ old('phone') }}" required class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+                @error('phone') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('lead.form.country') }}</label>
-                <input type="text" name="country" class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+                <input type="text" name="country" value="{{ old('country') }}" class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+                @error('country') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
             <button type="submit" class="w-full rounded bg-neutral-900 px-4 py-3 text-sm font-medium text-neutral-0">{{ __('lead.public.submit') }}</button>
         </form>

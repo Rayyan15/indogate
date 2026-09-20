@@ -9,6 +9,6 @@
             <h1 class="font-display text-3xl font-light tracking-tight text-neutral-900 md:text-4xl [text-wrap:balance]">{{ $title }}</h1>
             @if($lede)<p class="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-500">{{ $lede }}</p>@endif
         </div>
-        @isset($actions)<div class="flex shrink-0 items-center gap-2">{{ $actions }}</div>@endisset
+        @isset($actions)<div class="flex flex-wrap items-center gap-2">{{ $actions }}</div>@endisset
     </div>
 </header>

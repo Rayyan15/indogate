@@ -1,0 +1,215 @@
+<?php
+
+namespace App\Livewire\Admin\Reporting;
+
+use App\Domain\Booking\Models\PackageBooking;
+use App\Domain\Catalog\Models\Partner;
+use App\Domain\Finance\Services\MarginReportService;
+use App\Domain\Fleet\Models\DriverAssignment;
+use App\Domain\Lead\Models\Lead;
+use App\Domain\Reporting\Services\DashboardMetricsService;
+use App\Domain\Reporting\Services\ReportExportService;
+use App\Models\Branch;
+use App\Models\Driver;
+use App\Models\Vehicle;
+use App\Support\Branch\CurrentBranch;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class ReportsCenter extends Component
+{
+    use WithPagination;
+
+    public string $activeTab = 'sales_margin'; // 'sales_margin', 'lead_conversion', 'operations'
+
+    public ?int $branchId = null;
+
+    public string $period = DashboardMetricsService::PERIOD_THIS_MONTH;
+
+    public ?string $customStart = null;
+
+    public ?string $customEnd = null;
+
+    public string $search = '';
+
+    protected $queryString = [
+        'activeTab' => ['except' => 'sales_margin'],
+        'period' => ['except' => DashboardMetricsService::PERIOD_THIS_MONTH],
+        'branchId' => ['except' => null],
+        'search' => ['except' => ''],
+    ];
+
+    public function mount(): void
+    {
+        $user = Auth::user();
+
+        if (! $user || ! $user->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+        } else {
+            $this->branchId = session('active_branch_id', CurrentBranch::id());
+        }
+
+        // If CS Admin doesn't have report.margin.view, default to lead_conversion tab
+        if (! $user?->can('report.margin.view') && ! $user?->can('payment.verify')) {
+            $this->activeTab = 'lead_conversion';
+        }
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+        $this->resetPage();
+    }
+
+    public function updatingPeriod(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingBranchId(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function export(): StreamedResponse
+    {
+        $service = new DashboardMetricsService;
+        [$startDate, $endDate] = $service->resolveDateRange($this->period, $this->customStart, $this->customEnd);
+        $exportService = new ReportExportService;
+
+        $branchQuery = function ($query) {
+            if ($this->branchId) {
+                $query->withoutGlobalScopes()->where('branch_id', $this->branchId);
+            }
+        };
+
+        $dateRange = now()->format('Ymd');
+        $branchTag = $this->branchId ? "cabang-{$this->branchId}" : 'gabungan';
+
+        if ($this->activeTab === 'lead_conversion') {
+            $leads = Lead::query()
+                ->tap($branchQuery)
+                ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+                ->latest()
+                ->get();
+
+            $content = $exportService->exportLeadConversion($leads);
+            $filename = "laporan-konversi-lead-{$branchTag}-{$dateRange}.csv";
+        } elseif ($this->activeTab === 'operations') {
+            $bookings = PackageBooking::query()
+                ->tap($branchQuery)
+                ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+                ->latest()
+                ->get();
+
+            $content = $exportService->exportBookings($bookings);
+            $filename = "laporan-operasional-{$branchTag}-{$dateRange}.csv";
+        } else {
+            abort_unless(Auth::user()?->can('report.margin.view') || Auth::user()?->can('payment.verify'), 403);
+
+            $bookings = PackageBooking::query()
+                ->with(['payments', 'vendorPayments', 'quotation.items', 'quotation.lead', 'quotation.package', 'branch'])
+                ->tap($branchQuery)
+                ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+                ->latest()
+                ->get();
+
+            $content = $exportService->exportSalesMargin($bookings);
+            $filename = "laporan-penjualan-margin-{$branchTag}-{$dateRange}.csv";
+        }
+
+        return response()->streamDownload(function () use ($content) {
+            echo $content;
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function render(): View
+    {
+        $metricsService = new DashboardMetricsService;
+        [$startDate, $endDate] = $metricsService->resolveDateRange($this->period, $this->customStart, $this->customEnd);
+
+        $branches = Branch::where('is_active', true)->get(['id', 'name', 'code']);
+        $canViewFinancials = Auth::user()?->can('report.margin.view') || Auth::user()?->can('payment.verify');
+        $canSwitchBranch = (bool) Auth::user()?->can('branch.switch');
+
+        $data = [];
+
+        if ($this->activeTab === 'sales_margin' && $canViewFinancials) {
+            $bookingsQuery = PackageBooking::query()
+                ->with(['quotation.package', 'quotation.lead', 'payments', 'vendorPayments', 'quotation.items', 'branch'])
+                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+                ->when($this->search !== '', function ($q) {
+                    $escaped = addcslashes($this->search, '%_\\');
+                    $q->where(function ($sq) use ($escaped) {
+                        $sq->where('code', 'like', "%{$escaped}%")
+                            ->orWhereHas('quotation.lead', fn ($lq) => $lq->where('name', 'like', "%{$escaped}%"));
+                    });
+                })
+                ->latest('departure_date');
+
+            $data['bookings'] = $bookingsQuery->paginate(15);
+            $allBookings = (clone $bookingsQuery)->get();
+            $marginService = new MarginReportService;
+            $data['summary'] = $marginService->computeOverallSummary($allBookings);
+            $data['package_performance'] = $metricsService->getPackagePerformance($this->branchId, $startDate, $endDate);
+        } elseif ($this->activeTab === 'lead_conversion') {
+            $leadsQuery = Lead::query()
+                ->with(['assignee', 'quotations'])
+                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+                ->when($this->search !== '', function ($q) {
+                    $escaped = addcslashes($this->search, '%_\\');
+                    $q->where('name', 'like', "%{$escaped}%")
+                        ->orWhere('phone', 'like', "%{$escaped}%");
+                })
+                ->latest();
+
+            $data['leads'] = $leadsQuery->paginate(15);
+            $data['funnel'] = $metricsService->getLeadFunnelMetrics($this->branchId, $startDate, $endDate);
+        } elseif ($this->activeTab === 'operations') {
+            $data['operations_stats'] = $metricsService->getOperationalStats($this->branchId, $startDate, $endDate);
+
+            $assignmentsQuery = DriverAssignment::query()
+                ->with(['driver', 'vehicle', 'booking.quotation.lead', 'branch'])
+                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->when($startDate, fn ($q) => $q->where('date_from', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('date_to', '<=', $endDate))
+                ->latest('date_from');
+
+            $data['assignments'] = $assignmentsQuery->paginate(15);
+            $data['drivers'] = Driver::query()
+                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->get();
+            $data['vehicles'] = Vehicle::query()
+                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->get();
+            $data['hotel_partners'] = Partner::query()
+                ->where('type', 'hotel')
+                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->get();
+        }
+
+        return view('livewire.admin.reporting.reports-center', [
+            'branches' => $branches,
+            'canViewFinancials' => $canViewFinancials,
+            'canSwitchBranch' => $canSwitchBranch,
+            'data' => $data,
+        ]);
+    }
+}

@@ -15,6 +15,15 @@ return [
         'view_calendar' => 'Calendar View',
         'no_data' => 'No bookings yet',
         'view' => 'View',
+        'calendar_days' => [
+            'mon' => 'Mo',
+            'tue' => 'Tu',
+            'wed' => 'We',
+            'thu' => 'Th',
+            'fri' => 'Fr',
+            'sat' => 'Sa',
+            'sun' => 'Su',
+        ],
     ],
     'status' => [
         'draft' => 'Draft',

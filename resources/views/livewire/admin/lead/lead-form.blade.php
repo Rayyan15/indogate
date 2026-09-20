@@ -18,6 +18,7 @@
             <div>
                 <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('lead.form.country') }}</label>
                 <input type="text" wire:model="country" class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+                @error('country') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('lead.form.locale') }}</label>
@@ -26,6 +27,7 @@
                     <option value="en">English</option>
                     <option value="ar">العربية</option>
                 </select>
+                @error('locale') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
             </div>
         </div>
 
@@ -37,6 +39,7 @@
                         <option value="{{ $s->value }}">{{ __('lead.source.'.$s->value) }}</option>
                     @endforeach
                 </select>
+                @error('source') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('lead.list.status') }}</label>
@@ -45,6 +48,7 @@
                         <option value="{{ $s->value }}">{{ __('lead.status.'.$s->value) }}</option>
                     @endforeach
                 </select>
+                @error('status') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
             </div>
         </div>
 
@@ -56,6 +60,7 @@
                     <option value="{{ $u->id }}">{{ $u->name }}</option>
                 @endforeach
             </select>
+            @error('assigned_to') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
         </div>
 
         @if($status === 'lost')

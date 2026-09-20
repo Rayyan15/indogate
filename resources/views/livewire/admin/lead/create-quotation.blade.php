@@ -16,16 +16,19 @@
         <div>
             <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('quotation.form.pax') }}</label>
             <input type="number" min="1" wire:model="pax" class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+            @error('pax') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
         </div>
 
         <div>
             <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('quotation.form.preview_date') }}</label>
             <input type="date" wire:model="preview_date" class="w-full rounded border border-neutral-300 px-3 py-2 text-sm">
+            @error('preview_date') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
         </div>
 
         <div>
             <label class="mb-1 block text-xs font-medium text-neutral-600">{{ __('quotation.form.currency') }}</label>
             <input type="text" maxlength="3" wire:model="currency" class="w-full rounded border border-neutral-300 px-3 py-2 text-sm uppercase">
+            @error('currency') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
         </div>
 
         <div>
@@ -35,6 +38,7 @@
                     <option value="{{ $c->value }}">{{ $c->value }}</option>
                 @endforeach
             </select>
+            @error('channel') <p class="mt-1 text-xs text-danger">{{ $message }}</p> @enderror
         </div>
 
         <div class="col-span-2">
@@ -68,7 +72,7 @@
                         </div>
 
                         @if($convertingQuotationId === $q->id)
-                            <form wire:submit="convertToBooking" class="mt-2 flex items-end gap-2 rounded border border-neutral-200 bg-neutral-50 p-2">
+                            <form wire:submit="convertToBooking" class="mt-2 flex flex-wrap items-end gap-2 rounded border border-neutral-200 bg-neutral-50 p-2">
                                 <div>
                                     <label class="mb-1 block text-[10px] font-medium text-neutral-600">{{ __('quotation.form.departure_date') }}</label>
                                     <input type="date" wire:model="convert_departure_date" class="rounded border border-neutral-300 px-2 py-1 text-xs">

@@ -91,8 +91,19 @@ class UserForm extends Component
             $user->password = Hash::make($validated['password']);
         }
 
+        $isUpdate = (bool) $this->userId;
         $user->save();
         $user->syncRoles([$validated['role']]);
+
+        activity('security')
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->withProperties([
+                'role' => $validated['role'],
+                'branch_id' => $validated['branch_id'],
+                'is_active' => $validated['is_active'],
+            ])
+            ->log($isUpdate ? 'User updated' : 'User created');
 
         $this->dispatch('user-saved');
         $this->dispatch('close-modal', 'user-form');

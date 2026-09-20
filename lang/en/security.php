@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'audit_logs' => 'Audit & Activity Logs',
+    'audit_logs_lede' => 'Traceable history of sensitive actions, authentication security, and system modifications.',
+    'filter_log_name' => 'Module / Channel',
+    'filter_causer' => 'Actor / User',
+    'filter_all_modules' => 'All Modules',
+    'filter_all_actors' => 'All Users',
+    'search_placeholder' => 'Search description, IP, or subject...',
+    'date_from' => 'From Date',
+    'date_to' => 'To Date',
+    'time' => 'Timestamp',
+    'channel' => 'Module',
+    'actor' => 'Actor',
+    'description' => 'Action Description',
+    'subject' => 'Related Subject',
+    'ip_address' => 'IP Address',
+    'details' => 'Details',
+    'system' => 'System',
+    'empty_logs' => 'No activity log entries found matching criteria.',
+    'modal_details_title' => 'Audit Log Metadata Details',
+    'properties' => 'Properties & Data Changes',
+    'close' => 'Close',
+];

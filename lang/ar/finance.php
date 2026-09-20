@@ -1,0 +1,94 @@
+<?php
+
+return [
+    'finance' => 'المالية والمدفوعات',
+    'payments' => 'المدفوعات الواردة',
+    'receivables' => 'حسابات المدينين',
+    'vendor_payments' => 'مدفوعات الموردين',
+    'margin_report' => 'تقرير الهامش الفعلي',
+
+    // Documents
+    'invoice' => 'فاتورة',
+    'receipt' => 'إيصال دفع',
+    'invoice_number' => 'رقم الفاتورة',
+    'receipt_number' => 'رقم الإيصال',
+    'date' => 'التاريخ',
+    'status' => 'الحالة',
+    'billed_to' => 'فاتورة إلى',
+    'guest_lead' => 'اسم الضيف / العميل',
+    'contact' => 'الاتصال',
+    'nationality' => 'الجنسية',
+    'booking_details' => 'تفاصيل الحجز',
+    'booking_code' => 'رمز الحجز',
+    'departure_date' => 'تاريخ المغادرة',
+    'return_date' => 'تاريخ العودة',
+    'package_breakdown' => 'تفاصيل الباقة والخدمات',
+    'item_description' => 'وصف البند',
+    'quantity' => 'الكمية',
+    'subtotal' => 'المجموع الفرعي',
+    'travel_package' => 'باقة السفر',
+    'payment_terms' => 'شروط الدفع',
+    'terms_note' => 'يلزم دفع عربون 30% على الأقل لتأكيد الحجز. يجب سداد كامل المبلغ قبل 7 أيام من موعد السفر.',
+    'total_billed' => 'إجمالي الفاتورة',
+    'total_paid' => 'إجمالي المدفوع',
+    'remaining_balance' => 'المبلغ المتبقي',
+    'amount_received' => 'المبلغ المستلم',
+    'received_from' => 'مستلم من',
+    'payment_type' => 'نوع الدفع',
+    'payment_info' => 'معلومات الدفع',
+    'channel' => 'قناة الدفع',
+    'verified_by' => 'تم التحقق بواسطة',
+    'notes' => 'ملاحظات',
+    'authorized_officer' => 'الموظف المعتمد',
+
+    // Types
+    'type_down_payment' => 'عربون (دفعة أولى)',
+    'type_full_payment' => 'دفعة كاملة (100%)',
+    'type_installment' => 'قسط مجدول',
+
+    // Statuses
+    'status_pending' => 'قيد التحقق',
+    'status_verified' => 'تم التحقق',
+    'status_rejected' => 'مرفوض',
+
+    // Actions & Form
+    'record_payment' => 'تسجيل الدفع',
+    'verify_payment' => 'التحقق من الدفع',
+    'reject_payment' => 'رفض الدفع',
+    'process_refund' => 'معالجة الاسترداد',
+    'record_vendor_payment' => 'تسجيل دفع المورد',
+    'amount' => 'مبلغ الدفع',
+    'currency' => 'العملة',
+    'fx_rate' => 'سعر الصرف إلى الروبية',
+    'idr_equivalent' => 'ما يعادلها بالروبية (IDR)',
+    'payment_proof' => 'إثبات التحويل / المستند',
+    'view_proof' => 'عرض إثبات التحويل',
+    'download_proof' => 'تحميل الإثبات',
+    'rejection_reason' => 'سبب الرفض',
+    'refund_reason' => 'سبب الاسترداد',
+    'paid_at' => 'تاريخ الدفع',
+    'partner' => 'المورد الشريك',
+    'description' => 'الوصف',
+    'channel_fee' => 'رسوم القناة',
+
+    // Margin Report
+    'gross_revenue' => 'إجمالي الإيرادات',
+    'channel_fees' => 'رسوم القناة (MDR)',
+    'net_revenue' => 'صافي الإيرادات',
+    'vendor_costs' => 'تكلفة المورد (COGS)',
+    'actual_margin' => 'الهامش الفعلي',
+    'margin_percentage' => 'نسبة الهامش',
+    'overall_summary' => 'الملخص الشامل',
+
+    // Receivables
+    'accounts_receivable' => 'مستحقات الحجوزات',
+    'settled' => 'مسدد بالكامل',
+    'unpaid' => 'غير مسدد',
+
+    // Feedback
+    'payment_recorded_success' => 'تم تسجيل الدفعة بنجاح وفي انتظار تحقق الإدارة المالية.',
+    'payment_verified_success' => 'تم التحقق من الدفعة بنجاح وتحديث حالة الحجز.',
+    'payment_rejected_success' => 'تم رفض الدفعة بنجاح.',
+    'refund_processed_success' => 'تمت معالجة الاسترداد وتسجيله بنجاح.',
+    'vendor_payment_recorded_success' => 'تم تسجيل دفعة المورد بنجاح.',
+];

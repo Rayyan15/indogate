@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\BookingGuestDocumentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DriverController;
+use App\Http\Controllers\Admin\FinanceDocumentController;
+use App\Http\Controllers\Admin\FleetDutyLetterController;
 use App\Http\Controllers\Admin\FlightRouteController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\PaymentController;
@@ -18,13 +20,25 @@ use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\LeadCaptureController;
 use App\Http\Controllers\Public\QuotationController;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return redirect('/'.app()->getLocale());
 });
+
+if (app()->isLocal()) {
+    Route::get('/__dev-login/{id}', function ($id) {
+        $user = User::findOrFail($id);
+        Auth::login($user);
+        session(['active_branch_id' => $user->branch_id ?? 1]);
+
+        return redirect('/id/admin/dashboard');
+    });
+}
 
 Route::prefix('{locale}')
     ->whereIn('locale', array_keys(config('laravellocalization.supportedLocales')))
@@ -100,7 +114,7 @@ Route::prefix('{locale}')
                 Route::get('/{lead}/edit', fn (Lead $lead) => view('admin.lead.form', ['lead' => $lead]))->name('edit');
             });
 
-            Route::middleware('permission:booking.manage')->prefix('package-bookings')->name('package-bookings.')->group(function () {
+            Route::middleware('permission:booking.manage|payment.verify')->prefix('package-bookings')->name('package-bookings.')->group(function () {
                 Route::view('/', 'admin.booking.index')->name('index');
                 Route::get('/{packageBooking}', fn (PackageBooking $packageBooking) => view('admin.booking.show', ['packageBooking' => $packageBooking]))->name('show');
 
@@ -117,6 +131,54 @@ Route::prefix('{locale}')
 
                     return Storage::disk('local')->download($fullPath);
                 })->where('path', '[A-Za-z0-9_.\-]+')->middleware('signed')->name('voucher-download');
+            });
+
+            Route::middleware('permission:driver.assign')->prefix('fleet')->name('fleet.')->group(function () {
+                Route::view('/drivers', 'admin.fleet.drivers')->name('drivers');
+                Route::view('/vehicles', 'admin.fleet.vehicles')->name('vehicles');
+                Route::view('/calendar', 'admin.fleet.calendar')->name('calendar');
+
+                Route::get('/assignments/{assignment}/duty-letter', [FleetDutyLetterController::class, 'show'])
+                    ->middleware('signed')
+                    ->name('assignments.duty-letter');
+            });
+
+            Route::prefix('finance')->name('finance.')->group(function () {
+                Route::view('/payments', 'admin.finance.payments')
+                    ->middleware('can:payment.verify')
+                    ->name('payments');
+
+                Route::view('/receivables', 'admin.finance.receivables')
+                    ->middleware('permission:payment.verify|booking.manage')
+                    ->name('receivables');
+
+                Route::view('/vendor-payments', 'admin.finance.vendor-payments')
+                    ->middleware('can:payment.verify')
+                    ->name('vendor-payments');
+
+                Route::view('/margin-report', 'admin.finance.margin-report')
+                    ->middleware('permission:report.margin.view|payment.verify')
+                    ->name('margin-report');
+
+                Route::get('/invoices/{packageBooking}', [FinanceDocumentController::class, 'invoice'])
+                    ->name('invoice');
+
+                Route::get('/receipts/{payment}', [FinanceDocumentController::class, 'receipt'])
+                    ->name('receipt');
+
+                Route::get('/proofs/{payment}', [FinanceDocumentController::class, 'downloadProof'])
+                    ->middleware('signed')
+                    ->name('proofs.download');
+            });
+
+            Route::prefix('reports')->name('reports.')->middleware('permission:report.margin.view|lead.manage|booking.manage|payment.verify')->group(function () {
+                Route::view('/', 'admin.reporting.reports')->name('index');
+            });
+
+            Route::prefix('security')->name('security.')->group(function () {
+                Route::view('/audit-logs', 'admin.security.audit-logs')
+                    ->middleware('permission:activitylog.view')
+                    ->name('audit-logs.index');
             });
         });
 

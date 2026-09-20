@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'audit_logs' => 'Log Audit & Jejak Aktivitas',
+    'audit_logs_lede' => 'Catatan seluruh aksi sensitif pengguna, keamanan autentikasi, dan perubahan data sistem.',
+    'filter_log_name' => 'Modul / Kanal',
+    'filter_causer' => 'Aktor / Pengguna',
+    'filter_all_modules' => 'Semua Modul',
+    'filter_all_actors' => 'Semua Pengguna',
+    'search_placeholder' => 'Cari deskripsi, IP, atau subjek...',
+    'date_from' => 'Dari Tanggal',
+    'date_to' => 'Sampai Tanggal',
+    'time' => 'Waktu',
+    'channel' => 'Modul',
+    'actor' => 'Aktor',
+    'description' => 'Deskripsi Aksi',
+    'subject' => 'Subjek Terkait',
+    'ip_address' => 'Alamat IP',
+    'details' => 'Rincian',
+    'system' => 'Sistem',
+    'empty_logs' => 'Tidak ada catatan log aktivitas yang cocok dengan kriteria.',
+    'modal_details_title' => 'Rincian Metadata Log Audit',
+    'properties' => 'Properti & Perubahan Data',
+    'close' => 'Tutup',
+];

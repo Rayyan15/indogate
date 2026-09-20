@@ -69,7 +69,7 @@
             <button type="button" wire:click="nextMonth" class="rounded border border-neutral-300 px-2 py-1 text-xs">›</button>
         </div>
         <div class="grid grid-cols-7 gap-px overflow-hidden rounded border border-neutral-200 bg-neutral-200 text-xs">
-            @foreach(['Sn','Sl','Rb','Km','Jm','Sb','Mg'] as $dow)
+            @foreach(__('booking.list.calendar_days') as $dow)
                 <div class="bg-neutral-100 p-1.5 text-center font-medium text-neutral-500">{{ $dow }}</div>
             @endforeach
             @php $startOffset = $monthStart->dayOfWeekIso - 1; @endphp

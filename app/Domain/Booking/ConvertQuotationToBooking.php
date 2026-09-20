@@ -25,6 +25,7 @@ class ConvertQuotationToBooking
         return DB::transaction(function () use ($quotation, $departureDate, $returnDate, $actor) {
             $booking = PackageBooking::create([
                 'branch_id' => $quotation->branch_id,
+                'created_by' => $actor?->id,
                 'quotation_id' => $quotation->id,
                 'code' => $this->uniqueCode(),
                 'status' => BookingStatus::CONFIRMED,

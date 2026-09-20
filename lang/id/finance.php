@@ -1,0 +1,94 @@
+<?php
+
+return [
+    'finance' => 'Keuangan & Pembayaran',
+    'payments' => 'Pembayaran Masuk',
+    'receivables' => 'Daftar Piutang',
+    'vendor_payments' => 'Pembayaran Vendor',
+    'margin_report' => 'Laporan Margin Sesungguhnya',
+
+    // Documents
+    'invoice' => 'Faktur Tagihan',
+    'receipt' => 'Kwitansi Pembayaran',
+    'invoice_number' => 'Nomor Faktur',
+    'receipt_number' => 'Nomor Kwitansi',
+    'date' => 'Tanggal',
+    'status' => 'Status',
+    'billed_to' => 'Ditagihkan Kepada',
+    'guest_lead' => 'Nama Tamu / Pelanggan',
+    'contact' => 'Kontak',
+    'nationality' => 'Kewarganegaraan',
+    'booking_details' => 'Rincian Pemesanan',
+    'booking_code' => 'Kode Pemesanan',
+    'departure_date' => 'Tanggal Keberangkatan',
+    'return_date' => 'Tanggal Kepulangan',
+    'package_breakdown' => 'Rincian Paket & Layanan',
+    'item_description' => 'Deskripsi Item',
+    'quantity' => 'Jumlah',
+    'subtotal' => 'Subtotal',
+    'travel_package' => 'Paket Wisata',
+    'payment_terms' => 'Ketentuan Pembayaran',
+    'terms_note' => 'Pembayaran DP minimal 30% untuk konfirmasi paket. Pelunasan wajib diselesaikan paling lambat 7 hari sebelum keberangkatan.',
+    'total_billed' => 'Total Tagihan',
+    'total_paid' => 'Total Terbayar',
+    'remaining_balance' => 'Sisa Tagihan',
+    'amount_received' => 'Jumlah Diterima',
+    'received_from' => 'Diterima Dari',
+    'payment_type' => 'Jenis Pembayaran',
+    'payment_info' => 'Informasi Pembayaran',
+    'channel' => 'Kanal Pembayaran',
+    'verified_by' => 'Diverifikasi Oleh',
+    'notes' => 'Catatan',
+    'authorized_officer' => 'Petugas Berwenang',
+
+    // Types
+    'type_down_payment' => 'Uang Muka (DP)',
+    'type_full_payment' => 'Pelunasan Penuh (100%)',
+    'type_installment' => 'Cicilan Bertahap',
+
+    // Statuses
+    'status_pending' => 'Menunggu Verifikasi',
+    'status_verified' => 'Terverifikasi',
+    'status_rejected' => 'Ditolak',
+
+    // Actions & Form
+    'record_payment' => 'Catat Pembayaran',
+    'verify_payment' => 'Verifikasi Pembayaran',
+    'reject_payment' => 'Tolak Pembayaran',
+    'process_refund' => 'Proses Refund',
+    'record_vendor_payment' => 'Catat Pembayaran Vendor',
+    'amount' => 'Jumlah Pembayaran',
+    'currency' => 'Mata Uang',
+    'fx_rate' => 'Nilai Kurs ke IDR',
+    'idr_equivalent' => 'Ekuivalen Rupiah (IDR)',
+    'payment_proof' => 'Bukti Transfer / Dokumen',
+    'view_proof' => 'Lihat Bukti Transfer',
+    'download_proof' => 'Unduh Bukti Transfer',
+    'rejection_reason' => 'Alasan Penolakan',
+    'refund_reason' => 'Alasan Refund',
+    'paid_at' => 'Tanggal Bayar',
+    'partner' => 'Mitra Vendor',
+    'description' => 'Keterangan',
+    'channel_fee' => 'Biaya Kanal',
+
+    // Margin Report
+    'gross_revenue' => 'Pendapatan Kotor',
+    'channel_fees' => 'Biaya Kanal (MDR)',
+    'net_revenue' => 'Pendapatan Bersih',
+    'vendor_costs' => 'Biaya Modal Vendor (HPP)',
+    'actual_margin' => 'Margin Sesungguhnya',
+    'margin_percentage' => 'Persentase Margin',
+    'overall_summary' => 'Ringkasan Keseluruhan',
+
+    // Receivables
+    'accounts_receivable' => 'Piutang Pemesanan',
+    'settled' => 'Lunas',
+    'unpaid' => 'Belum Lunas',
+
+    // Feedback
+    'payment_recorded_success' => 'Pembayaran berhasil dicatat dan menunggu verifikasi Finance.',
+    'payment_verified_success' => 'Pembayaran berhasil diverifikasi dan status pemesanan diperbarui.',
+    'payment_rejected_success' => 'Pembayaran berhasil ditolak.',
+    'refund_processed_success' => 'Refund berhasil diproses dan dicatat dalam pembukuan.',
+    'vendor_payment_recorded_success' => 'Pembayaran vendor berhasil dicatat.',
+];

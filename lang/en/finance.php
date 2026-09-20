@@ -1,0 +1,94 @@
+<?php
+
+return [
+    'finance' => 'Finance & Payments',
+    'payments' => 'Incoming Payments',
+    'receivables' => 'Accounts Receivable',
+    'vendor_payments' => 'Vendor Payments',
+    'margin_report' => 'Actual Margin Report',
+
+    // Documents
+    'invoice' => 'Invoice',
+    'receipt' => 'Payment Receipt',
+    'invoice_number' => 'Invoice Number',
+    'receipt_number' => 'Receipt Number',
+    'date' => 'Date',
+    'status' => 'Status',
+    'billed_to' => 'Billed To',
+    'guest_lead' => 'Guest / Customer Name',
+    'contact' => 'Contact',
+    'nationality' => 'Nationality',
+    'booking_details' => 'Booking Details',
+    'booking_code' => 'Booking Code',
+    'departure_date' => 'Departure Date',
+    'return_date' => 'Return Date',
+    'package_breakdown' => 'Package & Services Breakdown',
+    'item_description' => 'Item Description',
+    'quantity' => 'Quantity',
+    'subtotal' => 'Subtotal',
+    'travel_package' => 'Travel Package',
+    'payment_terms' => 'Payment Terms',
+    'terms_note' => 'Down payment of at least 30% required for booking confirmation. Full balance must be settled at least 7 days before departure.',
+    'total_billed' => 'Total Billed',
+    'total_paid' => 'Total Paid',
+    'remaining_balance' => 'Remaining Balance',
+    'amount_received' => 'Amount Received',
+    'received_from' => 'Received From',
+    'payment_type' => 'Payment Type',
+    'payment_info' => 'Payment Information',
+    'channel' => 'Payment Channel',
+    'verified_by' => 'Verified By',
+    'notes' => 'Notes',
+    'authorized_officer' => 'Authorized Officer',
+
+    // Types
+    'type_down_payment' => 'Down Payment (DP)',
+    'type_full_payment' => 'Full Payment (100%)',
+    'type_installment' => 'Installment',
+
+    // Statuses
+    'status_pending' => 'Pending Verification',
+    'status_verified' => 'Verified',
+    'status_rejected' => 'Rejected',
+
+    // Actions & Form
+    'record_payment' => 'Record Payment',
+    'verify_payment' => 'Verify Payment',
+    'reject_payment' => 'Reject Payment',
+    'process_refund' => 'Process Refund',
+    'record_vendor_payment' => 'Record Vendor Payment',
+    'amount' => 'Payment Amount',
+    'currency' => 'Currency',
+    'fx_rate' => 'Exchange Rate to IDR',
+    'idr_equivalent' => 'Rupiah Equivalent (IDR)',
+    'payment_proof' => 'Proof of Transfer / Document',
+    'view_proof' => 'View Transfer Proof',
+    'download_proof' => 'Download Proof',
+    'rejection_reason' => 'Rejection Reason',
+    'refund_reason' => 'Refund Reason',
+    'paid_at' => 'Payment Date',
+    'partner' => 'Vendor Partner',
+    'description' => 'Description',
+    'channel_fee' => 'Channel Fee',
+
+    // Margin Report
+    'gross_revenue' => 'Gross Revenue',
+    'channel_fees' => 'Channel Fees (MDR)',
+    'net_revenue' => 'Net Revenue',
+    'vendor_costs' => 'Vendor Cost (COGS)',
+    'actual_margin' => 'Actual Margin',
+    'margin_percentage' => 'Margin Percentage',
+    'overall_summary' => 'Overall Summary',
+
+    // Receivables
+    'accounts_receivable' => 'Accounts Receivable',
+    'settled' => 'Settled',
+    'unpaid' => 'Unpaid',
+
+    // Feedback
+    'payment_recorded_success' => 'Payment recorded successfully and awaiting Finance verification.',
+    'payment_verified_success' => 'Payment verified successfully and booking status updated.',
+    'payment_rejected_success' => 'Payment rejected successfully.',
+    'refund_processed_success' => 'Refund processed and recorded successfully.',
+    'vendor_payment_recorded_success' => 'Vendor payment recorded successfully.',
+];

@@ -15,6 +15,15 @@ return [
         'view_calendar' => 'Tampilan Kalender',
         'no_data' => 'Belum ada pemesanan',
         'view' => 'Lihat',
+        'calendar_days' => [
+            'mon' => 'Sn',
+            'tue' => 'Sl',
+            'wed' => 'Rb',
+            'thu' => 'Km',
+            'fri' => 'Jm',
+            'sat' => 'Sb',
+            'sun' => 'Mg',
+        ],
     ],
     'status' => [
         'draft' => 'Draf',

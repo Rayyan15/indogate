@@ -6,6 +6,14 @@ use App\Domain\Booking\BookingStateMachine;
 use App\Domain\Booking\Exceptions\InvalidBookingTransitionException;
 use App\Domain\Booking\Models\BookingGuest;
 use App\Domain\Booking\Models\PackageBooking;
+use App\Domain\Finance\Exceptions\PaymentVerificationException;
+use App\Domain\Finance\Exceptions\SelfApprovalException;
+use App\Domain\Finance\Models\Payment;
+use App\Domain\Finance\Services\PaymentService;
+use App\Domain\Fleet\Exceptions\ScheduleConflictException;
+use App\Domain\Fleet\Models\DriverAssignment;
+use App\Domain\Fleet\Services\AssignmentService;
+use App\Domain\Pricing\Models\ExchangeRate;
 use App\Enums\BookingStatus;
 use App\Jobs\GenerateBookingVoucher;
 use Illuminate\Contracts\View\View;
@@ -47,16 +55,76 @@ class PackageBookingShow extends Component
 
     public ?string $downloadUrl = null;
 
+    // Driver & Fleet Assignment
+    public string $driver_gender_preference = '';
+
+    public ?int $selected_driver_id = null;
+
+    public ?int $selected_vehicle_id = null;
+
+    public ?string $assignment_date_from = null;
+
+    public ?string $assignment_date_to = null;
+
+    public string $assignment_notes = '';
+
+    public bool $showCancelAssignmentModal = false;
+
+    public ?int $cancellingAssignmentId = null;
+
+    public string $cancel_assignment_reason = '';
+
+    // Finance & Payment
+    public bool $showPaymentModal = false;
+
+    public string $payment_type = 'down_payment';
+
+    public int $payment_amount_minor = 0;
+
+    public string $payment_currency = 'IDR';
+
+    public float $payment_fx_rate = 1.0;
+
+    public string $payment_channel = 'manual_transfer';
+
+    public string $payment_notes = '';
+
+    public $paymentProofFile = null;
+
+    public bool $showRefundModal = false;
+
+    public ?int $refundingPaymentId = null;
+
+    public int $refund_amount_minor = 0;
+
+    public string $refund_reason = '';
+
+    public ?string $financeError = null;
+
+    public ?string $financeSuccess = null;
+
     public function mount(PackageBooking $packageBooking): void
     {
         $this->authorize('view', $packageBooking);
         $this->bookingId = $packageBooking->id;
+        $this->driver_gender_preference = $packageBooking->driver_gender_preference ?? '';
+        $this->assignment_date_from = $packageBooking->departure_date->toDateString();
+        $this->assignment_date_to = ($packageBooking->return_date ?? $packageBooking->departure_date)->toDateString();
+        $this->payment_currency = $packageBooking->currency;
     }
 
     private function booking(): PackageBooking
     {
-        return PackageBooking::with(['guests', 'notes.user', 'statusHistories.user', 'quotation.lead'])
-            ->findOrFail($this->bookingId);
+        return PackageBooking::with([
+            'guests',
+            'notes.user',
+            'statusHistories.user',
+            'quotation.lead',
+            'activeAssignment.driver',
+            'activeAssignment.vehicle',
+            'assignments.driver',
+            'assignments.vehicle',
+        ])->findOrFail($this->bookingId);
     }
 
     public function addGuest(): void
@@ -181,14 +249,246 @@ class PackageBookingShow extends Component
         }
     }
 
+    public function updateGenderPreference(string $pref): void
+    {
+        $booking = $this->booking();
+        $this->authorize('update', $booking);
+
+        $val = in_array($pref, ['male', 'female']) ? $pref : null;
+        $booking->update(['driver_gender_preference' => $val]);
+        $this->driver_gender_preference = $val ?? '';
+        $this->selected_driver_id = null;
+    }
+
+    public function assignDriver(): void
+    {
+        abort_unless(Auth::user()->can('driver.assign'), 403);
+
+        $booking = $this->booking();
+
+        $this->validate([
+            'selected_driver_id' => ['required', 'integer'],
+            'selected_vehicle_id' => ['nullable', 'integer'],
+            'assignment_date_from' => ['required', 'date'],
+            'assignment_date_to' => ['required', 'date', 'after_or_equal:assignment_date_from'],
+            'assignment_notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            (new AssignmentService)->assign(
+                $booking,
+                $this->selected_driver_id,
+                $this->selected_vehicle_id,
+                $this->assignment_date_from,
+                $this->assignment_date_to,
+                $this->assignment_notes ?: null
+            );
+
+            $this->reset(['selected_driver_id', 'selected_vehicle_id', 'assignment_notes']);
+        } catch (ScheduleConflictException $e) {
+            $this->addError('driver_assignment', $e->getMessage());
+        } catch (\InvalidArgumentException $e) {
+            $this->addError('driver_assignment', $e->getMessage());
+        }
+    }
+
+    public function openCancelAssignmentModal(int $assignmentId): void
+    {
+        $this->cancellingAssignmentId = $assignmentId;
+        $this->cancel_assignment_reason = '';
+        $this->showCancelAssignmentModal = true;
+    }
+
+    public function cancelAssignment(): void
+    {
+        abort_unless(Auth::user()->can('driver.assign'), 403);
+
+        $this->validate([
+            'cancel_assignment_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $assignment = DriverAssignment::findOrFail($this->cancellingAssignmentId);
+        $this->authorize('update', $assignment);
+
+        (new AssignmentService)->cancel(
+            $assignment,
+            $this->cancel_assignment_reason
+        );
+
+        $this->showCancelAssignmentModal = false;
+        $this->reset(['cancellingAssignmentId', 'cancel_assignment_reason']);
+    }
+
+    public function dutyLetterUrl(DriverAssignment $assignment): string
+    {
+        return URL::temporarySignedRoute(
+            'admin.fleet.assignments.duty-letter',
+            now()->addMinutes(60),
+            ['assignment' => $assignment->id]
+        );
+    }
+
+    public function openRecordPaymentModal(): void
+    {
+        $this->reset(['paymentProofFile', 'payment_notes', 'financeError', 'financeSuccess']);
+        $booking = $this->booking();
+        $this->payment_type = $booking->totalPaidMinor() === 0 ? 'down_payment' : 'installment';
+        $this->payment_currency = $booking->currency;
+        $this->payment_amount_minor = $booking->remainingBalanceMinor();
+        $this->updatedPaymentCurrency();
+        $this->showPaymentModal = true;
+    }
+
+    public function updatedPaymentCurrency(): void
+    {
+        if (strtoupper($this->payment_currency) === 'IDR') {
+            $this->payment_fx_rate = 1.0;
+        } else {
+            $rate = ExchangeRate::currentFor(strtoupper($this->payment_currency));
+            $this->payment_fx_rate = $rate ? (float) $rate->rate : 1.0;
+        }
+    }
+
+    public function recordPayment(): void
+    {
+        $this->reset(['financeError', 'financeSuccess']);
+        $booking = $this->booking();
+        $this->authorize('update', $booking);
+
+        $this->validate([
+            'payment_type' => ['required', 'string'],
+            'payment_amount_minor' => ['required', 'integer', 'min:1'],
+            'payment_currency' => ['required', 'string', 'size:3'],
+            'payment_fx_rate' => ['required', 'numeric', 'min:0.00000001'],
+            'payment_channel' => ['required', 'string'],
+            'payment_notes' => ['nullable', 'string', 'max:500'],
+            'paymentProofFile' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+        ]);
+
+        try {
+            (new PaymentService)->recordPayment(
+                $booking,
+                $this->payment_amount_minor,
+                $this->payment_currency,
+                $this->payment_type,
+                $this->payment_channel,
+                $this->payment_fx_rate,
+                $this->paymentProofFile,
+                $this->payment_notes ?: null,
+                Auth::user()
+            );
+
+            $this->showPaymentModal = false;
+            $this->financeSuccess = __('finance.payment_recorded_success');
+        } catch (\Exception $e) {
+            $this->financeError = $e->getMessage();
+        }
+    }
+
+    public function verifyBookingPayment(int $paymentId): void
+    {
+        $this->reset(['financeError', 'financeSuccess']);
+        $payment = Payment::findOrFail($paymentId);
+        $this->authorize('verify', $payment);
+
+        try {
+            (new PaymentService)->verifyPayment($payment, Auth::user());
+            $this->financeSuccess = __('finance.payment_verified_success');
+        } catch (SelfApprovalException $e) {
+            $this->financeError = $e->getMessage();
+        } catch (PaymentVerificationException $e) {
+            $this->financeError = $e->getMessage();
+        } catch (\Exception $e) {
+            $this->financeError = $e->getMessage();
+        }
+    }
+
+    public function openRefundModal(int $paymentId): void
+    {
+        $this->reset(['financeError', 'financeSuccess']);
+        $payment = Payment::findOrFail($paymentId);
+        $this->refundingPaymentId = $payment->id;
+        $this->refund_amount_minor = $payment->amount_minor;
+        $this->refund_reason = '';
+        $this->showRefundModal = true;
+    }
+
+    public function processRefund(): void
+    {
+        $this->reset(['financeError', 'financeSuccess']);
+        $this->validate([
+            'refund_amount_minor' => ['required', 'integer', 'min:1'],
+            'refund_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $payment = Payment::findOrFail($this->refundingPaymentId);
+        $this->authorize('refund', $payment);
+
+        try {
+            (new PaymentService)->refundPayment(
+                $payment,
+                $this->refund_amount_minor,
+                $this->refund_reason,
+                Auth::user()
+            );
+
+            $this->showRefundModal = false;
+            $this->financeSuccess = __('finance.refund_processed_success');
+            $this->reset(['refundingPaymentId', 'refund_amount_minor', 'refund_reason']);
+        } catch (\Exception $e) {
+            $this->financeError = $e->getMessage();
+        }
+    }
+
+    public function invoiceUrl(): string
+    {
+        return route('admin.finance.invoice', ['packageBooking' => $this->bookingId]);
+    }
+
+    public function receiptUrl(Payment $payment): string
+    {
+        return route('admin.finance.receipt', ['payment' => $payment->id]);
+    }
+
+    public function proofUrl(Payment $payment): ?string
+    {
+        if (! $payment->proof_file) {
+            return null;
+        }
+
+        return URL::temporarySignedRoute(
+            'admin.finance.proofs.download',
+            now()->addMinutes(30),
+            ['payment' => $payment->id]
+        );
+    }
+
     public function render(): View
     {
         $booking = $this->booking();
         $stateMachine = new BookingStateMachine;
 
+        $assignmentService = new AssignmentService;
+        $suggestedDrivers = $assignmentService->suggestDrivers(
+            $booking,
+            $this->assignment_date_from,
+            $this->assignment_date_to
+        );
+        $genderWarning = $assignmentService->getSuggestionWarning($booking, $suggestedDrivers);
+
+        $availableVehicles = $assignmentService->suggestVehicles(
+            $booking,
+            $this->assignment_date_from,
+            $this->assignment_date_to
+        );
+
         return view('livewire.admin.booking.package-booking-show', [
             'booking' => $booking,
             'nextStatuses' => $stateMachine->nextStatuses($booking->status),
+            'suggestedDrivers' => $suggestedDrivers,
+            'genderWarning' => $genderWarning,
+            'availableVehicles' => $availableVehicles,
+            'bookingPayments' => $booking->payments()->with(['creator', 'verifiedByUser'])->latest('id')->get(),
         ]);
     }
 }
