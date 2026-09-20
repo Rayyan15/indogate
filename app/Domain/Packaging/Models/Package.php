@@ -14,7 +14,20 @@ class Package extends Model
 {
     use BelongsToBranch, HasTranslations, LogsActivity;
 
-    protected $fillable = ['branch_id', 'name', 'description', 'is_template', 'base_pax', 'duration_days', 'brochure_path'];
+    protected $fillable = [
+        'branch_id',
+        'name',
+        'description',
+        'is_template',
+        'is_published',
+        'is_featured',
+        'base_pax',
+        'duration_days',
+        'brochure_path',
+        'cover_image',
+        'highlights',
+        'starting_price_idr',
+    ];
 
     public array $translatable = ['name', 'description'];
 
@@ -22,9 +35,23 @@ class Package extends Model
     {
         return [
             'is_template' => 'boolean',
+            'is_published' => 'boolean',
+            'is_featured' => 'boolean',
             'base_pax' => 'integer',
             'duration_days' => 'integer',
+            'highlights' => 'array',
+            'starting_price_idr' => 'integer',
         ];
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
     }
 
     public function getActivitylogOptions(): LogOptions

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Domain\Lead\Models\Lead;
+use App\Domain\Packaging\Models\Package;
 use App\Enums\LeadSource;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
@@ -27,11 +28,15 @@ class LeadCaptureController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
             'country' => ['nullable', 'string', 'max:100'],
+            'package_id' => ['nullable', 'integer', 'exists:packages,id'],
+            'pax' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'travel_date' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $branch = Branch::where('is_active', true)->firstOrFail();
 
-        Lead::create([
+        $lead = Lead::create([
             'branch_id' => $branch->id,
             'name' => $data['name'],
             'phone' => $data['phone'],
@@ -41,6 +46,31 @@ class LeadCaptureController extends Controller
             'status' => 'new',
         ]);
 
-        return back()->with('status', __('lead.public.thanks'));
+        // If package or travel inquiry details are provided, record an activity note
+        $noteParts = [];
+        if (! empty($data['package_id'])) {
+            $package = Package::find($data['package_id']);
+            if ($package) {
+                $noteParts[] = "Paket: {$package->name}";
+            }
+        }
+        if (! empty($data['pax'])) {
+            $noteParts[] = "Jumlah Pax: {$data['pax']}";
+        }
+        if (! empty($data['travel_date'])) {
+            $noteParts[] = "Perkiraan Tanggal: {$data['travel_date']}";
+        }
+        if (! empty($data['notes'])) {
+            $noteParts[] = "Catatan: {$data['notes']}";
+        }
+
+        if (! empty($noteParts)) {
+            $lead->activities()->create([
+                'type' => 'note',
+                'note' => implode(' | ', $noteParts),
+            ]);
+        }
+
+        return back()->with('status', __('storefront.inquiry_success'));
     }
 }

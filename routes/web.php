@@ -20,6 +20,7 @@ use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\LeadCaptureController;
 use App\Http\Controllers\Public\QuotationController;
+use App\Http\Controllers\Public\StorefrontController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,23 +31,15 @@ Route::get('/', function () {
     return redirect('/'.app()->getLocale());
 });
 
-if (app()->isLocal()) {
-    Route::get('/__dev-login/{id}', function ($id) {
-        $user = User::findOrFail($id);
-        Auth::login($user);
-        session(['active_branch_id' => $user->branch_id ?? 1]);
-
-        return redirect('/id/admin/dashboard');
-    });
-}
-
 Route::prefix('{locale}')
     ->whereIn('locale', array_keys(config('laravellocalization.supportedLocales')))
     ->middleware('setLocale')
     ->group(function () {
-        Route::get('/', function () {
-            return view('welcome');
-        });
+        // Storefront Publik (PRD M10)
+        Route::get('/', [StorefrontController::class, 'home'])->name('public.home');
+        Route::get('/packages', [StorefrontController::class, 'catalog'])->name('public.catalog');
+        Route::get('/packages/{package}', [StorefrontController::class, 'show'])->name('public.package.show');
+        Route::post('/currency', [StorefrontController::class, 'switchCurrency'])->name('public.currency.switch');
 
         // Admin Routes
         Route::middleware(['auth', 'role:Super Admin|CS Admin|Finance Admin'])->prefix('admin')->name('admin.')->group(function () {
