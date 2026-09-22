@@ -20,24 +20,24 @@
         }
     </style>
 </head>
-<body class="bg-neutral-50 text-neutral-900 antialiased min-h-screen flex flex-col selection:bg-red-600 selection:text-white" x-data="{ mobileMenuOpen: false }">
+<body class="bg-[#030b14] text-white antialiased min-h-screen flex flex-col selection:bg-accent-red selection:text-white" x-data="{ mobileMenuOpen: false }">
 
     <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-40 bg-neutral-0/95 backdrop-blur-md border-b border-neutral-200">
+    <header class="sticky top-0 z-50 bg-[#030b14]/90 backdrop-blur-md border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <!-- Brand Logo -->
                 <a href="{{ route('public.home', ['locale' => app()->getLocale()]) }}" class="flex items-center gap-2 text-decoration-none group">
-                    <span class="text-2xl font-black tracking-tight text-neutral-900 font-sans">
+                    <span class="text-2xl font-black tracking-tight text-white font-sans">
                         INDO<span class="text-red-600">GATE</span>
                     </span>
-                    <span class="hidden sm:inline-block text-[11px] font-semibold uppercase tracking-wider text-neutral-500 border-s border-neutral-300 ps-2">
+                    <span class="hidden sm:inline-block text-[11px] font-semibold uppercase tracking-wider text-white/50 border-s border-white/20 ps-2">
                         Premium Travel
                     </span>
                 </a>
 
                 <!-- Desktop Nav Links -->
-                <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-700">
+                <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-white/80">
                     <a href="{{ route('public.home', ['locale' => app()->getLocale()]) }}" class="hover:text-red-600 transition-colors {{ request()->routeIs('public.home') ? 'text-red-600 font-semibold' : '' }}">
                         {{ __('storefront.nav_home') }}
                     </a>
@@ -57,13 +57,13 @@
                     <!-- Currency Switcher Form -->
                     <form action="{{ route('public.currency.switch', ['locale' => app()->getLocale()]) }}" method="POST" class="inline-block">
                         @csrf
-                        <div class="flex items-center text-xs font-semibold text-neutral-600 bg-neutral-100 rounded border border-neutral-300 p-0.5">
+                        <div class="flex items-center text-xs font-semibold text-white/70 bg-black/40 rounded-full border border-white/20 p-1 backdrop-blur-md shadow-lg">
                             @foreach(\App\Support\Storefront\StorefrontCurrency::SUPPORTED_CURRENCIES as $curr)
                                 <button
                                     type="submit"
                                     name="currency"
                                     value="{{ $curr }}"
-                                    class="px-2.5 py-1 rounded {{ \App\Support\Storefront\StorefrontCurrency::current() === $curr ? 'bg-neutral-0 text-neutral-900 shadow-sm font-bold' : 'hover:text-neutral-900' }}"
+                                    class="px-3 py-1.5 rounded-full transition-colors {{ \App\Support\Storefront\StorefrontCurrency::current() === $curr ? 'bg-white text-[#030b14] font-bold' : 'hover:text-white hover:bg-white/10' }}"
                                 >
                                     {{ $curr }}
                                 </button>
@@ -72,16 +72,10 @@
                     </form>
 
                     <!-- Language Switcher -->
-                    <div class="flex items-center text-xs font-semibold border border-neutral-300 rounded overflow-hidden">
-                        <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'id'])) }}" class="px-2.5 py-1.5 {{ app()->getLocale() === 'id' ? 'bg-red-600 text-white font-bold' : 'bg-neutral-0 text-neutral-700 hover:bg-neutral-100' }}">
-                            ID
-                        </a>
-                        <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'en'])) }}" class="px-2.5 py-1.5 {{ app()->getLocale() === 'en' ? 'bg-red-600 text-white font-bold' : 'bg-neutral-0 text-neutral-700 hover:bg-neutral-100' }}">
-                            EN
-                        </a>
-                        <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'ar'])) }}" class="px-2.5 py-1.5 {{ app()->getLocale() === 'ar' ? 'bg-red-600 text-white font-bold' : 'bg-neutral-0 text-neutral-700 hover:bg-neutral-100' }}">
-                            عربي
-                        </a>
+                    <div class="flex items-center text-xs font-semibold text-white/70 bg-black/40 rounded-full border border-white/20 overflow-hidden backdrop-blur-md shadow-lg">
+                        <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'id'])) }}" class="px-3 py-1.5 transition-colors {{ app()->getLocale() === 'id' ? 'bg-red-600 text-white font-bold' : 'hover:bg-white/10 hover:text-white' }}">ID</a>
+                        <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'en'])) }}" class="px-3 py-1.5 transition-colors {{ app()->getLocale() === 'en' ? 'bg-red-600 text-white font-bold' : 'hover:bg-white/10 hover:text-white' }}">EN</a>
+                        <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'ar'])) }}" class="px-3 py-1.5 transition-colors {{ app()->getLocale() === 'ar' ? 'bg-red-600 text-white font-bold' : 'hover:bg-white/10 hover:text-white' }}">عربي</a>
                     </div>
 
                     <!-- WhatsApp Consultation Button -->
@@ -101,7 +95,7 @@
                     <button
                         type="button"
                         @click="mobileMenuOpen = !mobileMenuOpen"
-                        class="p-2 rounded text-neutral-700 hover:bg-neutral-100"
+                        class="p-2 rounded text-white hover:bg-white/10"
                         aria-label="Toggle Navigation Menu"
                     >
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,8 +108,8 @@
         </div>
 
         <!-- Mobile Menu Dropdown -->
-        <div x-show="mobileMenuOpen" x-transition class="md:hidden border-t border-neutral-200 bg-neutral-0 p-4 space-y-4">
-            <nav class="flex flex-col gap-3 font-medium text-neutral-800">
+        <div x-show="mobileMenuOpen" x-transition class="md:hidden border-t border-white/10 bg-[#030b14] p-4 space-y-4">
+            <nav class="flex flex-col gap-3 font-medium text-white/90">
                 <a href="{{ route('public.home', ['locale' => app()->getLocale()]) }}" class="py-2 hover:text-red-600">
                     {{ __('storefront.nav_home') }}
                 </a>
@@ -130,22 +124,22 @@
                 </a>
             </nav>
 
-            <div class="pt-4 border-t border-neutral-200 flex flex-wrap items-center justify-between gap-3">
+            <div class="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
                 <!-- Currency Form Mobile -->
                 <form action="{{ route('public.currency.switch', ['locale' => app()->getLocale()]) }}" method="POST" class="flex gap-1 text-xs">
                     @csrf
                     @foreach(\App\Support\Storefront\StorefrontCurrency::SUPPORTED_CURRENCIES as $curr)
-                        <button type="submit" name="currency" value="{{ $curr }}" class="px-2.5 py-1 rounded border {{ \App\Support\Storefront\StorefrontCurrency::current() === $curr ? 'bg-red-600 text-white font-bold border-red-600' : 'border-neutral-300' }}">
+                        <button type="submit" name="currency" value="{{ $curr }}" class="px-2.5 py-1 rounded-full border {{ \App\Support\Storefront\StorefrontCurrency::current() === $curr ? 'bg-red-600 text-white font-bold border-red-600' : 'border-white/30 text-white' }}">
                             {{ $curr }}
                         </button>
                     @endforeach
                 </form>
 
                 <!-- Language Switcher Mobile -->
-                <div class="flex text-xs font-semibold border border-neutral-300 rounded">
-                    <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'id'])) }}" class="px-2 py-1 {{ app()->getLocale() === 'id' ? 'bg-red-600 text-white font-bold' : '' }}">ID</a>
-                    <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'en'])) }}" class="px-2 py-1 {{ app()->getLocale() === 'en' ? 'bg-red-600 text-white font-bold' : '' }}">EN</a>
-                    <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'ar'])) }}" class="px-2 py-1 {{ app()->getLocale() === 'ar' ? 'bg-red-600 text-white font-bold' : '' }}">عربي</a>
+                <div class="flex text-xs font-semibold border border-white/30 rounded-full overflow-hidden text-white">
+                    <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'id'])) }}" class="px-2 py-1 {{ app()->getLocale() === 'id' ? 'bg-red-600 font-bold' : '' }}">ID</a>
+                    <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'en'])) }}" class="px-2 py-1 {{ app()->getLocale() === 'en' ? 'bg-red-600 font-bold' : '' }}">EN</a>
+                    <a href="{{ route(Route::currentRouteName() ?? 'public.home', array_merge((array) request()->route()->parameters(), ['locale' => 'ar'])) }}" class="px-2 py-1 {{ app()->getLocale() === 'ar' ? 'bg-red-600 font-bold' : '' }}">عربي</a>
                 </div>
             </div>
         </div>
@@ -169,12 +163,12 @@
     </a>
 
     <!-- Footer -->
-    <footer class="bg-neutral-900 text-neutral-300 pt-16 pb-12 border-t border-neutral-800">
+    <footer class="bg-[#030b14] text-neutral-300 pt-16 pb-12 border-t border-white/5">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-neutral-800">
                 <!-- Brand Info -->
                 <div class="space-y-4 md:col-span-1">
-                    <div class="text-2xl font-black tracking-tight text-white">
+                    <div class="text-2xl font-black tracking-tight text-white font-sans">
                         INDO<span class="text-red-500">GATE</span>
                     </div>
                     <p class="text-xs text-neutral-400 leading-relaxed">
