@@ -51,21 +51,21 @@
         </x-ui.panel>
 
         <x-ui.panel :title="__('admin.payments.proof_title')" flush>
-            @forelse($payment->proofs as $proof)
+            @if($payment->proof_file)
             <div class="border-t border-neutral-100 p-5 first:border-t-0">
                 <div class="mb-3 flex items-center justify-between">
-                    <p class="text-xs text-neutral-500">{{ __('admin.payments.submitted_ago') }} {{ $proof->created_at->diffForHumans() }}</p>
-                    <x-ui.button variant="ghost" :href="URL::signedRoute('admin.payments.download-proof', $proof->id)" class="text-xs">{{ __('admin.payments.open_full') }}</x-ui.button>
+                    <p class="text-xs text-neutral-500">{{ __('admin.payments.submitted_ago') }} {{ $payment->created_at->diffForHumans() }}</p>
+                    <x-ui.button variant="ghost" :href="URL::signedRoute('admin.payments.download-proof', ['locale' => app()->getLocale(), 'proof' => $payment->id])" class="text-xs">{{ __('admin.payments.open_full') }}</x-ui.button>
                 </div>
                 <div class="overflow-hidden rounded border border-neutral-200">
-                    <img src="{{ URL::signedRoute('admin.payments.download-proof', $proof->id) }}" alt="Payment Proof" class="max-h-96 w-full object-contain">
+                    <img src="{{ URL::signedRoute('admin.payments.download-proof', ['locale' => app()->getLocale(), 'proof' => $payment->id]) }}" alt="Payment Proof" class="max-h-96 w-full object-contain">
                 </div>
             </div>
-            @empty
+            @else
             <div class="p-5">
                 <x-ui.empty :title="__('admin.payments.no_proof_yet')" />
             </div>
-            @endforelse
+            @endif
         </x-ui.panel>
     </div>
 </x-admin-layout>

@@ -39,7 +39,7 @@
                         </x-ui.field>
                     </div>
 
-                    <x-ui.field :label="__('catalog.item.capacity')" :hint="__('catalog.item.capacity_hint')">
+                    <x-ui.field :label="__('catalog.item.capacity')" :hint="__('catalog.item.capacity_hint')" :error="$errors->first('capacity')">
                         <input type="number" min="1" wire:model="capacity" class="admin-input font-mono">
                     </x-ui.field>
 
@@ -79,7 +79,7 @@
                         <x-ui.field :label="__('catalog.item.rate_cost')" :error="$errors->first('rate_cost_minor')">
                             <input type="number" min="0" wire:model="rate_cost_minor" class="admin-input font-mono">
                         </x-ui.field>
-                        <x-ui.field :label="__('catalog.item.rate_currency')">
+                        <x-ui.field :label="__('catalog.item.rate_currency')" :error="$errors->first('rate_currency')">
                             <input type="text" maxlength="3" wire:model="rate_currency" class="admin-input font-mono uppercase">
                         </x-ui.field>
                         <div class="col-span-2 md:col-span-4">
@@ -125,10 +125,10 @@
                         @endforelse
                     </div>
                     <form wire:submit="addBlackoutDate" class="flex items-end gap-4 border-t border-neutral-200 p-5">
-                        <x-ui.field :label="__('catalog.item.blackout_date')" class="flex-1">
+                        <x-ui.field :label="__('catalog.item.blackout_date')" class="flex-1" :error="$errors->first('blackout_date')">
                             <input type="date" wire:model="blackout_date" class="admin-input">
                         </x-ui.field>
-                        <x-ui.field :label="__('catalog.item.blackout_reason')" class="flex-1">
+                        <x-ui.field :label="__('catalog.item.blackout_reason')" class="flex-1" :error="$errors->first('blackout_reason')">
                             <input type="text" wire:model="blackout_reason" class="admin-input">
                         </x-ui.field>
                         <x-ui.button variant="secondary" type="submit">{{ __('catalog.item.add_blackout') }}</x-ui.button>

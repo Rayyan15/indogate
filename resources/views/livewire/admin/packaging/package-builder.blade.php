@@ -12,7 +12,7 @@
         <div class="space-y-6" wire:ignore.self>
             <div class="rounded-lg border border-neutral-200 bg-neutral-0 p-6 space-y-5">
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                    <x-ui.field :label="__('packaging.builder.meta_title')" :error="$errors->first('name.en')">
+                    <x-ui.field :label="__('packaging.builder.meta_title')" :error="$errors->first('name.en') ?: $errors->first('name.id') ?: $errors->first('name.ar')">
                         <input type="text" wire:model="name.en" placeholder="EN" class="admin-input mb-2">
                         <input type="text" wire:model="name.id" placeholder="ID" class="admin-input mb-2">
                         <input type="text" wire:model="name.ar" placeholder="AR" dir="rtl" class="admin-input">
@@ -104,7 +104,7 @@
 
             <div class="flex justify-end gap-3">
                 <x-ui.button variant="secondary" type="button" x-on:click="recalculate()">{{ __('packaging.builder.recalculate') }}</x-ui.button>
-                <x-ui.button variant="primary" type="button" wire:click="save">{{ __('packaging.builder.save') }}</x-ui.button>
+                <x-ui.button variant="primary" type="button" x-on:click="$wire.call('recalculate', items, $wire.current_pax).then(() => $wire.save())">{{ __('packaging.builder.save') }}</x-ui.button>
             </div>
         </div>
 

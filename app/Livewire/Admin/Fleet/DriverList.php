@@ -105,6 +105,7 @@ class DriverList extends Component
                 'is_active' => $this->is_active,
             ]);
         } else {
+            $this->authorize('create', Driver::class);
             Driver::create([
                 'branch_id' => CurrentBranch::id(),
                 'name' => $this->name,
@@ -139,9 +140,10 @@ class DriverList extends Component
     {
         $query = Driver::query()
             ->when($this->search !== '', function ($q) {
-                $q->where(function ($sq) {
-                    $sq->where('name', 'like', "%{$this->search}%")
-                        ->orWhere('phone', 'like', "%{$this->search}%");
+                $escaped = addcslashes($this->search, '%_\\');
+                $q->where(function ($sq) use ($escaped) {
+                    $sq->where('name', 'like', "%{$escaped}%")
+                        ->orWhere('phone', 'like', "%{$escaped}%");
                 });
             })
             ->when($this->genderFilter !== '', fn ($q) => $q->where('gender', $this->genderFilter))

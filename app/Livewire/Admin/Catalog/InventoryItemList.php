@@ -48,7 +48,14 @@ class InventoryItemList extends Component
             InventoryItem::query()
                 ->with('partner')
                 ->withCount('rates')
-                ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
+                ->when($this->search, function ($q) {
+                    $escaped = addcslashes($this->search, '%_\\');
+                    $q->where(function ($sub) use ($escaped) {
+                        $sub->where('name->id', 'like', "%{$escaped}%")
+                            ->orWhere('name->en', 'like', "%{$escaped}%")
+                            ->orWhere('name->ar', 'like', "%{$escaped}%");
+                    });
+                })
                 ->when($this->partnerFilter, fn ($q) => $q->where('partner_id', $this->partnerFilter))
                 ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter)),
             self::SORTABLE_FIELDS,

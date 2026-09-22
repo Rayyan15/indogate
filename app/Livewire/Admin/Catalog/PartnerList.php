@@ -43,7 +43,14 @@ class PartnerList extends Component
         $partners = $this->applySort(
             Partner::query()
                 ->withCount('inventoryItems')
-                ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
+                ->when($this->search, function ($q) {
+                    $escaped = addcslashes($this->search, '%_\\');
+                    $q->where(function ($sub) use ($escaped) {
+                        $sub->where('name->id', 'like', "%{$escaped}%")
+                            ->orWhere('name->en', 'like', "%{$escaped}%")
+                            ->orWhere('name->ar', 'like', "%{$escaped}%");
+                    });
+                })
                 ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter)),
             self::SORTABLE_FIELDS,
             defaultField: 'created_at',

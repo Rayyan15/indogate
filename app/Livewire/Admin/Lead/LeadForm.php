@@ -76,7 +76,12 @@ class LeadForm extends Component
             'locale' => ['required', 'in:en,id,ar'],
             'source' => ['required', 'in:manual,website'],
             'status' => ['required', 'in:new,contacted,qualified,quoted,won,lost'],
-            'assigned_to' => ['nullable', 'exists:users,id'],
+            'assigned_to' => [
+                'nullable',
+                \Illuminate\Validation\Rule::exists('users', 'id')
+                    ->where('branch_id', CurrentBranch::id())
+                    ->where('is_active', true),
+            ],
             'lost_reason' => [$this->status === 'lost' ? 'required' : 'nullable', 'string', 'max:500'],
             'follow_up_at' => ['nullable', 'date'],
         ]);
@@ -98,6 +103,7 @@ class LeadForm extends Component
                 ]);
             }
         } else {
+            $this->authorize('create', Lead::class);
             $data['branch_id'] = CurrentBranch::id();
             $lead = Lead::create($data);
             $lead->activities()->create([
@@ -120,7 +126,11 @@ class LeadForm extends Component
             'lead' => $lead,
             'statuses' => LeadStatus::cases(),
             'sources' => LeadSource::cases(),
-            'users' => User::query()->orderBy('name')->get(['id', 'name']),
+            'users' => User::query()
+                ->where('branch_id', CurrentBranch::id())
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 }

@@ -80,5 +80,38 @@ class BranchFilterTest extends TestCase
             ->set('branchId', $baliBranch->id)
             ->assertSee($baliBooking->code)
             ->assertDontSee($jktBooking->code);
+
+        // 6. Super Admin on ReportsCenter can see both when branchId is null (Semua Cabang)
+        Livewire::actingAs($superAdmin)
+            ->test(\App\Livewire\Admin\Reporting\ReportsCenter::class)
+            ->set('activeTab', 'sales_margin')
+            ->set('branchId', null)
+            ->set('period', DashboardMetricsService::PERIOD_ALL_TIME)
+            ->assertSee($baliBooking->code)
+            ->assertSee($jktBooking->code)
+            // Filter specifically to Bali
+            ->set('branchId', $baliBranch->id)
+            ->assertSee($baliBooking->code)
+            ->assertDontSee($jktBooking->code);
+    }
+
+    public function test_unauthorized_user_tampering_branch_id_cannot_see_other_branch_data(): void
+    {
+        $this->seed();
+        $baliBranch = $this->baliBranch();
+        $jakartaBranch = Branch::where('code', 'JKT')->firstOrFail();
+
+        $csBali = User::role('CS Admin')->where('branch_id', $baliBranch->id)->firstOrFail();
+
+        // Bali CS Admin attempts to set branchId = Jakarta
+        Livewire::actingAs($csBali)
+            ->test(DashboardOverview::class)
+            ->set('branchId', $jakartaBranch->id)
+            ->assertSet('branchId', $baliBranch->id);
+
+        Livewire::actingAs($csBali)
+            ->test(\App\Livewire\Admin\Reporting\ReportsCenter::class)
+            ->set('branchId', $jakartaBranch->id)
+            ->assertSet('branchId', $baliBranch->id);
     }
 }

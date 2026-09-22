@@ -23,7 +23,7 @@ class BookingController extends Controller
         $this->authorize('view', $booking);
 
         $booking->load('customer', 'items', 'payments');
-        $drivers = Driver::where('is_active', true)->get();
+        $drivers = Driver::where('branch_id', $booking->branch_id)->where('is_active', true)->get();
 
         return view('admin.bookings.show', compact('booking', 'drivers'));
     }
@@ -32,10 +32,18 @@ class BookingController extends Controller
     {
         $this->authorize('assignDriver', $booking);
 
-        $request->validate(['driver_id' => 'required|exists:drivers,id']);
+        $request->validate([
+            'driver_id' => [
+                'required',
+                \Illuminate\Validation\Rule::exists('drivers', 'id')
+                    ->where('branch_id', $booking->branch_id)
+                    ->where('is_active', true)
+                    ->whereNull('deleted_at'),
+            ],
+        ]);
         $booking->update(['driver_id' => $request->driver_id]);
 
-        return redirect()->route('admin.bookings.show', $booking)->with('success', 'Driver assigned successfully.');
+        return redirect()->route('admin.bookings.show', $booking)->with('success', 'Driver berhasil ditugaskan.');
     }
 
     // Read-only for the rest

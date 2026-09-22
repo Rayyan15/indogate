@@ -7,6 +7,7 @@ use App\Domain\Lead\Models\Lead;
 use App\Domain\Reporting\Services\DashboardMetricsService;
 use App\Domain\Reporting\Services\ReportExportService;
 use App\Models\Branch;
+use App\Support\Branch\BranchScope;
 use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -39,6 +40,38 @@ class DashboardOverview extends Component
         }
     }
 
+    protected function resolveEffectiveBranchId(): ?int
+    {
+        if (! Auth::user()?->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+
+            return CurrentBranch::id();
+        }
+
+        return $this->branchId;
+    }
+
+    public function boot(): void
+    {
+        if (! Auth::user()?->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+        }
+    }
+
+    public function updatingBranchId($value): void
+    {
+        if (! Auth::user()?->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+        }
+    }
+
+    public function updatedBranchId($value): void
+    {
+        if (! Auth::user()?->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+        }
+    }
+
     public function updatedPeriod(): void
     {
         if ($this->period !== DashboardMetricsService::PERIOD_CUSTOM) {
@@ -61,18 +94,18 @@ class DashboardOverview extends Component
 
     public function export(string $type = 'sales'): StreamedResponse
     {
+        $effectiveBranchId = $this->resolveEffectiveBranchId();
         $service = new DashboardMetricsService;
         [$startDate, $endDate] = $service->resolveDateRange($this->period, $this->customStart, $this->customEnd);
         $exportService = new ReportExportService;
 
-        $branchQuery = function ($query) {
-            if ($this->branchId) {
-                $query->withoutGlobalScopes()->where('branch_id', $this->branchId);
-            }
+        $branchQuery = function ($query) use ($effectiveBranchId) {
+            $query->withoutGlobalScope(BranchScope::class)
+                ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId));
         };
 
         $dateRange = now()->format('Ymd');
-        $branchTag = $this->branchId ? "cabang-{$this->branchId}" : 'gabungan';
+        $branchTag = $effectiveBranchId ? "cabang-{$effectiveBranchId}" : 'gabungan';
 
         if ($type === 'leads') {
             $leads = Lead::query()
@@ -118,9 +151,10 @@ class DashboardOverview extends Component
 
     public function render(): View
     {
+        $effectiveBranchId = $this->resolveEffectiveBranchId();
         $metricsService = new DashboardMetricsService;
         $metrics = $metricsService->getMetrics(
-            $this->branchId,
+            $effectiveBranchId,
             $this->period,
             $this->customStart,
             $this->customEnd

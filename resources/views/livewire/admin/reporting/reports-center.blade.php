@@ -126,7 +126,7 @@
                         @php $marginService = new \App\Domain\Finance\Services\MarginReportService(); @endphp
                         @forelse($data['bookings'] as $booking)
                         @php $m = $marginService->computeBookingMargin($booking); @endphp
-                        <tr class="hover:bg-neutral-50/50">
+                        <tr wire:key="margin-booking-{{ $booking->id }}" class="hover:bg-neutral-50/50">
                             <td class="px-4 py-3">
                                 <a href="{{ route('admin.package-bookings.show', $booking->id) }}" class="font-mono font-bold text-red-600 hover:underline">
                                     {{ $booking->code }}
@@ -251,7 +251,7 @@
                     </thead>
                     <tbody class="divide-y divide-neutral-100 text-neutral-800">
                         @forelse($data['leads'] as $lead)
-                        <tr class="hover:bg-neutral-50/50">
+                        <tr wire:key="lead-{{ $lead->id }}" class="hover:bg-neutral-50/50">
                             <td class="px-4 py-3 font-medium text-neutral-900">{{ $lead->name }}</td>
                             <td class="px-4 py-3 text-neutral-600 font-mono">{{ $lead->phone }}</td>
                             <td class="px-4 py-3 uppercase text-[11px] text-neutral-500">{{ $lead->source?->value ?? '-' }}</td>
@@ -330,11 +330,11 @@
                     </thead>
                     <tbody class="divide-y divide-neutral-100 text-neutral-800">
                         @forelse($data['assignments'] as $assign)
-                        <tr class="hover:bg-neutral-50/50">
+                        <tr wire:key="assignment-{{ $assign->id }}" class="hover:bg-neutral-50/50">
                             <td class="px-4 py-3 font-medium text-neutral-900">{{ $assign->driver?->name ?? 'Belum Ditugaskan' }}</td>
                             <td class="px-4 py-3">
-                                <span class="font-mono text-neutral-900">{{ $assign->vehicle?->license_plate ?? '-' }}</span>
-                                <span class="text-neutral-500 text-[11px]">({{ $assign->vehicle?->model ?? '-' }})</span>
+                                <span class="font-mono text-neutral-900">{{ $assign->vehicle?->plate ?? '-' }}</span>
+                                <span class="text-neutral-500 text-[11px]">({{ $assign->vehicle?->type ?? '-' }})</span>
                             </td>
                             <td class="px-4 py-3">
                                 <span class="font-mono font-bold text-red-600">{{ $assign->booking?->code ?? '-' }}</span>

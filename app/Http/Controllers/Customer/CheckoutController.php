@@ -17,26 +17,45 @@ class CheckoutController extends Controller
     {
         $cart = session()->get('cart', []);
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+            return redirect()->route('cart.index')->with('error', 'Keranjang belanja Anda kosong.');
         }
 
-        $totalAmount = collect($cart)->sum(function ($item) {
-            return $item['price'] * $item['quantity'];
-        });
+        [$validCart, $totalAmount, $hasRemovedItems] = $this->resolveAndSanitizeCart($cart);
 
-        return view('customer.checkout.index', compact('cart', 'totalAmount'));
+        session()->put('cart', $validCart);
+
+        if (empty($validCart)) {
+            return redirect()->route('cart.index')->with('error', 'Item di keranjang belanja Anda sudah tidak tersedia.');
+        }
+
+        if ($hasRemovedItems) {
+            session()->flash('warning', 'Beberapa item dalam keranjang belanja sudah tidak tersedia dan telah dihapus.');
+        }
+
+        return view('customer.checkout.index', [
+            'cart' => $validCart,
+            'totalAmount' => $totalAmount,
+        ]);
     }
 
     public function store(Request $request)
     {
         $cart = session()->get('cart', []);
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+            return redirect()->route('cart.index')->with('error', 'Keranjang belanja Anda kosong.');
         }
 
-        $totalAmount = collect($cart)->sum(function ($item) {
-            return $item['price'] * $item['quantity'];
-        });
+        [$validCart, $totalAmount, $hasRemovedItems] = $this->resolveAndSanitizeCart($cart);
+
+        session()->put('cart', $validCart);
+
+        if (empty($validCart)) {
+            return redirect()->route('cart.index')->with('error', 'Item di keranjang belanja Anda sudah tidak tersedia.');
+        }
+
+        if ($hasRemovedItems) {
+            return redirect()->route('customer.checkout.index')->with('warning', 'Beberapa item dalam keranjang belanja telah diperbarui atau dihapus.');
+        }
 
         DB::beginTransaction();
         try {
@@ -56,7 +75,7 @@ class CheckoutController extends Controller
                 'currency' => 'IDR',
             ]);
 
-            foreach ($cart as $item) {
+            foreach ($validCart as $item) {
                 BookingItem::create([
                     'booking_id' => $booking->id,
                     'bookable_type' => $item['bookable_type'],
@@ -70,11 +89,47 @@ class CheckoutController extends Controller
             session()->forget('cart');
             DB::commit();
 
-            return redirect()->route('customer.bookings.show', $booking)->with('success', 'Booking created successfully. Please proceed to payment.');
+            return redirect()->route('customer.bookings.show', $booking)->with('success', 'Pemesanan berhasil dibuat. Silakan lanjutkan ke pembayaran.');
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Checkout failed: '.$e->getMessage());
+            return back()->with('error', 'Checkout gagal: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Memvalidasi ketersediaan dan menghitung ulang harga setiap item di cart.
+     * Item yang sudah terhapus di database akan dibuang secara graceful.
+     *
+     * @param  array<int, array<string, mixed>>  $cart
+     * @return array{0: array<int, array<string, mixed>>, 1: float, 2: bool}
+     */
+    protected function resolveAndSanitizeCart(array $cart): array
+    {
+        $validCart = [];
+        $totalAmount = 0.0;
+        $hasRemovedItems = false;
+
+        foreach ($cart as $item) {
+            if (! isset($item['bookable_type'], $item['bookable_id'])) {
+                $hasRemovedItems = true;
+                continue;
+            }
+
+            try {
+                $price = CartController::resolveItemPrice($item['bookable_type'], (int) $item['bookable_id']);
+                $quantity = max(1, (int) ($item['quantity'] ?? 1));
+
+                $item['price'] = $price;
+                $item['quantity'] = $quantity;
+
+                $validCart[] = $item;
+                $totalAmount += $price * $quantity;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException|\InvalidArgumentException $e) {
+                $hasRemovedItems = true;
+            }
+        }
+
+        return [$validCart, $totalAmount, $hasRemovedItems];
     }
 }

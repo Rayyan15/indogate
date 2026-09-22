@@ -112,7 +112,12 @@ class PackageBuilder extends Component
 
         return InventoryItem::query()
             ->where('is_active', true)
-            ->where('name', 'like', "%{$this->componentSearch}%")
+            ->where(function ($q) {
+                $escaped = addcslashes($this->componentSearch, '%_\\');
+                $q->where('name->id', 'like', "%{$escaped}%")
+                  ->orWhere('name->en', 'like', "%{$escaped}%")
+                  ->orWhere('name->ar', 'like', "%{$escaped}%");
+            })
             ->limit(10)
             ->get(['id', 'name', 'type']);
     }

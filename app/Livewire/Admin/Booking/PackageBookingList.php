@@ -59,7 +59,10 @@ class PackageBookingList extends Component
     {
         return PackageBooking::query()
             ->with('quotation.lead')
-            ->when($this->search, fn ($q) => $q->where('code', 'like', "%{$this->search}%"))
+            ->when($this->search, function ($q) {
+                $escaped = addcslashes($this->search, '%_\\');
+                $q->where('code', 'like', "%{$escaped}%");
+            })
             ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter));
     }
 

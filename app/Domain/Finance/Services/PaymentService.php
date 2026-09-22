@@ -52,9 +52,11 @@ class PaymentService
 
         $currency = strtoupper($currency);
         $fxRate = $this->resolveFxRate($currency, $customFxRate);
+        $decimalPlaces = \App\Domain\Pricing\Models\Currency::where('code', $currency)->value('decimal_places') ?? ($currency === 'IDR' ? 0 : 2);
+        $factor = 10 ** $decimalPlaces;
         $idrEquivalentMinor = $currency === 'IDR'
             ? $amountMinor
-            : (int) round($amountMinor * $fxRate);
+            : (int) round(($amountMinor * $fxRate) / $factor);
 
         // Calculate channel fee if applicable
         $channelFeeMinor = $this->calculateChannelFee($channel, $amountMinor);

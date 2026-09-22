@@ -41,9 +41,13 @@ class UserList extends Component
         $users = $this->applySort(
             User::query()
                 ->with(['branch', 'roles'])
-                ->when($this->search, fn ($query) => $query
-                    ->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('email', 'like', "%{$this->search}%")),
+                ->when($this->search, function ($query) {
+                    $escaped = addcslashes($this->search, '%_\\');
+                    $query->where(function ($sub) use ($escaped) {
+                        $sub->where('name', 'like', "%{$escaped}%")
+                            ->orWhere('email', 'like', "%{$escaped}%");
+                    });
+                }),
             self::SORTABLE_FIELDS,
             defaultField: 'created_at',
         )->paginate(10);

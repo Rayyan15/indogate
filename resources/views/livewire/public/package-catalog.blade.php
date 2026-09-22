@@ -17,9 +17,12 @@
                     <span class="text-neutral-500 px-2">{{ __('storefront.currency_label') }}:</span>
                     @foreach(\App\Support\Storefront\StorefrontCurrency::SUPPORTED_CURRENCIES as $curr)
                         <button
+                            wire:key="curr-btn-{{ $curr }}"
                             type="button"
                             wire:click="setCurrency('{{ $curr }}')"
-                            class="px-3 py-1.5 rounded transition-all {{ $currency === $curr ? 'bg-red-600 text-white shadow-sm font-bold' : 'text-neutral-700 hover:text-neutral-900' }}"
+                            wire:loading.attr="disabled"
+                            wire:target="setCurrency('{{ $curr }}')"
+                            class="px-3 py-1.5 rounded transition-all {{ $currency === $curr ? 'bg-red-600 text-white shadow-sm font-bold' : 'text-neutral-700 hover:text-neutral-900' }} disabled:opacity-50"
                         >
                             {{ $curr }}
                         </button>
@@ -111,7 +114,7 @@
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($packages as $package)
-                        <article class="bg-neutral-0 rounded border {{ $package->is_featured ? 'border-2 border-red-600' : 'border-neutral-200' }} overflow-hidden flex flex-col hover:shadow-lg transition-shadow duration-300">
+                        <article wire:key="package-{{ $package->id }}" class="bg-neutral-0 rounded border {{ $package->is_featured ? 'border-2 border-red-600' : 'border-neutral-200' }} overflow-hidden flex flex-col hover:shadow-lg transition-shadow duration-300">
                             <!-- Package Image -->
                             <div class="relative aspect-[16/10] bg-neutral-100 overflow-hidden">
                                 @if($package->cover_image)

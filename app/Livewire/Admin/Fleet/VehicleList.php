@@ -90,6 +90,7 @@ class VehicleList extends Component
                 'is_active' => $this->is_active,
             ]);
         } else {
+            $this->authorize('create', Vehicle::class);
             Vehicle::create([
                 'branch_id' => CurrentBranch::id(),
                 'plate' => $this->plate,
@@ -123,10 +124,11 @@ class VehicleList extends Component
     {
         $query = Vehicle::query()
             ->when($this->search !== '', function ($q) {
-                $q->where(function ($sq) {
-                    $sq->where('plate', 'like', "%{$this->search}%")
-                        ->orWhere('type', 'like', "%{$this->search}%")
-                        ->orWhere('plate_number', 'like', "%{$this->search}%");
+                $escaped = addcslashes($this->search, '%_\\');
+                $q->where(function ($sq) use ($escaped) {
+                    $sq->where('plate', 'like', "%{$escaped}%")
+                        ->orWhere('type', 'like', "%{$escaped}%")
+                        ->orWhere('plate_number', 'like', "%{$escaped}%");
                 });
             })
             ->when($this->statusFilter !== '', function ($q) {

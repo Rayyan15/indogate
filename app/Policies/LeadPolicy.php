@@ -22,4 +22,9 @@ class LeadPolicy
     {
         return $user->can('lead.manage') && $lead->branch_id === CurrentBranch::id();
     }
+
+    public function create(User $user): bool
+    {
+        return $user->can('lead.manage');
+    }
 }

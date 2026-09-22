@@ -14,6 +14,7 @@ use App\Enums\BookingStatus;
 use App\Enums\LeadStatus;
 use App\Models\Driver;
 use App\Models\Vehicle;
+use App\Support\Branch\BranchScope;
 use App\Support\Branch\CurrentBranch;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -103,7 +104,7 @@ class DashboardMetricsService
     public function getBookingsSummary(?int $branchId, ?Carbon $startDate, ?Carbon $endDate): array
     {
         $query = PackageBooking::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->when($startDate !== null, fn (Builder $q) => $q->where('created_at', '>=', $startDate))
             ->when($endDate !== null, fn (Builder $q) => $q->where('created_at', '<=', $endDate));
@@ -129,7 +130,7 @@ class DashboardMetricsService
     public function getFinancialMetrics(?int $branchId, ?Carbon $startDate, ?Carbon $endDate): array
     {
         $bookingsQuery = PackageBooking::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->with(['payments', 'vendorPayments', 'quotation.items'])
             ->where('status', '!=', BookingStatus::CANCELLED->value)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
@@ -158,7 +159,7 @@ class DashboardMetricsService
     public function getLeadFunnelMetrics(?int $branchId, ?Carbon $startDate, ?Carbon $endDate): array
     {
         $leadsQuery = Lead::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->when($startDate !== null, fn (Builder $q) => $q->where('created_at', '>=', $startDate))
             ->when($endDate !== null, fn (Builder $q) => $q->where('created_at', '<=', $endDate));
@@ -167,7 +168,7 @@ class DashboardMetricsService
         $totalLeads = $leads->count();
 
         $quotationsQuery = Quotation::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->when($startDate !== null, fn (Builder $q) => $q->where('created_at', '>=', $startDate))
             ->when($endDate !== null, fn (Builder $q) => $q->where('created_at', '<=', $endDate));
@@ -212,17 +213,17 @@ class DashboardMetricsService
     public function getOperationalStats(?int $branchId, ?Carbon $startDate, ?Carbon $endDate): array
     {
         $driversQuery = Driver::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId));
         $totalDrivers = (clone $driversQuery)->where('is_active', true)->count();
 
         $vehiclesQuery = Vehicle::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId));
         $totalVehicles = (clone $vehiclesQuery)->where('is_active', true)->count();
 
         $assignmentsQuery = DriverAssignment::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->whereIn('status', [DriverAssignment::STATUS_ASSIGNED, DriverAssignment::STATUS_IN_PROGRESS]);
 
@@ -230,7 +231,7 @@ class DashboardMetricsService
         $vehiclesInUse = (clone $assignmentsQuery)->distinct('vehicle_id')->count('vehicle_id');
 
         $partnersQuery = Partner::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId));
         $hotelPartners = (clone $partnersQuery)->where('type', 'hotel')->count();
 
@@ -249,7 +250,7 @@ class DashboardMetricsService
     public function getRecentBookings(?int $branchId, int $limit = 5): Collection
     {
         return PackageBooking::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->with(['quotation.lead', 'quotation.package'])
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->latest('created_at')
@@ -263,7 +264,7 @@ class DashboardMetricsService
     public function getPendingVerifications(?int $branchId, int $limit = 5): Collection
     {
         return Payment::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->with(['booking.quotation.lead'])
             ->where('status', Payment::STATUS_PENDING)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
@@ -281,7 +282,7 @@ class DashboardMetricsService
     {
         $packages = Package::query()->get(['id', 'name']);
         $bookings = PackageBooking::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScope(BranchScope::class)
             ->with(['quotation.package', 'payments', 'vendorPayments', 'quotation.items'])
             ->where('status', '!=', BookingStatus::CANCELLED->value)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))

@@ -14,6 +14,8 @@ class Driver extends Model
 {
     use BelongsToBranch, LogsActivity, SoftDeletes;
 
+    public const DAILY_RATE_BASE = 500000;
+
     protected $table = 'drivers';
 
     protected $fillable = [

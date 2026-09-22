@@ -81,7 +81,7 @@
                 <div class="min-h-[80px] bg-neutral-0 p-1.5">
                     <div class="text-neutral-400">{{ $day }}</div>
                     @foreach($calendarBookings->get($dateKey, collect()) as $b)
-                        <a href="{{ route('admin.package-bookings.show', $b) }}" class="mt-0.5 block truncate rounded px-1 py-0.5 text-[10px] font-medium" style="background:color-mix(in srgb, currentColor 10%, transparent)">
+                        <a wire:key="booking-{{ $b->id }}" href="{{ route('admin.package-bookings.show', $b) }}" class="mt-0.5 block truncate rounded px-1 py-0.5 text-[10px] font-medium" style="background:color-mix(in srgb, currentColor 10%, transparent)">
                             <x-ui.status :status="$b->status->value">{{ $b->code }}</x-ui.status>
                         </a>
                     @endforeach

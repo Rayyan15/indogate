@@ -74,13 +74,15 @@ class PackageCatalog extends Component
 
         // Search filter across locale name and description
         if (! empty(trim($this->search))) {
-            $keyword = '%'.trim($this->search).'%';
-            $locale = app()->getLocale();
-            $query->where(function ($q) use ($keyword, $locale) {
-                $q->where("name->{$locale}", 'like', $keyword)
-                    ->orWhere("description->{$locale}", 'like', $keyword)
-                    ->orWhere('name', 'like', $keyword)
-                    ->orWhere('description', 'like', $keyword);
+            $escaped = addcslashes(trim($this->search), '%_\\');
+            $keyword = "%{$escaped}%";
+            $query->where(function ($q) use ($keyword) {
+                $q->where("name->en", 'like', $keyword)
+                    ->orWhere("description->en", 'like', $keyword)
+                    ->orWhere("name->id", 'like', $keyword)
+                    ->orWhere("description->id", 'like', $keyword)
+                    ->orWhere("name->ar", 'like', $keyword)
+                    ->orWhere("description->ar", 'like', $keyword);
             });
         }
 

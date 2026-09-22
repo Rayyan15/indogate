@@ -9,8 +9,10 @@ use App\Domain\Catalog\Models\Partner;
 use App\Domain\Catalog\Models\Rate;
 use App\Domain\Catalog\Rules\RateDoesNotOverlap;
 use App\Enums\InventoryItemType;
+use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -92,7 +94,7 @@ class InventoryItemManager extends Component
             'description.en' => ['nullable', 'string'],
             'description.id' => ['nullable', 'string'],
             'description.ar' => ['nullable', 'string'],
-            'partner_id' => ['required', 'exists:partners,id'],
+            'partner_id' => ['required', Rule::exists('partners', 'id')->where('branch_id', CurrentBranch::id())],
             'type' => ['required', 'in:'.implode(',', array_column(InventoryItemType::cases(), 'value'))],
             'capacity' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],

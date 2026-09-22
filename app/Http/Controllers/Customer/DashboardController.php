@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Payment;
-use App\Models\PaymentProof;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,7 +26,7 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $booking->load('items', 'payments.proofs');
+        $booking->load('items', 'payments');
 
         return view('customer.dashboard.booking', compact('booking'));
     }
@@ -43,20 +42,12 @@ class DashboardController extends Controller
             'proof' => 'required|image|max:2048',
         ]);
 
-        $payment = Payment::create([
-            'booking_id' => $booking->id,
-            'amount' => $booking->total_amount,
-            'status' => 'pending',
+        $path = $request->file('proof')->store('payment-proofs', 'local');
+
+        $booking->update([
+            'status' => 'payment_submitted',
         ]);
 
-        $path = $request->file('proof')->store('payment_proofs', 'local');
-
-        PaymentProof::create([
-            'payment_id' => $payment->id,
-            'file_path' => $path,
-            'uploaded_at' => now(),
-        ]);
-
-        return back()->with('success', 'Payment proof uploaded successfully. Waiting for admin verification.');
+        return back()->with('success', 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi admin.');
     }
 }

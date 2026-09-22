@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmed;
 use App\Models\Payment;
-use App\Models\PaymentProof;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -26,7 +25,7 @@ class PaymentController extends Controller
     {
         $this->authorize('view', $payment);
 
-        $payment->load('booking.customer', 'proofs');
+        $payment->load('booking.customer');
 
         return view('admin.payments.show', compact('payment'));
     }
@@ -72,13 +71,27 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.index')->with('success', 'Payment rejected.');
     }
 
-    public function downloadProof(PaymentProof $proof)
+    public function downloadProof(Request $request, $proof)
     {
-        if (! Storage::disk('local')->exists($proof->file_path)) {
-            abort(404, 'Payment proof not found.');
+        $filePath = null;
+        $payment = null;
+        if (is_numeric($proof)) {
+            $payment = \App\Domain\Finance\Models\Payment::withoutGlobalScope(\App\Support\Branch\BranchScope::class)->find($proof);
+            $filePath = $payment?->proof_file;
         }
 
-        return Storage::disk('local')->download($proof->file_path);
+        if (! $filePath || ! Storage::disk('local')->exists($filePath)) {
+            abort(404, 'Bukti pembayaran tidak ditemukan.');
+        }
+
+        if (Auth::check() && $payment) {
+            activity('finance')
+                ->causedBy(Auth::user())
+                ->performedOn($payment)
+                ->log('Melihat atau mengunduh bukti pembayaran');
+        }
+
+        return Storage::disk('local')->response($filePath);
     }
 
     // Unused resource methods

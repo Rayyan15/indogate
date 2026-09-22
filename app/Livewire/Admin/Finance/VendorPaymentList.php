@@ -107,9 +107,14 @@ class VendorPaymentList extends Component
             $proofPath = $this->proofFile->store('vendor-payment-proofs', 'local');
         }
 
-        $idrEquivalentMinor = strtoupper($this->currency) === 'IDR'
+        $curr = strtoupper($this->currency);
+        $decimalPlaces = \App\Domain\Pricing\Models\Currency::where('code', $curr)->value('decimal_places') ?? ($curr === 'IDR' ? 0 : 2);
+        $factor = 10 ** $decimalPlaces;
+        $idrEquivalentMinor = $curr === 'IDR'
             ? $this->amount_minor
-            : (int) round($this->amount_minor * $this->fx_rate);
+            : (int) round(($this->amount_minor * (float) $this->fx_rate) / $factor);
+
+        $this->authorize('create', VendorPayment::class);
 
         VendorPayment::create([
             'branch_id' => CurrentBranch::id(),

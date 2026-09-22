@@ -12,6 +12,7 @@ use App\Domain\Reporting\Services\ReportExportService;
 use App\Models\Branch;
 use App\Models\Driver;
 use App\Models\Vehicle;
+use App\Support\Branch\BranchScope;
 use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -64,14 +65,44 @@ class ReportsCenter extends Component
         $this->resetPage();
     }
 
+    protected function resolveEffectiveBranchId(): ?int
+    {
+        if (! Auth::user()?->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+
+            return CurrentBranch::id();
+        }
+
+        return $this->branchId;
+    }
+
+    public function boot(): void
+    {
+        if (! Auth::user()?->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+        }
+    }
+
     public function updatingPeriod(): void
     {
         $this->resetPage();
     }
 
-    public function updatingBranchId(): void
+    public function updatingBranchId($value): void
     {
+        if (! Auth::user()?->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+
+            return;
+        }
         $this->resetPage();
+    }
+
+    public function updatedBranchId($value): void
+    {
+        if (! Auth::user()?->can('branch.switch')) {
+            $this->branchId = CurrentBranch::id();
+        }
     }
 
     public function updatingSearch(): void
@@ -81,18 +112,18 @@ class ReportsCenter extends Component
 
     public function export(): StreamedResponse
     {
+        $effectiveBranchId = $this->resolveEffectiveBranchId();
         $service = new DashboardMetricsService;
         [$startDate, $endDate] = $service->resolveDateRange($this->period, $this->customStart, $this->customEnd);
         $exportService = new ReportExportService;
 
-        $branchQuery = function ($query) {
-            if ($this->branchId) {
-                $query->withoutGlobalScopes()->where('branch_id', $this->branchId);
-            }
+        $branchQuery = function ($query) use ($effectiveBranchId) {
+            $query->withoutGlobalScope(BranchScope::class)
+                ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId));
         };
 
         $dateRange = now()->format('Ymd');
-        $branchTag = $this->branchId ? "cabang-{$this->branchId}" : 'gabungan';
+        $branchTag = $effectiveBranchId ? "cabang-{$effectiveBranchId}" : 'gabungan';
 
         if ($this->activeTab === 'lead_conversion') {
             $leads = Lead::query()
@@ -139,6 +170,7 @@ class ReportsCenter extends Component
     public function render(): View
     {
         $metricsService = new DashboardMetricsService;
+        $effectiveBranchId = $this->resolveEffectiveBranchId();
         [$startDate, $endDate] = $metricsService->resolveDateRange($this->period, $this->customStart, $this->customEnd);
 
         $branches = Branch::where('is_active', true)->get(['id', 'name', 'code']);
@@ -149,8 +181,9 @@ class ReportsCenter extends Component
 
         if ($this->activeTab === 'sales_margin' && $canViewFinancials) {
             $bookingsQuery = PackageBooking::query()
+                ->withoutGlobalScope(BranchScope::class)
                 ->with(['quotation.package', 'quotation.lead', 'payments', 'vendorPayments', 'quotation.items', 'branch'])
-                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId))
                 ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
                 ->when($this->search !== '', function ($q) {
@@ -162,46 +195,53 @@ class ReportsCenter extends Component
                 })
                 ->latest('departure_date');
 
-            $data['bookings'] = $bookingsQuery->paginate(15);
             $allBookings = (clone $bookingsQuery)->get();
+            $data['bookings'] = $bookingsQuery->paginate(15);
             $marginService = new MarginReportService;
             $data['summary'] = $marginService->computeOverallSummary($allBookings);
-            $data['package_performance'] = $metricsService->getPackagePerformance($this->branchId, $startDate, $endDate);
+            $data['package_performance'] = $metricsService->getPackagePerformance($effectiveBranchId, $startDate, $endDate);
         } elseif ($this->activeTab === 'lead_conversion') {
             $leadsQuery = Lead::query()
+                ->withoutGlobalScope(BranchScope::class)
                 ->with(['assignee', 'quotations'])
-                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId))
                 ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
                 ->when($this->search !== '', function ($q) {
                     $escaped = addcslashes($this->search, '%_\\');
-                    $q->where('name', 'like', "%{$escaped}%")
-                        ->orWhere('phone', 'like', "%{$escaped}%");
+                    $q->where(function ($sq) use ($escaped) {
+                        $sq->where('name', 'like', "%{$escaped}%")
+                            ->orWhere('phone', 'like', "%{$escaped}%");
+                    });
                 })
                 ->latest();
 
             $data['leads'] = $leadsQuery->paginate(15);
-            $data['funnel'] = $metricsService->getLeadFunnelMetrics($this->branchId, $startDate, $endDate);
+            $data['funnel'] = $metricsService->getLeadFunnelMetrics($effectiveBranchId, $startDate, $endDate);
         } elseif ($this->activeTab === 'operations') {
-            $data['operations_stats'] = $metricsService->getOperationalStats($this->branchId, $startDate, $endDate);
+            $data['operations_stats'] = $metricsService->getOperationalStats($effectiveBranchId, $startDate, $endDate);
 
             $assignmentsQuery = DriverAssignment::query()
+                ->withoutGlobalScope(BranchScope::class)
                 ->with(['driver', 'vehicle', 'booking.quotation.lead', 'branch'])
-                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId))
                 ->when($startDate, fn ($q) => $q->where('date_from', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('date_to', '<=', $endDate))
                 ->latest('date_from');
 
             $data['assignments'] = $assignmentsQuery->paginate(15);
             $data['drivers'] = Driver::query()
-                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->withoutGlobalScope(BranchScope::class)
+                ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId))
                 ->get();
             $data['vehicles'] = Vehicle::query()
-                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->withoutGlobalScope(BranchScope::class)
+                ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId))
                 ->get();
             $data['hotel_partners'] = Partner::query()
+                ->withoutGlobalScope(BranchScope::class)
                 ->where('type', 'hotel')
-                ->when($this->branchId, fn ($q) => $q->withoutGlobalScopes()->where('branch_id', $this->branchId))
+                ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId))
                 ->get();
         }
 

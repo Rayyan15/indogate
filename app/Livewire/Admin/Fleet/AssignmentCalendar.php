@@ -99,10 +99,11 @@ class AssignmentCalendar extends Component
             })
             ->when($this->statusFilter !== '', fn ($q) => $q->where('status', $this->statusFilter))
             ->when($this->search !== '', function ($q) {
-                $q->where(function ($sq) {
-                    $sq->whereHas('driver', fn ($dq) => $dq->where('name', 'like', "%{$this->search}%"))
-                        ->orWhereHas('vehicle', fn ($vq) => $vq->where('plate', 'like', "%{$this->search}%"))
-                        ->orWhereHas('booking', fn ($bq) => $bq->where('code', 'like', "%{$this->search}%"));
+                $escaped = addcslashes($this->search, '%_\\');
+                $q->where(function ($sq) use ($escaped) {
+                    $sq->whereHas('driver', fn ($dq) => $dq->where('name', 'like', "%{$escaped}%"))
+                        ->orWhereHas('vehicle', fn ($vq) => $vq->where('plate', 'like', "%{$escaped}%"))
+                        ->orWhereHas('booking', fn ($bq) => $bq->where('code', 'like', "%{$escaped}%"));
                 });
             })
             ->orderBy('date_from');

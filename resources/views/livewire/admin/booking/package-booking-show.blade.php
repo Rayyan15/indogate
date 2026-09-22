@@ -52,7 +52,7 @@
                 <h3 class="text-sm font-medium text-neutral-900">{{ __('booking.show.guests') }}</h3>
                 <div class="mt-2 space-y-2">
                     @forelse($booking->guests as $guest)
-                        <div class="flex items-center justify-between rounded border border-neutral-100 px-3 py-2 text-xs">
+                        <div wire:key="guest-{{ $guest->id }}" class="flex items-center justify-between rounded border border-neutral-100 px-3 py-2 text-xs">
                             <span>{{ $guest->name }}{{ $guest->is_lead_guest ? ' ('.__('booking.show.lead_guest').')' : '' }} · {{ $guest->nationality ?? '—' }}</span>
                             <span class="flex items-center gap-2">
                                 @if($guest->passport_file)
@@ -95,7 +95,7 @@
                 <h3 class="text-sm font-medium text-neutral-900">{{ __('booking.show.notes') }}</h3>
                 <ul class="mt-2 space-y-1 text-xs text-neutral-600">
                     @forelse($booking->notes as $note)
-                        <li class="border-b border-neutral-100 pb-1">{{ $note->note }} <span class="text-neutral-400">— {{ $note->user?->name ?? 'System' }} · {{ $note->created_at->diffForHumans() }}</span></li>
+                        <li wire:key="note-{{ $note->id }}" class="border-b border-neutral-100 pb-1">{{ $note->note }} <span class="text-neutral-400">— {{ $note->user?->name ?? 'System' }} · {{ $note->created_at->diffForHumans() }}</span></li>
                     @empty
                         <li class="text-neutral-400">{{ __('booking.show.no_notes') }}</li>
                     @endforelse
@@ -234,12 +234,14 @@
                                             {{ __('fleet.departure_date') }} <span class="text-red-600">*</span>
                                         </label>
                                         <input type="date" wire:model.live="assignment_date_from" required class="w-full rounded border border-neutral-300 px-3 py-1.5 text-xs" />
+                                        @error('assignment_date_from') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-xs font-semibold text-neutral-700 mb-1">
                                             {{ __('fleet.return_date') }} <span class="text-red-600">*</span>
                                         </label>
                                         <input type="date" wire:model.live="assignment_date_to" required class="w-full rounded border border-neutral-300 px-3 py-1.5 text-xs" />
+                                        @error('assignment_date_to') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
 
@@ -248,10 +250,11 @@
                                         {{ __('fleet.notes') }}
                                     </label>
                                     <input type="text" wire:model="assignment_notes" placeholder="Contoh: Tamu butuh driver berbahasa Arab untuk penjemputan bandara" class="w-full rounded border border-neutral-300 px-3 py-1.5 text-xs" />
+                                    @error('assignment_notes') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                                 </div>
 
                                 <div class="pt-2">
-                                    <button type="submit" class="inline-flex items-center rounded bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-red-700">
+                                    <button type="submit" wire:loading.attr="disabled" wire:target="assignFleet" class="inline-flex items-center rounded bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-50">
                                         {{ __('fleet.assign_driver_and_vehicle') }}
                                     </button>
                                 </div>
@@ -314,7 +317,7 @@
                     <h4 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">Riwayat Pembayaran</h4>
                     <div class="space-y-2">
                         @forelse($bookingPayments as $payment)
-                            <div class="rounded border border-neutral-100 bg-neutral-50 p-2 text-xs">
+                            <div wire:key="payment-{{ $payment->id }}" class="rounded border border-neutral-100 bg-neutral-50 p-2 text-xs">
                                 <div class="flex items-center justify-between">
                                     <span class="font-bold text-neutral-900">
                                         {{ $payment->currency }} {{ number_format($payment->amount_minor, 0, ',', '.') }}
@@ -351,11 +354,11 @@
 
                                     @can('payment.verify')
                                         @if($payment->status === 'pending')
-                                            <button type="button" wire:click="verifyBookingPayment({{ $payment->id }})" class="font-bold text-emerald-700 hover:underline">
+                                            <button type="button" wire:click="verifyBookingPayment({{ $payment->id }})" wire:loading.attr="disabled" wire:target="verifyBookingPayment({{ $payment->id }})" class="font-bold text-emerald-700 hover:underline disabled:opacity-50">
                                                 Verifikasi
                                             </button>
                                         @elseif($payment->status === 'verified')
-                                            <button type="button" wire:click="openRefundModal({{ $payment->id }})" class="text-red-600 hover:underline">
+                                            <button type="button" wire:click="openRefundModal({{ $payment->id }})" wire:loading.attr="disabled" wire:target="openRefundModal({{ $payment->id }})" class="text-red-600 hover:underline disabled:opacity-50">
                                                 Refund
                                             </button>
                                         @endif
@@ -390,7 +393,7 @@
                 <h3 class="text-sm font-medium text-neutral-900">{{ __('booking.show.history') }}</h3>
                 <ul class="mt-2 space-y-1 text-xs text-neutral-600">
                     @forelse($booking->statusHistories as $history)
-                        <li class="border-b border-neutral-100 pb-1">
+                        <li wire:key="history-{{ $history->id }}" class="border-b border-neutral-100 pb-1">
                             {{ $history->from_status?->value ?? '—' }} → {{ $history->to_status->value }}
                             @if($history->reason) — {{ $history->reason }} @endif
                             <span class="text-neutral-400">· {{ $history->user?->name ?? 'System' }} · {{ $history->created_at->diffForHumans() }}</span>
@@ -495,12 +498,14 @@
                                 {{ __('finance.fx_rate') }}
                             </label>
                             <input type="number" step="0.00000001" wire:model="payment_fx_rate" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none" />
+                            @error('payment_fx_rate') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700">
                                 {{ __('finance.payment_proof') }}
                             </label>
                             <input type="file" wire:model="paymentProofFile" class="mt-1 block w-full text-xs text-neutral-600" />
+                            @error('paymentProofFile') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
@@ -515,7 +520,7 @@
                         <button type="button" wire:click="$set('showPaymentModal', false)" class="rounded border border-neutral-300 px-4 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
                             {{ __('catalog.common.cancel') }}
                         </button>
-                        <button type="submit" class="rounded bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-red-700">
+                        <button type="submit" wire:loading.attr="disabled" wire:target="recordPayment" class="rounded bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-50">
                             {{ __('finance.record_payment') }}
                         </button>
                     </div>
@@ -556,7 +561,7 @@
                         <button type="button" wire:click="$set('showRefundModal', false)" class="rounded border border-neutral-300 px-4 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
                             {{ __('catalog.common.cancel') }}
                         </button>
-                        <button type="submit" class="rounded bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-red-700">
+                        <button type="submit" wire:loading.attr="disabled" wire:target="processRefund" class="rounded bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-50">
                             {{ __('finance.process_refund') }}
                         </button>
                     </div>

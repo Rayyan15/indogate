@@ -22,10 +22,10 @@
             </x-ui.field>
 
             <div class="grid grid-cols-2 gap-5">
-                <x-ui.field :label="__('catalog.partner.city')">
+                <x-ui.field :label="__('catalog.partner.city')" :error="$errors->first('city')">
                     <input type="text" wire:model="city" class="admin-input">
                 </x-ui.field>
-                <x-ui.field :label="__('catalog.partner.contact')">
+                <x-ui.field :label="__('catalog.partner.contact')" :error="$errors->first('contact')">
                     <input type="text" wire:model="contact" class="admin-input">
                 </x-ui.field>
             </div>

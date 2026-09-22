@@ -9,9 +9,11 @@ use App\Domain\Lead\Models\Quotation;
 use App\Domain\Lead\QuotationGenerator;
 use App\Domain\Packaging\Models\Package;
 use App\Enums\PaymentChannel;
+use App\Support\Branch\CurrentBranch;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class CreateQuotation extends Component
@@ -50,7 +52,10 @@ class CreateQuotation extends Component
         $this->authorize('create', Quotation::class);
 
         $data = $this->validate([
-            'package_id' => ['required', 'exists:packages,id'],
+            'package_id' => [
+                'required',
+                Rule::exists('packages', 'id')->where('branch_id', CurrentBranch::id()),
+            ],
             'pax' => ['required', 'integer', 'min:1'],
             'preview_date' => ['required', 'date'],
             'currency' => ['required', 'string', 'size:3'],
@@ -88,6 +93,7 @@ class CreateQuotation extends Component
     {
         $quotation = Quotation::findOrFail($this->convertingQuotationId);
         $this->authorize('view', $quotation);
+        $this->authorize('create', PackageBooking::class);
 
         $data = $this->validate([
             'convert_departure_date' => ['required', 'date'],

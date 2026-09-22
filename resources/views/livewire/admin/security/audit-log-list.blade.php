@@ -52,7 +52,7 @@
     <!-- Audit Logs Table -->
     <div class="bg-neutral-0 rounded border border-neutral-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
+            <table class="w-full text-start text-sm">
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-600 border-b border-neutral-200">
                     <tr>
                         <th class="px-5 py-3 font-semibold">{{ __('security.time') }}</th>

@@ -55,7 +55,14 @@ class PackageList extends Component
             Package::query()
                 ->withCount('items')
                 ->with(['items.inventoryItem:id,name,type'])
-                ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")),
+                ->when($this->search, function ($q) {
+                    $escaped = addcslashes($this->search, '%_\\');
+                    $q->where(function ($sub) use ($escaped) {
+                        $sub->where('name->id', 'like', "%{$escaped}%")
+                            ->orWhere('name->en', 'like', "%{$escaped}%")
+                            ->orWhere('name->ar', 'like', "%{$escaped}%");
+                    });
+                }),
             self::SORTABLE_FIELDS,
             defaultField: 'created_at',
         )->paginate(9);

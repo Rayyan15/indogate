@@ -71,7 +71,7 @@
                     </x-ui.td>
                     <x-ui.td numeric>
                         @can('delete', $vp)
-                            <button type="button" wire:click="deleteVendorPayment({{ $vp->id }})" class="text-xs font-medium text-red-600 hover:text-red-800">
+                            <button type="button" wire:click="deleteVendorPayment({{ $vp->id }})" wire:loading.attr="disabled" class="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50">
                                 Hapus
                             </button>
                         @endcan
@@ -146,12 +146,14 @@
                                 {{ __('finance.fx_rate') }}
                             </label>
                             <input type="number" step="0.00000001" wire:model="fx_rate" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none" />
+                            @error('fx_rate') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700">
                                 {{ __('finance.paid_at') }} <span class="text-red-600">*</span>
                             </label>
                             <input type="date" wire:model="paid_at" required class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none" />
+                            @error('paid_at') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
@@ -160,6 +162,7 @@
                             {{ __('finance.description') }}
                         </label>
                         <input type="text" wire:model="description" placeholder="Contoh: Pembayaran deposit kamar hotel 3 malam" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none" />
+                        @error('description') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
@@ -167,6 +170,7 @@
                             {{ __('finance.payment_proof') }} (PDF/Gambar, maks 5MB)
                         </label>
                         <input type="file" wire:model="proofFile" class="mt-1 block w-full text-xs text-neutral-600" />
+                        @error('proofFile') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3 pt-3 border-t border-neutral-100">

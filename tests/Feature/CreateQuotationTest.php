@@ -76,4 +76,42 @@ class CreateQuotationTest extends TestCase
             'departure_date' => '2026-06-01 00:00:00',
         ]);
     }
+
+    public function test_converting_to_booking_requires_booking_manage_permission(): void
+    {
+        $this->seed();
+        $branch = $this->baliBranch();
+        $lead = $this->leadFor($branch);
+        $package = $this->packageWithOneHotelRoom($branch, 1_000_000);
+
+        // User with lead.manage and quotation permissions, but without booking.manage
+        $leadAgent = User::factory()->create([
+            'branch_id' => $branch->id,
+            'is_active' => true,
+        ]);
+        $leadAgent->givePermissionTo(['lead.manage']);
+
+        $cs = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+
+        // Create quotation by CS Admin
+        $component = Livewire::actingAs($cs)
+            ->test(CreateQuotation::class, ['lead' => $lead])
+            ->set('package_id', $package->id)
+            ->set('pax', 2)
+            ->set('preview_date', '2026-06-01')
+            ->set('currency', 'IDR')
+            ->set('channel', 'bank_transfer')
+            ->call('generate')
+            ->assertHasNoErrors();
+
+        $quotation = $lead->quotations()->first();
+
+        // Attempt to convert to booking by user without booking.manage must throw 403 Forbidden
+        Livewire::actingAs($leadAgent)
+            ->test(CreateQuotation::class, ['lead' => $lead])
+            ->call('openConvertForm', $quotation->id)
+            ->set('convert_departure_date', '2026-06-01')
+            ->call('convertToBooking')
+            ->assertForbidden();
+    }
 }

@@ -60,7 +60,10 @@ class LeadList extends Component
     {
         return Lead::query()
             ->with('assignee:id,name')
-            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->when($this->search, function ($q) {
+                $escaped = addcslashes($this->search, '%_\\');
+                $q->where('name', 'like', "%{$escaped}%");
+            })
             ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
             ->when($this->sourceFilter, fn ($q) => $q->where('source', $this->sourceFilter))
             ->when($this->dueOnly, fn ($q) => $q->whereNotNull('follow_up_at')

@@ -26,7 +26,7 @@
                 </select>
 
                 {{-- Export Button (Single red-600 primary action) --}}
-                <div x-data="{ open: false }" class="relative inline-block text-left">
+                <div x-data="{ open: false }" class="relative inline-block text-start">
                     <button @click="open = !open" type="button" class="inline-flex h-9 items-center gap-1.5 rounded bg-red-600 px-3 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         <span>{{ __('report.export') }}</span>

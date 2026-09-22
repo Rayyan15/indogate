@@ -84,7 +84,12 @@ class ManualTransferProvider implements PaymentProviderInterface
             throw new InvalidArgumentException('Nominal refund tidak valid atau melebihi sisa dana yang dapat dikembalikan.');
         }
 
-        $idrEquivalentMinor = (int) round($amountMinor * (float) $payment->fx_rate);
+        $curr = strtoupper($payment->currency);
+        $decimalPlaces = \App\Domain\Pricing\Models\Currency::where('code', $curr)->value('decimal_places') ?? ($curr === 'IDR' ? 0 : 2);
+        $factor = 10 ** $decimalPlaces;
+        $idrEquivalentMinor = $curr === 'IDR'
+            ? $amountMinor
+            : (int) round(($amountMinor * (float) $payment->fx_rate) / $factor);
 
         return Refund::create([
             'branch_id' => $payment->branch_id,
