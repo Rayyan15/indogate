@@ -5,9 +5,12 @@ namespace App\Providers;
 use App\Domain\Booking\Models\PackageBooking;
 use App\Domain\Catalog\Models\InventoryItem;
 use App\Domain\Catalog\Models\Partner;
+use App\Domain\Finance\Contracts\PaymentProviderInterface;
 use App\Domain\Finance\Models\Payment;
+use App\Domain\Finance\Models\PaymentIntent;
 use App\Domain\Finance\Models\Refund;
 use App\Domain\Finance\Models\VendorPayment;
+use App\Domain\Finance\Providers\ManualTransferProvider;
 use App\Domain\Fleet\Models\Driver;
 use App\Domain\Fleet\Models\DriverAssignment;
 use App\Domain\Fleet\Models\Vehicle;
@@ -40,6 +43,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Translatable\Translatable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,7 +52,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PaymentProviderInterface::class, fn () => $this->app->make(
+            config('payments.providers.'.config('payments.provider')) ?? ManualTransferProvider::class
+        ));
     }
 
     /**
@@ -56,7 +62,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        app(\Spatie\Translatable\Translatable::class)->fallback(fallbackAny: true);
+        app(Translatable::class)->fallback(fallbackAny: true);
 
         Gate::policy(Booking::class, BookingPolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
@@ -89,6 +95,7 @@ class AppServiceProvider extends ServiceProvider
         // Public token lookup has no branch/auth context at all — bypass
         // scope unconditionally, the unguessable token is the boundary.
         Route::bind('quotation', fn ($token) => Quotation::withoutGlobalScope(BranchScope::class)->where('token', $token)->firstOrFail());
+        Route::bind('intent', fn ($token) => PaymentIntent::withoutGlobalScope(BranchScope::class)->where('public_token', $token)->firstOrFail());
         Route::bind('packageBooking', fn ($id) => PackageBooking::withoutGlobalScope(BranchScope::class)->findOrFail($id));
         Route::bind('driver', fn ($id) => Driver::withoutGlobalScope(BranchScope::class)->findOrFail($id));
         Route::bind('vehicle', fn ($id) => Vehicle::withoutGlobalScope(BranchScope::class)->findOrFail($id));

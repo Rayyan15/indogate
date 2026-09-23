@@ -42,6 +42,7 @@ class MarginVisibilityTest extends TestCase
         $this->seed();
         $itemId = $this->setUpPackageWithComponent();
         $cs = User::role('CS Admin')->firstOrFail();
+        $cs->givePermissionTo('catalog.manage');
 
         $component = Livewire::actingAs($cs)->test(PackageBuilder::class)
             ->call('recalculate', [[

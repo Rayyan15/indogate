@@ -66,15 +66,15 @@
     </div>
     @endif
 
-    {{-- 4 Core KPI Summary Cards --}}
+    {{-- 4 Core KPI Summary Cards: same skeleton (label row h-6, value, footnote) so they line up --}}
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {{-- Total Bookings --}}
         <div class="rounded border border-neutral-200 bg-neutral-0 p-4 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.total_bookings') }}</div>
-            <div class="mt-2 flex items-baseline justify-between">
-                <span class="text-2xl font-bold font-mono text-neutral-900">{{ $metrics['bookings']['total'] }}</span>
-                <span class="text-xs text-neutral-500">{{ $metrics['bookings']['confirmed'] + $metrics['bookings']['paid'] }} aktif</span>
+            <div class="flex h-6 items-center justify-between gap-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.total_bookings') }}</span>
+                <span class="text-[11px] text-neutral-500">{{ $metrics['bookings']['confirmed'] + $metrics['bookings']['paid'] }} aktif</span>
             </div>
+            <div class="mt-2 text-xl font-bold font-mono tabular-nums text-neutral-900">{{ $metrics['bookings']['total'] }}</div>
             <div class="mt-2 text-[11px] text-neutral-500">
                 {{ $metrics['bookings']['paid'] }} Lunas · {{ $metrics['bookings']['partially_paid'] }} DP
             </div>
@@ -82,44 +82,65 @@
 
         {{-- Gross Revenue --}}
         @if($canViewFinancials)
-        <div class="rounded border border-neutral-200 bg-neutral-0 p-4 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.gross_revenue') }}</div>
-            <div class="mt-2 text-xl font-bold font-mono text-neutral-900">
+        <div class="rounded border border-neutral-200 bg-neutral-0 p-4 shadow-sm"
+             x-data="{
+                cur: 'IDR',
+                fx: @js($fxRates),
+                fmt(idr) {
+                    const r = this.fx[this.cur];
+                    return this.cur + ' ' + new Intl.NumberFormat('id-ID', { minimumFractionDigits: r.d, maximumFractionDigits: r.d }).format(idr / r.rate);
+                },
+             }">
+            <div class="flex h-6 items-center justify-between gap-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.gross_revenue') }}</span>
+                <select x-model="cur" aria-label="{{ __('report.view_in_currency') }}"
+                        class="h-6 rounded border-neutral-200 py-0 ps-2 pe-6 text-[11px] font-semibold leading-none text-neutral-600 focus:border-red-600 focus:ring-red-600">
+                    @foreach(array_keys($fxRates) as $code)
+                        <option value="{{ $code }}">{{ $code }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mt-2 text-xl font-bold font-mono tabular-nums text-neutral-900" dir="ltr"
+                 x-text="fmt({{ (int) $metrics['financials']['gross_revenue_idr'] }})">
                 IDR {{ number_format($metrics['financials']['gross_revenue_idr'], 0, ',', '.') }}
             </div>
-            <div class="mt-2 text-[11px] text-rose-700">
-                - IDR {{ number_format($metrics['financials']['channel_fees_idr'], 0, ',', '.') }} (MDR)
+            <div class="mt-2 text-[11px] text-neutral-500" dir="ltr">
+                <span class="text-rose-700">- <span x-text="fmt({{ (int) $metrics['financials']['channel_fees_idr'] }})">IDR {{ number_format($metrics['financials']['channel_fees_idr'], 0, ',', '.') }}</span> (MDR)</span>
+                <span x-show="cur !== 'IDR'" x-cloak> · 1 <span x-text="cur"></span> = IDR <span x-text="new Intl.NumberFormat('id-ID').format(fx[cur].rate)"></span></span>
             </div>
         </div>
 
         {{-- True Net Margin --}}
-        <div class="rounded border border-emerald-200 bg-emerald-50/50 p-4 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-emerald-800">
-                {{ __('report.net_margin') }} ({{ $metrics['financials']['overall_margin_percentage'] }}%)
+        <div class="rounded border border-neutral-200 bg-neutral-0 p-4 shadow-sm">
+            <div class="flex h-6 items-center justify-between gap-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.net_margin') }}</span>
+                <span class="rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700">{{ $metrics['financials']['overall_margin_percentage'] }}%</span>
             </div>
-            <div class="mt-2 text-xl font-bold font-mono text-emerald-950">
+            <div class="mt-2 text-xl font-bold font-mono tabular-nums text-emerald-700" dir="ltr">
                 IDR {{ number_format($metrics['financials']['actual_margin_idr'], 0, ',', '.') }}
             </div>
-            <div class="mt-2 text-[11px] text-emerald-700">
+            <div class="mt-2 text-[11px] text-neutral-500" dir="ltr">
                 HPP: IDR {{ number_format($metrics['financials']['vendor_costs_idr'], 0, ',', '.') }}
             </div>
         </div>
         @else
-        <div class="rounded border border-neutral-200 bg-neutral-50 p-4 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{{ __('report.net_margin') }}</div>
+        <div class="rounded border border-neutral-200 bg-neutral-0 p-4 shadow-sm">
+            <div class="flex h-6 items-center">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.net_margin') }}</span>
+            </div>
             <div class="mt-2 text-sm font-medium text-neutral-500">{{ __('report.restricted_financials') }}</div>
-            <div class="mt-1 text-[11px] text-neutral-400">{{ __('report.restricted_financials_note') }}</div>
+            <div class="mt-2 text-[11px] text-neutral-400">{{ __('report.restricted_financials_note') }}</div>
         </div>
         @endif
 
         {{-- Lead Conversion Rate --}}
-        <div class="rounded border border-blue-200 bg-blue-50/50 p-4 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-blue-800">{{ __('report.conversion_rate') }}</div>
-            <div class="mt-2 flex items-baseline justify-between">
-                <span class="text-2xl font-bold font-mono text-blue-950">{{ $metrics['lead_funnel']['conversion_rate'] }}%</span>
-                <span class="text-xs text-blue-800 font-medium">{{ $metrics['lead_funnel']['won_count'] }} Won</span>
+        <div class="rounded border border-neutral-200 bg-neutral-0 p-4 shadow-sm">
+            <div class="flex h-6 items-center justify-between gap-2">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.conversion_rate') }}</span>
+                <span class="rounded bg-blue-50 px-1.5 py-0.5 text-[11px] font-semibold text-blue-700">{{ $metrics['lead_funnel']['won_count'] }} Won</span>
             </div>
-            <div class="mt-2 text-[11px] text-blue-700">
+            <div class="mt-2 text-xl font-bold font-mono tabular-nums text-neutral-900">{{ $metrics['lead_funnel']['conversion_rate'] }}%</div>
+            <div class="mt-2 text-[11px] text-neutral-500">
                 Dari {{ $metrics['lead_funnel']['total_leads'] }} prospek ({{ $metrics['lead_funnel']['quotations_count'] }} penawaran)
             </div>
         </div>

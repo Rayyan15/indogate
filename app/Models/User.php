@@ -45,6 +45,12 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
+    /** Any role other than Customer is staff, so roles created from the admin UI get panel access. */
+    public function isStaff(): bool
+    {
+        return $this->roles->contains(fn ($role) => $role->name !== 'Customer');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

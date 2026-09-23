@@ -25,6 +25,7 @@ class AssignmentPermissionTest extends TestCase
     {
         $this->seed();
         $cs = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+        $cs->givePermissionTo('driver.assign');
 
         $this->assertTrue(Gate::forUser($cs)->allows('create', DriverAssignment::class));
         $this->assertTrue(Gate::forUser($cs)->allows('assign', DriverAssignment::class));

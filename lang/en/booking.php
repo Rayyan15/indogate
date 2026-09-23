@@ -3,8 +3,8 @@
 return [
     'eyebrow' => 'Bookings',
     'list' => [
-        'index_title' => 'Bookings',
-        'index_lede' => 'Manage bookings converted from quotations.',
+        'index_title' => 'Package Bookings',
+        'index_lede' => 'Bookings converted from quotations made by CS.',
         'code' => 'Code',
         'lead' => 'Lead',
         'departure' => 'Departure',
@@ -80,4 +80,6 @@ return [
     ],
     'convert_already_converted' => 'This quotation has already been converted into a booking.',
     'convert_expired' => 'This quotation has expired and can no longer be converted.',
+
+    'no_balance_due' => 'Paid in full — nothing due',
 ];

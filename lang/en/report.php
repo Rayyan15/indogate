@@ -28,6 +28,8 @@ return [
     'total_bookings' => 'Total Bookings',
     'bookings_count' => 'Bookings',
     'gross_revenue' => 'Gross Revenue',
+    'view_in_currency' => 'View in currency',
+    'fx_note' => 'Current rate:',
     'channel_fees' => 'Channel Fees (MDR)',
     'net_revenue' => 'Net Revenue',
     'vendor_costs' => 'Vendor Costs (COGS)',

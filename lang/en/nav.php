@@ -3,6 +3,8 @@
 return [
     'overview' => 'Overview',
     'dashboard' => 'Dashboard',
+    'cs_desk' => 'CS Desk',
+    'roles' => 'Role Permissions',
     'operations' => 'Operations',
     'bookings' => 'Bookings',
     'payments' => 'Payments',
@@ -16,6 +18,8 @@ return [
     'packages' => 'Packages',
     'leads' => 'Leads',
     'package_bookings' => 'Bookings',
+    'package_bookings_item' => 'Package Bookings',
+    'online_orders' => 'Online Orders',
     'configuration' => 'Configuration',
     'pricing' => 'Dynamic Pricing',
     'pricing_engine' => 'Pricing & Currency Engine',

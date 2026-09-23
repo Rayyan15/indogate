@@ -9,8 +9,8 @@ use App\Domain\Finance\Exceptions\PaymentVerificationException;
 use App\Domain\Finance\Exceptions\SelfApprovalException;
 use App\Domain\Finance\Fx;
 use App\Domain\Finance\Models\Payment;
+use App\Domain\Finance\Models\PaymentIntent;
 use App\Domain\Finance\Models\Refund;
-use App\Domain\Finance\Providers\ManualTransferProvider;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentChannel;
 use App\Models\User;
@@ -31,7 +31,7 @@ class PaymentService
     public function __construct(
         protected ?PaymentProviderInterface $provider = null
     ) {
-        $this->provider = $this->provider ?? new ManualTransferProvider;
+        $this->provider = $this->provider ?? app(PaymentProviderInterface::class);
     }
 
     public static function channels(): array
@@ -255,6 +255,59 @@ class PaymentService
         });
     }
 
+    /**
+     * A gateway confirmed the money arrived: record it as verified by the
+     * system (no human approver, so self-approval rules don't apply) and move
+     * the booking along. Caller holds the intent row lock.
+     */
+    public function recordGatewayPayment(PaymentIntent $intent, string $providerReference): Payment
+    {
+        return DB::transaction(function () use ($intent, $providerReference) {
+            $booking = PackageBooking::withoutGlobalScopes()->lockForUpdate()->findOrFail($intent->booking_id);
+
+            $payment = Payment::withoutGlobalScopes()->create([
+                'branch_id' => $intent->branch_id,
+                'booking_id' => $booking->id,
+                'payment_intent_id' => $intent->id,
+                'type' => $intent->payment_type,
+                'amount_minor' => $intent->amount_minor,
+                'currency' => $intent->currency,
+                'fx_rate' => $intent->fx_rate,
+                'idr_equivalent_minor' => Fx::toIdrMinor($intent->amount_minor, $intent->currency, (float) $intent->fx_rate),
+                'channel_fee_minor' => $intent->channel_fee_minor,
+                'channel' => $intent->channel,
+                'source' => Payment::SOURCE_GATEWAY,
+                'provider_reference' => $providerReference,
+                'notes' => trim($intent->provider.' '.$intent->method),
+                'status' => Payment::STATUS_VERIFIED,
+                'verified_at' => now(),
+            ]);
+
+            $intent->update([
+                'status' => PaymentIntent::STATUS_COMPLETED,
+                'provider_reference' => $providerReference,
+                'paid_at' => now(),
+            ]);
+
+            activity('finance')
+                ->performedOn($payment)
+                ->withProperties([
+                    'booking_code' => $booking->code,
+                    'amount_minor' => $payment->amount_minor,
+                    'currency' => $payment->currency,
+                    'provider' => $intent->provider,
+                    'reference' => $providerReference,
+                ])
+                ->log('Gateway payment received');
+
+            if ($booking->status !== BookingStatus::CANCELLED) {
+                $this->reconcileBookingStatus($booking, null);
+            }
+
+            return $payment;
+        });
+    }
+
     private function assertNotSelfApproval(PackageBooking $booking, Payment $payment, User $verifier): void
     {
         $bookingCreator = $booking->created_by
@@ -272,7 +325,7 @@ class PaymentService
     /**
      * Transition booking status based on verified payment total.
      */
-    private function reconcileBookingStatus(PackageBooking $booking, User $actor): void
+    private function reconcileBookingStatus(PackageBooking $booking, ?User $actor): void
     {
         $stateMachine = new BookingStateMachine;
         $booking->unsetRelation('payments')->unsetRelation('refunds');

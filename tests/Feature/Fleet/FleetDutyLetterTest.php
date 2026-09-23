@@ -37,6 +37,7 @@ class FleetDutyLetterTest extends TestCase
         );
 
         $user = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+        $user->givePermissionTo('driver.assign');
         CurrentBranch::switchTo($branch->id);
 
         $signedUrl = URL::temporarySignedRoute(
@@ -77,6 +78,7 @@ class FleetDutyLetterTest extends TestCase
         );
 
         $user = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+        $user->givePermissionTo('driver.assign');
 
         // Plain URL without signature
         $plainUrl = "/id/admin/fleet/assignments/{$assignment->id}/duty-letter";

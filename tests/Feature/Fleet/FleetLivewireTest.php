@@ -28,6 +28,7 @@ class FleetLivewireTest extends TestCase
         $this->seed();
         $branch = $this->baliBranch();
         $user = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+        $user->givePermissionTo('driver.assign');
         CurrentBranch::switchTo($branch->id);
 
         Livewire::actingAs($user)
@@ -75,6 +76,7 @@ class FleetLivewireTest extends TestCase
         $this->seed();
         $branch = $this->baliBranch();
         $user = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+        $user->givePermissionTo('driver.assign');
         CurrentBranch::switchTo($branch->id);
 
         Livewire::actingAs($user)
@@ -122,6 +124,7 @@ class FleetLivewireTest extends TestCase
         $vehicle = $this->createVehicle($branch, ['plate' => 'DK 3333 CC']);
 
         $user = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+        $user->givePermissionTo('driver.assign');
         CurrentBranch::switchTo($branch->id);
 
         $component = Livewire::actingAs($user)
@@ -176,6 +179,7 @@ class FleetLivewireTest extends TestCase
         );
 
         $user = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+        $user->givePermissionTo('driver.assign');
         CurrentBranch::switchTo($branch->id);
 
         Livewire::actingAs($user)

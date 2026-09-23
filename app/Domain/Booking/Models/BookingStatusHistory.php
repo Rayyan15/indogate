@@ -11,6 +11,12 @@ class BookingStatusHistory extends Model
 {
     public $timestamps = false;
 
+    // The DB default (useCurrent) stamps MySQL's local time, not the app's UTC.
+    protected static function booted(): void
+    {
+        static::creating(fn (self $model) => $model->created_at ??= now());
+    }
+
     protected $fillable = ['booking_id', 'from_status', 'to_status', 'user_id', 'reason'];
 
     protected function casts(): array

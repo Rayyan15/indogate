@@ -3,8 +3,8 @@
 return [
     'eyebrow' => 'Pemesanan',
     'list' => [
-        'index_title' => 'Pemesanan',
-        'index_lede' => 'Kelola pemesanan yang dikonversi dari penawaran.',
+        'index_title' => 'Booking Paket',
+        'index_lede' => 'Booking dari penawaran yang dibuat CS.',
         'code' => 'Kode',
         'lead' => 'Lead',
         'departure' => 'Berangkat',
@@ -80,4 +80,6 @@ return [
     ],
     'convert_already_converted' => 'Penawaran ini sudah dikonversi menjadi booking.',
     'convert_expired' => 'Penawaran ini sudah kedaluwarsa dan tidak bisa dikonversi.',
+
+    'no_balance_due' => 'Lunas — tidak ada tagihan',
 ];

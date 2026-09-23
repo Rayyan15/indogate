@@ -28,7 +28,7 @@ class BranchScope implements Scope
 
         // Fail closed: a staff account with no branch must see nothing,
         // not every branch. Guests/customers stay unscoped (public storefront).
-        if (Auth::user()?->hasAnyRole(['Super Admin', 'CS Admin', 'Finance Admin'])) {
+        if (Auth::user()?->isStaff()) {
             $builder->whereRaw('1 = 0');
         }
     }

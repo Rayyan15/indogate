@@ -215,7 +215,7 @@
                     &copy; {{ date('Y') }} PT Indogate Travel Indonesia. {{ __('storefront.copyright') }}
                 </div>
                 <div class="flex items-center gap-6">
-                    @if(auth()->user()?->hasAnyRole(['Super Admin', 'Finance Admin', 'CS Admin']))
+                    @if(auth()->user()?->isStaff())
                     <a href="{{ route('admin.dashboard', ['locale' => app()->getLocale()]) }}" class="hover:text-neutral-400">
                         {{ __('storefront.nav_admin') }}
                     </a>

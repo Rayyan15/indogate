@@ -8,6 +8,8 @@
 return [
     'overview' => 'نظرة عامة',
     'dashboard' => 'لوحة التحكم',
+    'cs_desk' => 'مكتب خدمة العملاء',
+    'roles' => 'صلاحيات الأدوار',
     'operations' => 'العمليات',
     'bookings' => 'الحجوزات',
     'payments' => 'المدفوعات',
@@ -21,6 +23,8 @@ return [
     'packages' => 'الباقات',
     'leads' => 'العملاء المحتملون',
     'package_bookings' => 'الحجوزات',
+    'package_bookings_item' => 'حجوزات الباقات',
+    'online_orders' => 'الطلبات عبر الإنترنت',
     'configuration' => 'الإعدادات',
     'pricing' => 'التسعير الديناميكي',
     'pricing_engine' => 'محرك التسعير والعملات',

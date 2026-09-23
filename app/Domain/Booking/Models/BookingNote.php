@@ -10,6 +10,12 @@ class BookingNote extends Model
 {
     public $timestamps = false;
 
+    // The DB default (useCurrent) stamps MySQL's local time, not the app's UTC.
+    protected static function booted(): void
+    {
+        static::creating(fn (self $model) => $model->created_at ??= now());
+    }
+
     protected $fillable = ['booking_id', 'user_id', 'note'];
 
     protected function casts(): array

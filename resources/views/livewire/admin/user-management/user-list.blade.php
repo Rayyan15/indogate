@@ -1,6 +1,7 @@
 <div>
     <x-ui.page-header :eyebrow="__('admin.users.eyebrow')" :title="__('admin.users.title')" :lede="__('admin.users.lede')">
         <x-slot name="actions">
+            <x-ui.button variant="ghost" :href="route('admin.roles.index')">{{ __('roles.manage_link') }}</x-ui.button>
             <x-ui.search-input :placeholder="__('admin.users.search_placeholder')" class="w-64" />
             <x-ui.button variant="primary" type="button" wire:click="$dispatch('create-user')">{{ __('admin.users.add_user') }}</x-ui.button>
         </x-slot>

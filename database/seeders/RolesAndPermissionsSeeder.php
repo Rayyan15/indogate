@@ -29,18 +29,20 @@ class RolesAndPermissionsSeeder extends Seeder
         'payment.verify',
         'driver.assign',
         'report.margin.view',
+        'report.view',
         'user.manage',
         'activitylog.view',
         'branch.switch',
     ];
 
     private const ROLE_PERMISSIONS = [
+        // CS = sales + customer support: leads, quotations, bookings only.
+        // Catalog editing, fleet, cost/margin stay with admin/finance.
         'CS Admin' => [
-            'catalog.manage', 'lead.manage', 'quotation.create',
-            'booking.manage', 'driver.assign', 'report.margin.view',
+            'lead.manage', 'quotation.create', 'booking.manage',
         ],
         'Finance Admin' => [
-            'currency.manage', 'payment.verify', 'report.margin.view',
+            'currency.manage', 'payment.verify', 'report.margin.view', 'report.view',
         ],
     ];
 

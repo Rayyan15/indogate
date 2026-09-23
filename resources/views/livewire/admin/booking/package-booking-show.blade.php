@@ -306,10 +306,30 @@
                     </div>
                 </div>
 
+                @if($paymentLink)
+                    <div class="mt-4 rounded border border-neutral-200 bg-neutral-50 p-3" x-data="{ copied: false }">
+                        <p class="text-xs font-semibold text-neutral-900">{{ __('payment.admin.link_title') }}</p>
+                        <p class="mt-0.5 text-[11px] text-neutral-500">{{ __('payment.admin.link_hint', ['days' => config('payments.link_ttl_days')]) }}</p>
+                        <input type="text" readonly value="{{ $paymentLink }}" x-ref="payLink" dir="ltr" class="admin-input mt-2 w-full font-mono text-[11px]" @focus="$el.select()">
+                        <div class="mt-2 flex gap-2">
+                            <button type="button" class="flex-1 rounded border border-neutral-300 bg-neutral-0 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+                                    @click="navigator.clipboard?.writeText($refs.payLink.value); copied = true; setTimeout(() => copied = false, 1500)"
+                                    x-text="copied ? '{{ __('payment.admin.copied') }}' : '{{ __('payment.admin.copy') }}'"></button>
+                            <a href="{{ $paymentLinkWhatsapp }}" target="_blank" rel="noopener" class="flex-1 rounded border border-success/30 bg-success/10 px-3 py-1.5 text-center text-xs font-medium text-success hover:bg-success/20">
+                                {{ __('payment.admin.send_whatsapp') }}
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="mt-4">
-                    <button type="button" wire:click="openRecordPaymentModal" class="w-full rounded bg-red-600 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-white hover:bg-red-700">
-                        + {{ __('finance.record_payment') }}
-                    </button>
+                    @if($booking->isFullyPaid() || $booking->status === \App\Enums\BookingStatus::CANCELLED)
+                        <p class="rounded border border-success/20 bg-success/10 px-3 py-2 text-center text-xs font-medium text-success">{{ __('booking.no_balance_due') }}</p>
+                    @else
+                        <button type="button" wire:click="openRecordPaymentModal" class="w-full rounded bg-red-600 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-white hover:bg-red-700">
+                            + {{ __('finance.record_payment') }}
+                        </button>
+                    @endif
                 </div>
 
                 {{-- Payment History List --}}
@@ -336,6 +356,14 @@
                                 <div class="mt-1 flex items-center justify-between text-[11px] text-neutral-500">
                                     <span>{{ __('finance.type_'.$payment->type) }} · {{ strtoupper($payment->channel) }}</span>
                                     <span>{{ $payment->created_at->format('d/m/Y') }}</span>
+                                </div>
+                                <div class="mt-1 flex items-center gap-2 text-[11px]">
+                                    <span class="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium {{ $payment->source === 'gateway' ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-neutral-200 bg-neutral-0 text-neutral-600' }}">
+                                        {{ __('payment.admin.source_'.($payment->source ?? 'manual')) }}
+                                    </span>
+                                    @if($payment->provider_reference)
+                                        <span class="truncate font-mono text-neutral-500" dir="ltr">{{ $payment->provider_reference }}</span>
+                                    @endif
                                 </div>
 
                                 <div class="mt-2 flex items-center justify-between border-t border-neutral-200/60 pt-1.5 text-[11px]">
@@ -370,6 +398,32 @@
                         @endforelse
                     </div>
                 </div>
+
+                @if($paymentIntents->isNotEmpty())
+                    <div class="mt-4 border-t border-neutral-100 pt-3">
+                        <h4 class="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">{{ __('payment.admin.intents_title') }}</h4>
+                        <ul class="space-y-1.5 text-[11px]">
+                            @foreach($paymentIntents as $intent)
+                                @php
+                                    $intentBadge = match($intent->status) {
+                                        'completed' => 'border-emerald-200 bg-emerald-50 text-emerald-700',
+                                        'cancelled' => 'border-rose-200 bg-rose-50 text-rose-700',
+                                        'expired' => 'border-neutral-200 bg-neutral-100 text-neutral-500',
+                                        default => 'border-amber-200 bg-amber-50 text-amber-700',
+                                    };
+                                @endphp
+                                <li wire:key="intent-{{ $intent->id }}" class="flex items-center justify-between gap-2">
+                                    <span class="min-w-0 truncate text-neutral-600">
+                                        <span class="font-mono tabular-nums text-neutral-900" dir="ltr">{{ $intent->currency }} {{ \App\Domain\Finance\Fx::format((int) $intent->amount_minor, $intent->currency) }}</span>
+                                        · {{ $intent->method ? __('payment.methods.'.$intent->method) : $intent->channel }}
+                                        · {{ $intent->created_at->format('d/m H:i') }}
+                                    </span>
+                                    <span class="inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium {{ $intentBadge }}">{{ __('payment.admin.intent_status.'.$intent->status) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </div>
 
             {{-- Voucher --}}

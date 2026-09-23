@@ -47,7 +47,7 @@ class AuthAndStorefrontFixesTest extends TestCase
     public function test_existing_session_of_deactivated_user_is_logged_out(): void
     {
         $user = User::where('email', 'cs.bali@indogate.com')->first();
-        $this->actingAs($user)->get(route('admin.dashboard', ['locale' => 'id']))->assertOk();
+        $this->actingAs($user)->get(route('admin.desk', ['locale' => 'id']))->assertOk();
 
         $user->update(['is_active' => false]);
 
@@ -167,6 +167,7 @@ class AuthAndStorefrontFixesTest extends TestCase
     public function test_hotel_can_be_created(): void
     {
         $admin = User::where('email', 'cs.bali@indogate.com')->first();
+        $admin->givePermissionTo('catalog.manage');
 
         $this->actingAs($admin)->post(route('admin.hotels.store', ['locale' => 'id']), [
             'name' => 'Hotel Test', 'description' => 'desc', 'location' => 'Ubud',

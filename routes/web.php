@@ -17,8 +17,10 @@ use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\LeadCaptureController;
+use App\Http\Controllers\Public\OnlinePaymentController;
 use App\Http\Controllers\Public\QuotationController;
 use App\Http\Controllers\Public\StorefrontController;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -39,8 +41,10 @@ Route::prefix('{locale}')
         Route::post('/currency', [StorefrontController::class, 'switchCurrency'])->name('public.currency.switch');
 
         // Admin Routes
-        Route::middleware(['auth', 'role:Super Admin|CS Admin|Finance Admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+            Route::view('/desk', 'admin.desk')->middleware('permission:lead.manage|booking.manage')->name('desk');
+            Route::view('/roles', 'admin.roles.index')->middleware('permission:user.manage')->name('roles.index');
             if (app()->isLocal()) {
                 Route::view('/styleguide', 'admin.styleguide')->name('styleguide');
             }
@@ -155,7 +159,7 @@ Route::prefix('{locale}')
                     ->name('proofs.download');
             });
 
-            Route::prefix('reports')->name('reports.')->middleware('permission:report.margin.view|lead.manage|booking.manage|payment.verify')->group(function () {
+            Route::prefix('reports')->name('reports.')->middleware('permission:report.view|report.margin.view|payment.verify')->group(function () {
                 Route::view('/', 'admin.reporting.reports')->name('index');
             });
 
@@ -194,8 +198,25 @@ Route::prefix('{locale}')
         Route::post('/leads', [LeadCaptureController::class, 'store'])->middleware('throttle:10,1')->name('leads.public-store');
         Route::get('/q/{quotation}', [QuotationController::class, 'show'])->name('quotations.public-show');
 
+        // Online payment: signed link from CS -> hosted checkout -> result.
+        Route::middleware(['signed', 'throttle:30,1'])->group(function () {
+            Route::get('/pay/booking/{packageBooking}', [OnlinePaymentController::class, 'booking'])->name('payments.booking');
+            Route::post('/pay/booking/{packageBooking}', [OnlinePaymentController::class, 'start'])->name('payments.start');
+        });
+        Route::middleware('throttle:30,1')->group(function () {
+            Route::get('/pay/checkout/{intent}', [OnlinePaymentController::class, 'simulator'])->name('payments.simulator.show');
+            Route::post('/pay/checkout/{intent}', [OnlinePaymentController::class, 'simulate'])->name('payments.simulator.simulate');
+            Route::get('/pay/checkout/{intent}/result', [OnlinePaymentController::class, 'result'])->name('payments.result');
+        });
+
         require __DIR__.'/auth.php';
     });
+
+// Gateway server-to-server callbacks: no locale, no session, HMAC-signed.
+Route::post('/webhooks/payments/{provider}', [OnlinePaymentController::class, 'webhook'])
+    ->withoutMiddleware([ValidateCsrfToken::class])
+    ->middleware('throttle:120,1')
+    ->name('payments.webhook');
 
 // Any URL that didn't match a {locale} segment falls through to here —
 // either no locale at all ("/login") or an unrecognized one ("/fr/login").

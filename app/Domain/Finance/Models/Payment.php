@@ -24,6 +24,10 @@ class Payment extends Model
 
     public const TYPE_INSTALLMENT = 'installment';
 
+    public const SOURCE_MANUAL = 'manual';
+
+    public const SOURCE_GATEWAY = 'gateway';
+
     public const STATUS_PENDING = 'pending';
 
     public const STATUS_VERIFIED = 'verified';
@@ -44,6 +48,8 @@ class Payment extends Model
         'channel_fee_minor',
         'proof_file',
         'channel',
+        'source',
+        'provider_reference',
         'notes',
         'status',
         'created_by',

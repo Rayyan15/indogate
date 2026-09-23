@@ -3,6 +3,7 @@
 use App\Console\Commands\ExpireQuotations;
 use App\Console\Commands\TransitionBookingStatuses;
 use App\Http\Middleware\EnsureLocaleUrlDefault;
+use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\SetActiveBranch;
 use App\Http\Middleware\SetLocale;
@@ -32,11 +33,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'setLocale' => SetLocale::class,
+            'staff' => EnsureStaff::class,
         ]);
 
         // Logged-in staff opening /login etc. must land on the admin
         // dashboard; the default 'dashboard' is the customer one (403 for staff).
-        $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->hasAnyRole(['Super Admin', 'Finance Admin', 'CS Admin'])
+        $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->isStaff()
             ? route('admin.dashboard')
             : route('dashboard'));
 

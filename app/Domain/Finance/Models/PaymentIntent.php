@@ -28,7 +28,11 @@ class PaymentIntent extends Model
     protected $fillable = [
         'branch_id',
         'booking_id',
+        'provider',
+        'public_token',
         'channel',
+        'payment_type',
+        'method',
         'amount_minor',
         'currency',
         'fx_rate',
@@ -36,6 +40,9 @@ class PaymentIntent extends Model
         'status',
         'notes',
         'expires_at',
+        'provider_reference',
+        'paid_at',
+        'failure_reason',
     ];
 
     protected function casts(): array
@@ -45,6 +52,7 @@ class PaymentIntent extends Model
             'channel_fee_minor' => 'integer',
             'fx_rate' => 'decimal:8',
             'expires_at' => 'datetime',
+            'paid_at' => 'datetime',
         ];
     }
 
@@ -53,6 +61,11 @@ class PaymentIntent extends Model
         return LogOptions::defaults()
             ->useLogName('finance')
             ->logFillable();
+    }
+
+    public function isPayable(): bool
+    {
+        return $this->status === self::STATUS_PENDING && ($this->expires_at === null || $this->expires_at->isFuture());
     }
 
     public function branch(): BelongsTo

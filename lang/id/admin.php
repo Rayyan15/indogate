@@ -62,9 +62,9 @@ return [
     ],
 
     'bookings' => [
-        'eyebrow' => 'Operasional / Booking',
-        'index_title' => 'Semua Booking',
-        'index_lede' => 'Lihat dan kelola semua booking pelanggan.',
+        'eyebrow' => 'Pemesanan / Order Online',
+        'index_title' => 'Order Online',
+        'index_lede' => 'Pesanan yang dibuat customer sendiri lewat website (keranjang & checkout).',
         'booking_ref' => 'Ref Booking',
         'customer' => 'Pelanggan',
         'total' => 'Total',

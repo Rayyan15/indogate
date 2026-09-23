@@ -241,6 +241,7 @@ class PackageBuilder extends Component
                 ]);
             }
         });
+        $package->refreshStartingPrice();
         $this->packageId = $package->id;
 
         $this->dispatch('package-saved');

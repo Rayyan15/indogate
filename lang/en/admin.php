@@ -63,9 +63,9 @@ return [
     ],
 
     'bookings' => [
-        'eyebrow' => 'Operations / Bookings',
-        'index_title' => 'All Bookings',
-        'index_lede' => 'View and manage all customer bookings.',
+        'eyebrow' => 'Bookings / Online Orders',
+        'index_title' => 'Online Orders',
+        'index_lede' => 'Orders customers placed themselves on the website (cart & checkout).',
         'booking_ref' => 'Booking Ref',
         'customer' => 'Customer',
         'total' => 'Total',

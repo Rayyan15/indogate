@@ -45,29 +45,38 @@
 
         <!-- Navigation -->
         <nav class="flex-1 space-y-1 p-4">
+            @can('report.view')
             <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.dashboard') }}</span>
             </a>
+            @endcan
 
-            @canany(['report.margin.view', 'lead.manage', 'booking.manage', 'payment.verify'])
+            @canany(['report.view', 'report.margin.view', 'payment.verify'])
             <a href="{{ route('admin.reports.index') }}" class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.reports') }}</span>
             </a>
             @endcanany
 
-            @canany(['booking.manage', 'payment.verify'])
-            <x-ui.nav-group key="operations" :label="__('nav.operations')" :active="request()->routeIs('admin.bookings.*')">
-                <a href="{{ route('admin.bookings.index') }}" class="sidebar-link {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.bookings') }}</span>
-                    @if($pendingPaymentsCount ?? 0)
-                        <span class="sidebar-badge">{{ $pendingPaymentsCount }}</span>
-                    @endif
+            @canany(['lead.manage', 'booking.manage'])
+            <a href="{{ route('admin.desk') }}" class="sidebar-link {{ request()->routeIs('admin.desk') ? 'active' : '' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.cs_desk') }}</span>
+            </a>
+            @endcanany
+
+            @can('lead.manage')
+            <x-ui.nav-group key="leads" :label="__('nav.leads')" :active="request()->routeIs('admin.leads.*')">
+                <a href="{{ route('admin.leads.index') }}" class="sidebar-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.leads') }}</span>
                 </a>
             </x-ui.nav-group>
-            @endcanany
+            @endcan
+
+
+
 
             @can('catalog.manage')
             <x-ui.nav-group key="inventory" :label="__('nav.inventory')" :active="request()->routeIs(['admin.hotels.*', 'admin.flights.*', 'admin.catalog.*'])">
@@ -96,14 +105,21 @@
             </x-ui.nav-group>
             @endcan
 
-            @can('booking.manage')
-            <x-ui.nav-group key="package-bookings" :label="__('nav.package_bookings')" :active="request()->routeIs('admin.package-bookings.*')">
+            @canany(['booking.manage', 'payment.verify'])
+            <x-ui.nav-group key="package-bookings" :label="__('nav.package_bookings')" :active="request()->routeIs(['admin.package-bookings.*', 'admin.bookings.*'])">
                 <a href="{{ route('admin.package-bookings.index') }}" class="sidebar-link {{ request()->routeIs('admin.package-bookings.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.package_bookings') }}</span>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.package_bookings_item') }}</span>
+                </a>
+                <a href="{{ route('admin.bookings.index') }}" class="sidebar-link {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.online_orders') }}</span>
+                    @if($pendingPaymentsCount ?? 0)
+                        <span class="sidebar-badge">{{ $pendingPaymentsCount }}</span>
+                    @endif
                 </a>
             </x-ui.nav-group>
-            @endcan
+            @endcanany
 
             @can('driver.assign')
             <x-ui.nav-group key="fleet" :label="__('nav.fleet')" :active="request()->routeIs('admin.fleet.*')">
@@ -149,14 +165,6 @@
             </x-ui.nav-group>
             @endif
 
-            @can('lead.manage')
-            <x-ui.nav-group key="leads" :label="__('nav.leads')" :active="request()->routeIs('admin.leads.*')">
-                <a href="{{ route('admin.leads.index') }}" class="sidebar-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8z"></path></svg>
-                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.leads') }}</span>
-                </a>
-            </x-ui.nav-group>
-            @endcan
 
             @can('pricing.manage')
             <x-ui.nav-group key="configuration" :label="__('nav.configuration')" :active="request()->routeIs('admin.pricing.*') || request()->routeIs('admin.pricing-engine.*')">
@@ -172,11 +180,17 @@
             @endcan
 
             @canany(['user.manage', 'activitylog.view'])
-            <x-ui.nav-group key="administration" :label="__('nav.administration')" :active="request()->routeIs('admin.users.*') || request()->routeIs('admin.security.*')">
+            <x-ui.nav-group key="administration" :label="__('nav.administration')" :active="request()->routeIs(['admin.users.*', 'admin.roles.*', 'admin.security.*'])">
                 @can('user.manage')
                 <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 10-8 0"></path></svg>
                     <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.users') }}</span>
+                </a>
+                @endcan
+                @can('user.manage')
+                <a href="{{ route('admin.roles.index') }}" class="sidebar-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.roles') }}</span>
                 </a>
                 @endcan
                 @can('activitylog.view')
@@ -227,7 +241,7 @@
                 str_starts_with($routeName, 'admin.catalog.inventory-items') => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
                 str_starts_with($routeName, 'admin.pricing')                 => 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
                 str_starts_with($routeName, 'admin.users')                   => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 10-8 0',
-                str_starts_with($routeName, 'admin.dashboard')               => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+                str_starts_with($routeName, 'admin.dashboard') || str_starts_with($routeName, 'admin.desk')               => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
                 str_starts_with($routeName, 'admin.reports')                 => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
                 default                                                       => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
             };

@@ -121,6 +121,7 @@ class SignedUrlTest extends TestCase
         $package = $this->packageWithOneHotelRoom($branch);
         $quotation = $this->quotationFor($branch, $lead, $package);
         $csUser = User::role('CS Admin')->firstOrFail();
+        $csUser->givePermissionTo('driver.assign');
 
         $booking = (new ConvertQuotationToBooking)->convert(
             $quotation,

@@ -28,6 +28,8 @@ return [
     'total_bookings' => 'إجمالي الحجوزات',
     'bookings_count' => 'الحجوزات',
     'gross_revenue' => 'إجمالي الإيرادات',
+    'view_in_currency' => 'عرض بعملة',
+    'fx_note' => 'سعر الصرف اليوم:',
     'channel_fees' => 'رسوم القنوات (MDR)',
     'net_revenue' => 'صافي الإيرادات',
     'vendor_costs' => 'تكاليف الموردين',

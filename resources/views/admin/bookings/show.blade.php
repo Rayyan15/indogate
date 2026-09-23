@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <x-slot name="header">{{ __('nav.bookings') }}</x-slot>
+    <x-slot name="header">{{ __('nav.online_orders') }}</x-slot>
 
     <x-ui.page-header :eyebrow="__('admin.bookings.eyebrow')" :title="strtoupper(substr($booking->booking_number, 0, 10))">
         <x-slot name="actions"><x-ui.status :status="$booking->status">{{ __('admin.common.booking_status.' . $booking->status) }}</x-ui.status></x-slot>

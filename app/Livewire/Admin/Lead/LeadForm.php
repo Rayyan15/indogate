@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class LeadForm extends Component
@@ -78,9 +79,7 @@ class LeadForm extends Component
             'status' => ['required', 'in:new,contacted,qualified,quoted,won,lost'],
             'assigned_to' => [
                 'nullable',
-                \Illuminate\Validation\Rule::exists('users', 'id')
-                    ->where('branch_id', CurrentBranch::id())
-                    ->where('is_active', true),
+                Rule::in($this->assignableUsers()->pluck('id')),
             ],
             'lost_reason' => [$this->status === 'lost' ? 'required' : 'nullable', 'string', 'max:500'],
             'follow_up_at' => ['nullable', 'date'],
@@ -126,11 +125,17 @@ class LeadForm extends Component
             'lead' => $lead,
             'statuses' => LeadStatus::cases(),
             'sources' => LeadSource::cases(),
-            'users' => User::query()
-                ->where('branch_id', CurrentBranch::id())
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name']),
+            'users' => $this->assignableUsers(),
         ]);
+    }
+
+    /** Only active staff of this branch who actually work leads (not customers or finance). */
+    private function assignableUsers()
+    {
+        return User::permission('lead.manage')
+            ->where('branch_id', CurrentBranch::id())
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 }

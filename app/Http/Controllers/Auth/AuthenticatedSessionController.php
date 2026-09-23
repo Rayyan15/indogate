@@ -46,7 +46,7 @@ class AuthenticatedSessionController extends Controller
 
     public static function redirectAfterLogin(User $user): RedirectResponse
     {
-        if ($user->hasAnyRole(['Super Admin', 'Finance Admin', 'CS Admin'])) {
+        if ($user->isStaff()) {
             return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 

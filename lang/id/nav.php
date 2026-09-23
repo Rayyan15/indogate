@@ -3,6 +3,8 @@
 return [
     'overview' => 'Ringkasan',
     'dashboard' => 'Dashboard',
+    'cs_desk' => 'Meja CS',
+    'roles' => 'Hak Akses Role',
     'operations' => 'Operasional',
     'bookings' => 'Pemesanan',
     'payments' => 'Pembayaran',
@@ -16,6 +18,8 @@ return [
     'packages' => 'Paket',
     'leads' => 'Lead',
     'package_bookings' => 'Pemesanan',
+    'package_bookings_item' => 'Booking Paket',
+    'online_orders' => 'Order Online',
     'configuration' => 'Konfigurasi',
     'pricing' => 'Harga Dinamis',
     'pricing_engine' => 'Mesin Harga & Kurs',

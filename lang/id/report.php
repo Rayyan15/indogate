@@ -28,6 +28,8 @@ return [
     'total_bookings' => 'Total Pemesanan',
     'bookings_count' => 'Pemesanan',
     'gross_revenue' => 'Pendapatan Kotor',
+    'view_in_currency' => 'Lihat dalam mata uang',
+    'fx_note' => 'Kurs hari ini:',
     'channel_fees' => 'Biaya Kanal (MDR)',
     'net_revenue' => 'Pendapatan Bersih',
     'vendor_costs' => 'Biaya Modal Vendor (HPP)',

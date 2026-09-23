@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <x-slot name="header">{{ __('nav.bookings') }}</x-slot>
+    <x-slot name="header">{{ __('nav.online_orders') }}</x-slot>
 
     <x-ui.page-header :eyebrow="__('admin.bookings.eyebrow')" :title="__('admin.bookings.index_title')" :lede="__('admin.bookings.index_lede')" />
 

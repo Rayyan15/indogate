@@ -1,7 +1,5 @@
 <x-admin-layout>
-    <x-slot name="header">
-        <title>{{ __('finance.receivables') }} — Indogate</title>
-    </x-slot>
+    <x-slot name="header">{{ __('finance.receivables') }}</x-slot>
 
     @livewire('admin.finance.accounts-receivable-list')
 </x-admin-layout>

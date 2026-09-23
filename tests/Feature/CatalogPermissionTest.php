@@ -40,6 +40,7 @@ class CatalogPermissionTest extends TestCase
     {
         $this->seed();
         $cs = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
+        $cs->givePermissionTo('catalog.manage');
 
         $this->actingAs($cs)->get(route('admin.catalog.partners.index'))->assertOk();
     }

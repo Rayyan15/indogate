@@ -3,7 +3,9 @@
 namespace App\Livewire\Admin\Dashboard;
 
 use App\Domain\Booking\Models\PackageBooking;
+use App\Domain\Finance\Fx;
 use App\Domain\Lead\Models\Lead;
+use App\Domain\Pricing\Models\Currency;
 use App\Domain\Reporting\Services\DashboardMetricsService;
 use App\Domain\Reporting\Services\ReportExportService;
 use App\Models\Branch;
@@ -149,6 +151,27 @@ class DashboardOverview extends Component
         ]);
     }
 
+    /**
+     * IDR per 1 unit of each active currency, for the view-only currency toggle
+     * on the revenue card. Currencies without a rate are left out, never 1.0.
+     *
+     * @return array<string, array{rate: float, d: int}>
+     */
+    private function displayRates(): array
+    {
+        $rates = ['IDR' => ['rate' => 1.0, 'd' => 0]];
+
+        foreach (Currency::where('is_active', true)->where('code', '!=', 'IDR')->orderBy('code')->get() as $currency) {
+            try {
+                $rates[$currency->code] = ['rate' => Fx::rate($currency->code), 'd' => (int) $currency->decimal_places];
+            } catch (\Throwable) {
+                // no rate yet for this currency: just don't offer it
+            }
+        }
+
+        return $rates;
+    }
+
     public function render(): View
     {
         $effectiveBranchId = $this->resolveEffectiveBranchId();
@@ -166,6 +189,7 @@ class DashboardOverview extends Component
         $canSwitchBranch = (bool) Auth::user()?->can('branch.switch');
 
         return view('livewire.admin.dashboard.dashboard-overview', [
+            'fxRates' => $this->displayRates(),
             'metrics' => $metrics,
             'branches' => $branches,
             'canViewFinancials' => $canViewFinancials,

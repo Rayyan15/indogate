@@ -2,7 +2,10 @@
 
 namespace App\Domain\Packaging\Models;
 
+use App\Domain\Packaging\PackageCalculator;
+use App\Enums\PaymentChannel;
 use App\Support\Branch\BelongsToBranch;
+use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
@@ -67,6 +70,32 @@ class Package extends Model
     public function days(): HasMany
     {
         return $this->hasMany(PackageDay::class)->orderBy('day_number');
+    }
+
+    /**
+     * Storefront "starting from" = selling price for base_pax today via bank transfer
+     * (cheapest channel). Keeps the old value when the package can't be priced yet
+     * (no items, missing rate or FX), so a half-built package never shows 0.
+     */
+    public function refreshStartingPrice(): void
+    {
+        $this->load('items');
+
+        if ($this->items->isEmpty()) {
+            return;
+        }
+
+        try {
+            $result = app(PackageCalculator::class)->calculate(
+                $this, max(1, (int) $this->base_pax), new DateTimeImmutable('today'), PaymentChannel::BANK_TRANSFER, 'IDR'
+            );
+        } catch (\Throwable $e) {
+            report($e);
+
+            return;
+        }
+
+        $this->forceFill(['starting_price_idr' => $result->grandSellIdrMinor->amountMinor])->saveQuietly();
     }
 
     /**

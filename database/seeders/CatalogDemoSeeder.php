@@ -48,13 +48,13 @@ class CatalogDemoSeeder extends Seeder
             // Flow: rate history — a rate that already expired, the one
             // currently in force, and one scheduled to take over next
             // year — instead of a single all-year row.
-            $this->rateHistory($deluxe, 85_000_000);
-            $this->rateHistory($suite, 145_000_000);
-            $this->rateHistory($villaRoom, 220_000_000);
-            $this->rateHistory($van, 60_000_000);
-            $this->rateHistory($car, 95_000_000);
-            $this->rateHistory($ticket, 15_000_000);
-            $this->rateHistory($activity, 45_000_000);
+            $this->rateHistory($deluxe, 850_000);
+            $this->rateHistory($suite, 1_450_000);
+            $this->rateHistory($villaRoom, 2_200_000);
+            $this->rateHistory($van, 600_000);
+            $this->rateHistory($car, 950_000);
+            $this->rateHistory($ticket, 150_000);
+            $this->rateHistory($activity, 450_000);
 
             // Flow: blackout date — the deluxe room is closed for a real
             // maintenance day, so a booking search actually has something

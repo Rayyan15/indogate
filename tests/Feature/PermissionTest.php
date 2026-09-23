@@ -10,13 +10,17 @@ class PermissionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_cs_admin_reaches_catalog_but_not_payments(): void
+    public function test_cs_admin_reaches_leads_and_bookings_but_not_catalog_fleet_or_payments(): void
     {
         $this->seed();
         $cs = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
 
-        $this->actingAs($cs)->get(route('admin.hotels.index'))->assertOk();
+        $this->actingAs($cs)->get(route('admin.leads.index'))->assertOk();
+        $this->actingAs($cs)->get(route('admin.package-bookings.index'))->assertOk();
+        $this->actingAs($cs)->get(route('admin.hotels.index'))->assertForbidden();
+        $this->actingAs($cs)->get(route('admin.fleet.drivers'))->assertForbidden();
         $this->actingAs($cs)->get(route('admin.finance.payments'))->assertForbidden();
+        $this->actingAs($cs)->get(route('admin.finance.margin-report'))->assertForbidden();
     }
 
     public function test_finance_admin_reaches_payments_but_not_catalog(): void

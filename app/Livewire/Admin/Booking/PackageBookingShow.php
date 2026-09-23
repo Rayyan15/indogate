@@ -15,7 +15,9 @@ use App\Domain\Fleet\Models\DriverAssignment;
 use App\Domain\Fleet\Services\AssignmentService;
 use App\Domain\Pricing\Models\ExchangeRate;
 use App\Enums\BookingStatus;
+use App\Http\Controllers\Public\OnlinePaymentController;
 use App\Jobs\GenerateBookingVoucher;
+use App\Support\PaymentLinkMessage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -506,6 +508,10 @@ class PackageBookingShow extends Component
             $this->assignment_date_to
         );
 
+        $paymentLink = Auth::user()?->can('booking.manage') && PaymentLinkMessage::available($booking)
+            ? OnlinePaymentController::linkFor($booking)
+            : null;
+
         return view('livewire.admin.booking.package-booking-show', [
             'booking' => $booking,
             // Payment-driven statuses are set by PaymentService only (see transitionTo).
@@ -517,6 +523,9 @@ class PackageBookingShow extends Component
             'genderWarning' => $genderWarning,
             'availableVehicles' => $availableVehicles,
             'bookingPayments' => $booking->payments()->with(['creator', 'verifiedByUser'])->latest('id')->get(),
+            'paymentLink' => $paymentLink,
+            'paymentLinkWhatsapp' => $paymentLink ? PaymentLinkMessage::whatsappUrl($booking, $paymentLink) : null,
+            'paymentIntents' => $booking->paymentIntents()->latest('id')->limit(5)->get(),
         ]);
     }
 }

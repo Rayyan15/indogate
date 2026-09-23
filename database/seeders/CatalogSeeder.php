@@ -58,7 +58,7 @@ class CatalogSeeder extends Seeder
                 'valid_from' => now()->startOfYear()->toDateString(),
             ], [
                 'valid_to' => now()->endOfYear()->toDateString(),
-                'cost_minor' => 85000000,
+                'cost_minor' => 850_000,
                 'currency' => 'IDR',
             ]);
 
@@ -76,7 +76,7 @@ class CatalogSeeder extends Seeder
                 'valid_from' => now()->startOfYear()->toDateString(),
             ], [
                 'valid_to' => now()->endOfYear()->toDateString(),
-                'cost_minor' => 60000000,
+                'cost_minor' => 600_000,
                 'currency' => 'IDR',
             ]);
         }

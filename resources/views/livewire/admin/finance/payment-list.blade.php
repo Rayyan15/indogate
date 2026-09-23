@@ -65,6 +65,12 @@
                     <x-ui.td>
                         <div class="font-medium text-neutral-900">{{ $item->booking?->quotation?->lead?->name ?? '—' }}</div>
                         <div class="text-xs text-neutral-500">{{ strtoupper($item->channel) }}</div>
+                        <div class="mt-1 flex items-center justify-center gap-1.5">
+                            <span class="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium {{ $item->source === 'gateway' ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-neutral-200 bg-neutral-0 text-neutral-600' }}">{{ __('payment.admin.source_'.($item->source ?? 'manual')) }}</span>
+                            @if($item->provider_reference)
+                                <span class="font-mono text-[10px] text-neutral-400" dir="ltr">{{ $item->provider_reference }}</span>
+                            @endif
+                        </div>
                     </x-ui.td>
                     <x-ui.td>
                         <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-700">
