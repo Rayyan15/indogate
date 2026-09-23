@@ -56,6 +56,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        app(\Spatie\Translatable\Translatable::class)->fallback(fallbackAny: true);
+
         Gate::policy(Booking::class, BookingPolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
         Gate::policy(User::class, UserPolicy::class);

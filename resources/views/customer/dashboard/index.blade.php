@@ -32,7 +32,7 @@
                     <x-ui.th>{{ __('customer.dashboard.date') }}</x-ui.th>
                     <x-ui.th numeric>{{ __('customer.dashboard.total_amount') }}</x-ui.th>
                     <x-ui.th>{{ __('customer.dashboard.status') }}</x-ui.th>
-                    <x-ui.th numeric>{{ __('customer.dashboard.action') }}</x-ui.th>
+                    <x-ui.th>{{ __('customer.dashboard.action') }}</x-ui.th>
                 </x-slot>
                 @foreach($bookings as $booking)
                     <x-ui.tr>
@@ -40,7 +40,21 @@
                         <x-ui.td class="font-mono text-neutral-500">{{ $booking->created_at->format('d M Y') }}</x-ui.td>
                         <x-ui.td numeric>IDR {{ number_format($booking->total_amount) }}</x-ui.td>
                         <x-ui.td><x-ui.status :status="$booking->status">{{ __('admin.common.booking_status.' . $booking->status) }}</x-ui.status></x-ui.td>
-                        <x-ui.td numeric><x-ui.button variant="ghost" :href="route('customer.bookings.show', $booking)">{{ __('customer.dashboard.view') }}</x-ui.button></x-ui.td>
+                        <x-ui.td>
+                            <div class="flex items-center justify-center">
+                                <x-ui.icon-button
+                                    variant="ghost"
+                                    :href="route('customer.bookings.show', $booking)"
+                                    :title="__('customer.dashboard.view')"
+                                    :aria-label="__('customer.dashboard.view')"
+                                >
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </x-ui.icon-button>
+                            </div>
+                        </x-ui.td>
                     </x-ui.tr>
                 @endforeach
             </x-ui.table>

@@ -3,7 +3,12 @@
 @php
 $map = [
     'draft'           => 'border-neutral-200 bg-neutral-100 text-neutral-600',
-    'quoted'          => 'border-blue-200 bg-blue-50 text-blue-700',
+    'new'             => 'border-blue-200 bg-blue-50 text-blue-700',
+    'contacted'       => 'border-amber-200 bg-amber-50 text-amber-800',
+    'qualified'       => 'border-purple-200 bg-purple-50 text-purple-700',
+    'quoted'          => 'border-indigo-200 bg-indigo-50 text-indigo-700',
+    'won'             => 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    'lost'            => 'border-rose-200 bg-rose-50 text-rose-700',
     'expired'         => 'border-neutral-300 bg-neutral-200 text-neutral-700',
     'confirmed'       => 'border-red-200 bg-red-50 text-red-700',
     'pending_payment' => 'border-warning/20 bg-warning/10 text-warning',

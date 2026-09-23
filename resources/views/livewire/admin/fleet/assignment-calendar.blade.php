@@ -10,7 +10,7 @@
                 </button>
             </div>
 
-            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 px-2 text-sm">
+            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 <option value="">Semua Status</option>
                 <option value="assigned">{{ __('fleet.status_assigned') }}</option>
                 <option value="in_progress">{{ __('fleet.status_in_progress') }}</option>
@@ -40,7 +40,7 @@
                 <x-ui.th>{{ __('fleet.assigned_vehicle') }}</x-ui.th>
                 <x-ui.th>{{ __('fleet.assignment_period') }}</x-ui.th>
                 <x-ui.th>Status</x-ui.th>
-                <x-ui.th numeric>{{ __('catalog.common.actions') }}</x-ui.th>
+                <x-ui.th>{{ __('catalog.common.actions') }}</x-ui.th>
             </x-slot>
             @foreach($assignments as $item)
                 <x-ui.tr wire:key="assignment-{{ $item->id }}">
@@ -90,16 +90,27 @@
                             {{ __('fleet.status_'.$item->status) }}
                         </span>
                     </x-ui.td>
-                    <x-ui.td numeric>
-                        <div class="inline-flex items-center gap-2">
-                            <a href="{{ $this->dutyLetterUrl($item->id) }}" target="_blank" class="inline-flex items-center rounded border border-neutral-300 bg-neutral-0 px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-                                <svg class="h-3.5 w-3.5 me-1 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                                {{ __('fleet.duty_letter') }}
-                            </a>
+                    <x-ui.td>
+                        <div class="flex items-center justify-center gap-1">
+                            <x-ui.icon-button
+                                :href="$this->dutyLetterUrl($item->id)"
+                                target="_blank"
+                                :title="__('fleet.duty_letter')"
+                                :aria-label="__('fleet.duty_letter')"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            </x-ui.icon-button>
                             @if($item->status !== 'cancelled')
-                                <button type="button" wire:click="openCancelModal({{ $item->id }})" class="text-xs font-medium text-red-600 hover:text-red-800">
-                                    {{ __('catalog.common.cancel') }}
-                                </button>
+                                <x-ui.icon-button
+                                    variant="ghost"
+                                    type="button"
+                                    wire:click="openCancelModal({{ $item->id }})"
+                                    class="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    :title="__('catalog.common.cancel')"
+                                    :aria-label="__('catalog.common.cancel')"
+                                >
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </x-ui.icon-button>
                             @endif
                         </div>
                     </x-ui.td>

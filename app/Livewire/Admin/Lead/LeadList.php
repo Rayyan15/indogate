@@ -59,10 +59,13 @@ class LeadList extends Component
     private function filteredQuery()
     {
         return Lead::query()
-            ->with('assignee:id,name')
+            ->with(['assignee:id,name', 'quotations:id,lead_id,status'])
             ->when($this->search, function ($q) {
                 $escaped = addcslashes($this->search, '%_\\');
-                $q->where('name', 'like', "%{$escaped}%");
+                $q->where(function ($sub) use ($escaped) {
+                    $sub->where('name', 'like', "%{$escaped}%")
+                        ->orWhere('phone', 'like', "%{$escaped}%");
+                });
             })
             ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
             ->when($this->sourceFilter, fn ($q) => $q->where('source', $this->sourceFilter))

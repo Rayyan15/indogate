@@ -5,7 +5,7 @@
             <div class="flex flex-wrap items-center gap-2">
                 {{-- Branch Selector (Super Admin) --}}
                 @if($canSwitchBranch)
-                <select wire:model.live="branchId" class="h-9 rounded border border-neutral-300 bg-neutral-0 px-3 text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                <select wire:model.live="branchId" class="h-9 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     <option value="">{{ __('report.all_branches') }}</option>
                     @foreach($branches as $b)
                         <option value="{{ $b->id }}">{{ $b->name }} ({{ $b->code }})</option>
@@ -14,7 +14,7 @@
                 @endif
 
                 {{-- Period Selector --}}
-                <select wire:model.live="period" class="h-9 rounded border border-neutral-300 bg-neutral-0 px-3 text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                <select wire:model.live="period" class="h-9 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     <option value="today">{{ __('report.today') }}</option>
                     <option value="last_7_days">{{ __('report.last_7_days') }}</option>
                     <option value="this_month">{{ __('report.this_month') }}</option>
@@ -283,26 +283,26 @@
             <h3 class="text-sm font-semibold text-neutral-900">{{ __('report.package_performance') }}</h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-start">
+            <table class="w-full text-xs text-center">
                 <thead class="bg-neutral-50 text-neutral-600 border-b border-neutral-200">
                     <tr>
-                        <th class="px-5 py-2.5 text-start font-semibold">{{ __('report.package') }}</th>
-                        <th class="px-5 py-2.5 text-end font-semibold">{{ __('report.bookings_count') }}</th>
-                        <th class="px-5 py-2.5 text-end font-semibold">{{ __('report.gross_revenue') }}</th>
-                        <th class="px-5 py-2.5 text-end font-semibold">{{ __('report.vendor_costs') }}</th>
-                        <th class="px-5 py-2.5 text-end font-semibold">{{ __('report.net_margin') }}</th>
-                        <th class="px-5 py-2.5 text-end font-semibold">{{ __('report.margin_percentage') }}</th>
+                        <th class="px-5 py-2.5 text-center font-semibold">{{ __('report.package') }}</th>
+                        <th class="px-5 py-2.5 text-center font-semibold">{{ __('report.bookings_count') }}</th>
+                        <th class="px-5 py-2.5 text-center font-semibold">{{ __('report.gross_revenue') }}</th>
+                        <th class="px-5 py-2.5 text-center font-semibold">{{ __('report.vendor_costs') }}</th>
+                        <th class="px-5 py-2.5 text-center font-semibold">{{ __('report.net_margin') }}</th>
+                        <th class="px-5 py-2.5 text-center font-semibold">{{ __('report.margin_percentage') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-100 text-neutral-800">
                     @foreach($metrics['package_performance'] as $pkg)
                     <tr class="hover:bg-neutral-50/50">
-                        <td class="px-5 py-3 font-medium text-neutral-900">{{ $pkg['package_name'] }}</td>
-                        <td class="px-5 py-3 text-end font-mono">{{ $pkg['bookings_count'] }}</td>
-                        <td class="px-5 py-3 text-end font-mono">IDR {{ number_format($pkg['gross_revenue_idr'], 0, ',', '.') }}</td>
-                        <td class="px-5 py-3 text-end font-mono text-rose-700">IDR {{ number_format($pkg['vendor_costs_idr'], 0, ',', '.') }}</td>
-                        <td class="px-5 py-3 text-end font-mono font-bold text-emerald-700">IDR {{ number_format($pkg['actual_margin_idr'], 0, ',', '.') }}</td>
-                        <td class="px-5 py-3 text-end font-mono font-semibold">{{ $pkg['margin_percentage'] }}%</td>
+                        <td class="px-5 py-3 text-center font-medium text-neutral-900">{{ $pkg['package_name'] }}</td>
+                        <td class="px-5 py-3 text-center font-mono">{{ $pkg['bookings_count'] }}</td>
+                        <td class="px-5 py-3 text-center font-mono">IDR {{ number_format($pkg['gross_revenue_idr'], 0, ',', '.') }}</td>
+                        <td class="px-5 py-3 text-center font-mono text-rose-700">IDR {{ number_format($pkg['vendor_costs_idr'], 0, ',', '.') }}</td>
+                        <td class="px-5 py-3 text-center font-mono font-bold text-emerald-700">IDR {{ number_format($pkg['actual_margin_idr'], 0, ',', '.') }}</td>
+                        <td class="px-5 py-3 text-center font-mono font-semibold">{{ $pkg['margin_percentage'] }}%</td>
                     </tr>
                     @endforeach
                 </tbody>

@@ -11,7 +11,7 @@
             <x-ui.th>{{ __('pricing.season.date_from') }}</x-ui.th>
             <x-ui.th>{{ __('pricing.season.date_to') }}</x-ui.th>
             <x-ui.th>{{ __('pricing.season.type') }}</x-ui.th>
-            <x-ui.th numeric>{{ __('pricing.common.actions') }}</x-ui.th>
+            <x-ui.th>{{ __('pricing.common.actions') }}</x-ui.th>
         </x-slot>
         @forelse ($seasons as $season)
             <x-ui.tr wire:key="season-{{ $season->id }}">
@@ -19,8 +19,20 @@
                 <x-ui.td>{{ $season->date_from->format('Y-m-d') }}</x-ui.td>
                 <x-ui.td>{{ $season->date_to->format('Y-m-d') }}</x-ui.td>
                 <x-ui.td>{{ __('pricing.season.'.$season->type->value) }}</x-ui.td>
-                <x-ui.td numeric>
-                    <x-ui.button variant="ghost" type="button" wire:click="$dispatch('edit-season', { seasonId: {{ $season->id }} })">{{ __('pricing.common.edit') }}</x-ui.button>
+                <x-ui.td>
+                    <div class="flex items-center justify-center">
+                        <x-ui.icon-button
+                            variant="ghost"
+                            type="button"
+                            wire:click="$dispatch('edit-season', { seasonId: {{ $season->id }} })"
+                            :title="__('pricing.common.edit')"
+                            :aria-label="__('pricing.common.edit')"
+                        >
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </x-ui.icon-button>
+                    </div>
                 </x-ui.td>
             </x-ui.tr>
         @empty

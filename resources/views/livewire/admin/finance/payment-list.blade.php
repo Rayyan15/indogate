@@ -3,14 +3,14 @@
         <x-slot name="actions">
             <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="Cari kode booking, tamu, kanal…" class="w-56 shrink-0" />
 
-            <select wire:model.live="typeFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 px-2 text-xs">
+            <select wire:model.live="typeFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 <option value="">Semua Jenis</option>
                 <option value="down_payment">{{ __('finance.type_down_payment') }}</option>
                 <option value="full_payment">{{ __('finance.type_full_payment') }}</option>
                 <option value="installment">{{ __('finance.type_installment') }}</option>
             </select>
 
-            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 px-2 text-xs">
+            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 <option value="">Semua Status</option>
                 <option value="pending">{{ __('finance.status_pending') }}</option>
                 <option value="verified">{{ __('finance.status_verified') }}</option>
@@ -50,7 +50,7 @@
                 <x-ui.th numeric>{{ __('finance.amount') }}</x-ui.th>
                 <x-ui.th>{{ __('finance.payment_proof') }}</x-ui.th>
                 <x-ui.th>{{ __('finance.status') }}</x-ui.th>
-                <x-ui.th numeric>{{ __('catalog.common.actions') }}</x-ui.th>
+                <x-ui.th>{{ __('catalog.common.actions') }}</x-ui.th>
             </x-slot>
             @foreach($payments as $item)
                 <x-ui.tr wire:key="payment-{{ $item->id }}">
@@ -103,22 +103,41 @@
                             {{ __('finance.status_'.$item->status) }}
                         </span>
                     </x-ui.td>
-                    <x-ui.td numeric>
-                        <div class="inline-flex items-center gap-2">
+                    <x-ui.td>
+                        <div class="flex items-center justify-center gap-1">
                             @if($item->status === 'verified')
-                                <a href="{{ $this->receiptUrl($item) }}" target="_blank" class="inline-flex items-center rounded border border-neutral-300 bg-neutral-0 px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-                                    {{ __('finance.receipt') }}
-                                </a>
+                                <x-ui.icon-button
+                                    :href="$this->receiptUrl($item)"
+                                    target="_blank"
+                                    :title="__('finance.receipt')"
+                                    :aria-label="__('finance.receipt')"
+                                >
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                </x-ui.icon-button>
                             @endif
 
                             @can('payment.verify')
                                 @if($item->status === 'pending')
-                                    <button type="button" wire:click="verifyPayment({{ $item->id }})" class="rounded bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
-                                        Verifikasi
-                                    </button>
-                                    <button type="button" wire:click="openRejectModal({{ $item->id }})" class="rounded border border-red-300 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50">
-                                        Tolak
-                                    </button>
+                                    <x-ui.icon-button
+                                        variant="ghost"
+                                        type="button"
+                                        wire:click="verifyPayment({{ $item->id }})"
+                                        class="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                        title="Verifikasi"
+                                        aria-label="Verifikasi"
+                                    >
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </x-ui.icon-button>
+                                    <x-ui.icon-button
+                                        variant="ghost"
+                                        type="button"
+                                        wire:click="openRejectModal({{ $item->id }})"
+                                        class="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        title="Tolak"
+                                        aria-label="Tolak"
+                                    >
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </x-ui.icon-button>
                                 @endif
                             @endcan
                         </div>

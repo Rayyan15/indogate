@@ -5,7 +5,7 @@
             <div class="flex flex-wrap items-center gap-2">
                 {{-- Branch Selector --}}
                 @if($canSwitchBranch)
-                <select wire:model.live="branchId" class="h-9 rounded border border-neutral-300 bg-neutral-0 px-3 text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                <select wire:model.live="branchId" class="h-9 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     <option value="">{{ __('report.all_branches') }}</option>
                     @foreach($branches as $b)
                         <option value="{{ $b->id }}">{{ $b->name }} ({{ $b->code }})</option>
@@ -14,7 +14,7 @@
                 @endif
 
                 {{-- Period Selector --}}
-                <select wire:model.live="period" class="h-9 rounded border border-neutral-300 bg-neutral-0 px-3 text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                <select wire:model.live="period" class="h-9 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                     <option value="today">{{ __('report.today') }}</option>
                     <option value="last_7_days">{{ __('report.last_7_days') }}</option>
                     <option value="this_month">{{ __('report.this_month') }}</option>
@@ -109,17 +109,17 @@
         {{-- Bookings Margin Table --}}
         <div class="rounded border border-neutral-200 bg-neutral-0 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-xs text-start">
+                <table class="w-full text-xs text-center">
                     <thead class="bg-neutral-50 text-neutral-600 border-b border-neutral-200">
                         <tr>
-                            <th class="px-4 py-2.5 text-start font-semibold">{{ __('report.booking_code') }}</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">{{ __('report.guest_name') }}</th>
-                            <th class="px-4 py-2.5 text-end font-semibold">{{ __('report.gross_revenue') }}</th>
-                            <th class="px-4 py-2.5 text-end font-semibold">{{ __('report.channel_fees') }}</th>
-                            <th class="px-4 py-2.5 text-end font-semibold">{{ __('report.net_revenue') }}</th>
-                            <th class="px-4 py-2.5 text-end font-semibold">{{ __('report.vendor_costs') }}</th>
-                            <th class="px-4 py-2.5 text-end font-semibold">{{ __('report.net_margin') }}</th>
-                            <th class="px-4 py-2.5 text-end font-semibold">{{ __('report.margin_percentage') }}</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.booking_code') }}</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.guest_name') }}</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.gross_revenue') }}</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.channel_fees') }}</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.net_revenue') }}</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.vendor_costs') }}</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.net_margin') }}</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.margin_percentage') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-100 text-neutral-800">
@@ -127,21 +127,21 @@
                         @forelse($data['bookings'] as $booking)
                         @php $m = $marginService->computeBookingMargin($booking); @endphp
                         <tr wire:key="margin-booking-{{ $booking->id }}" class="hover:bg-neutral-50/50">
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 text-center">
                                 <a href="{{ route('admin.package-bookings.show', $booking->id) }}" class="font-mono font-bold text-red-600 hover:underline">
                                     {{ $booking->code }}
                                 </a>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 text-center">
                                 <div class="font-medium text-neutral-900">{{ $booking->quotation?->lead?->name ?? '-' }}</div>
                                 <div class="text-[11px] text-neutral-500">{{ $booking->quotation?->package?->name ?? '-' }}</div>
                             </td>
-                            <td class="px-4 py-3 text-end font-mono">IDR {{ number_format($m['gross_revenue_idr'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-end font-mono text-rose-700">- IDR {{ number_format($m['channel_fees_idr'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-end font-mono">IDR {{ number_format($m['net_revenue_idr'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-end font-mono text-amber-700">- IDR {{ number_format($m['vendor_costs_idr'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-end font-mono font-bold text-emerald-700">IDR {{ number_format($m['actual_margin_idr'], 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-end font-mono font-semibold">{{ number_format($m['margin_percentage'], 1) }}%</td>
+                            <td class="px-4 py-3 text-center font-mono">IDR {{ number_format($m['gross_revenue_idr'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-center font-mono text-rose-700">- IDR {{ number_format($m['channel_fees_idr'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-center font-mono">IDR {{ number_format($m['net_revenue_idr'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-center font-mono text-amber-700">- IDR {{ number_format($m['vendor_costs_idr'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-center font-mono font-bold text-emerald-700">IDR {{ number_format($m['actual_margin_idr'], 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-center font-mono font-semibold">{{ number_format($m['margin_percentage'], 1) }}%</td>
                         </tr>
                         @empty
                         <tr>
@@ -238,24 +238,24 @@
         {{-- Leads Table --}}
         <div class="rounded border border-neutral-200 bg-neutral-0 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-xs text-start">
+                <table class="w-full text-xs text-center">
                     <thead class="bg-neutral-50 text-neutral-600 border-b border-neutral-200">
                         <tr>
-                            <th class="px-4 py-2.5 text-start font-semibold">Tamu / Prospek</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Kontak</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Sumber</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Status</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Alasan Kalah / Catatan</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Penanggung Jawab</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Tamu / Prospek</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Kontak</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Sumber</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Status</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Alasan Kalah / Catatan</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Penanggung Jawab</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-100 text-neutral-800">
                         @forelse($data['leads'] as $lead)
                         <tr wire:key="lead-{{ $lead->id }}" class="hover:bg-neutral-50/50">
-                            <td class="px-4 py-3 font-medium text-neutral-900">{{ $lead->name }}</td>
-                            <td class="px-4 py-3 text-neutral-600 font-mono">{{ $lead->phone }}</td>
-                            <td class="px-4 py-3 uppercase text-[11px] text-neutral-500">{{ $lead->source?->value ?? '-' }}</td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 text-center font-medium text-neutral-900">{{ $lead->name }}</td>
+                            <td class="px-4 py-3 text-center text-neutral-600 font-mono">{{ $lead->phone }}</td>
+                            <td class="px-4 py-3 text-center uppercase text-[11px] text-neutral-500">{{ $lead->source?->value ?? '-' }}</td>
+                            <td class="px-4 py-3 text-center">
                                 <span class="rounded px-1.5 py-0.5 text-[10px] font-semibold
                                     @if($lead->status->value === 'won') bg-emerald-100 text-emerald-800
                                     @elseif($lead->status->value === 'lost') bg-rose-100 text-rose-800
@@ -264,8 +264,8 @@
                                     {{ $lead->status->value }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-neutral-600">{{ $lead->lost_reason ?? '-' }}</td>
-                            <td class="px-4 py-3 text-neutral-500">{{ $lead->assignee?->name ?? 'Belum Ditugaskan' }}</td>
+                            <td class="px-4 py-3 text-center text-neutral-600">{{ $lead->lost_reason ?? '-' }}</td>
+                            <td class="px-4 py-3 text-center text-neutral-500">{{ $lead->assignee?->name ?? 'Belum Ditugaskan' }}</td>
                         </tr>
                         @empty
                         <tr>
@@ -318,32 +318,32 @@
                 </a>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-xs text-start">
+                <table class="w-full text-xs text-center">
                     <thead class="bg-neutral-50 text-neutral-600 border-b border-neutral-200">
                         <tr>
-                            <th class="px-4 py-2.5 text-start font-semibold">Driver</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Kendaraan</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Kode Booking / Tamu</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Rentang Tanggal</th>
-                            <th class="px-4 py-2.5 text-start font-semibold">Status</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Driver</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Kendaraan</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Kode Booking / Tamu</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Rentang Tanggal</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-100 text-neutral-800">
                         @forelse($data['assignments'] as $assign)
                         <tr wire:key="assignment-{{ $assign->id }}" class="hover:bg-neutral-50/50">
-                            <td class="px-4 py-3 font-medium text-neutral-900">{{ $assign->driver?->name ?? 'Belum Ditugaskan' }}</td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 text-center font-medium text-neutral-900">{{ $assign->driver?->name ?? 'Belum Ditugaskan' }}</td>
+                            <td class="px-4 py-3 text-center">
                                 <span class="font-mono text-neutral-900">{{ $assign->vehicle?->plate ?? '-' }}</span>
                                 <span class="text-neutral-500 text-[11px]">({{ $assign->vehicle?->type ?? '-' }})</span>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 text-center">
                                 <span class="font-mono font-bold text-red-600">{{ $assign->booking?->code ?? '-' }}</span>
                                 <span class="text-neutral-600">· {{ $assign->booking?->quotation?->lead?->name ?? 'Tamu' }}</span>
                             </td>
-                            <td class="px-4 py-3 font-mono text-neutral-600">
+                            <td class="px-4 py-3 text-center font-mono text-neutral-600">
                                 {{ $assign->date_from?->format('d M') }} - {{ $assign->date_to?->format('d M Y') }}
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 text-center">
                                 <span class="rounded px-1.5 py-0.5 text-[10px] font-semibold
                                     @if($assign->status === 'completed') bg-emerald-100 text-emerald-800
                                     @elseif($assign->status === 'in_progress') bg-blue-100 text-blue-800

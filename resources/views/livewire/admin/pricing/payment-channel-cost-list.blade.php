@@ -10,15 +10,27 @@
             <x-ui.th>{{ __('pricing.channel_cost.channel') }}</x-ui.th>
             <x-ui.th numeric>{{ __('pricing.channel_cost.percent_fee') }}</x-ui.th>
             <x-ui.th numeric>{{ __('pricing.channel_cost.flat_fee_minor') }}</x-ui.th>
-            <x-ui.th numeric>{{ __('pricing.common.actions') }}</x-ui.th>
+            <x-ui.th>{{ __('pricing.common.actions') }}</x-ui.th>
         </x-slot>
         @forelse ($costs as $cost)
             <x-ui.tr wire:key="cost-{{ $cost->id }}">
                 <x-ui.td class="font-medium text-neutral-900">{{ __('pricing.channel_cost.'.$cost->channel->value) }}</x-ui.td>
                 <x-ui.td numeric class="font-mono">{{ number_format($cost->percent_fee / 100, 2) }}%</x-ui.td>
                 <x-ui.td numeric class="font-mono">{{ $cost->flat_fee_minor->amountMinor }} {{ $cost->flat_fee_minor->currency }}</x-ui.td>
-                <x-ui.td numeric>
-                    <x-ui.button variant="ghost" type="button" wire:click="$dispatch('edit-channel-cost', { costId: {{ $cost->id }} })">{{ __('pricing.common.edit') }}</x-ui.button>
+                <x-ui.td>
+                    <div class="flex items-center justify-center">
+                        <x-ui.icon-button
+                            variant="ghost"
+                            type="button"
+                            wire:click="$dispatch('edit-channel-cost', { costId: {{ $cost->id }} })"
+                            :title="__('pricing.common.edit')"
+                            :aria-label="__('pricing.common.edit')"
+                        >
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </x-ui.icon-button>
+                    </div>
                 </x-ui.td>
             </x-ui.tr>
         @empty

@@ -52,15 +52,15 @@
     <!-- Audit Logs Table -->
     <div class="bg-neutral-0 rounded border border-neutral-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-start text-sm">
+            <table class="w-full text-center text-sm">
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-600 border-b border-neutral-200">
                     <tr>
-                        <th class="px-5 py-3 font-semibold">{{ __('security.time') }}</th>
-                        <th class="px-5 py-3 font-semibold">{{ __('security.channel') }}</th>
-                        <th class="px-5 py-3 font-semibold">{{ __('security.actor') }}</th>
-                        <th class="px-5 py-3 font-semibold">{{ __('security.description') }}</th>
-                        <th class="px-5 py-3 font-semibold">{{ __('security.subject') }}</th>
-                        <th class="px-5 py-3 text-end font-semibold">{{ __('security.details') }}</th>
+                        <th class="px-5 py-3 text-center font-semibold">{{ __('security.time') }}</th>
+                        <th class="px-5 py-3 text-center font-semibold">{{ __('security.channel') }}</th>
+                        <th class="px-5 py-3 text-center font-semibold">{{ __('security.actor') }}</th>
+                        <th class="px-5 py-3 text-center font-semibold">{{ __('security.description') }}</th>
+                        <th class="px-5 py-3 text-center font-semibold">{{ __('security.subject') }}</th>
+                        <th class="px-5 py-3 text-center font-semibold">{{ __('security.details') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200">
@@ -108,7 +108,7 @@
                                     <span class="text-neutral-400">-</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-3.5 whitespace-nowrap text-end">
+                            <td class="px-5 py-3.5 whitespace-nowrap text-center">
                                 @if(!empty($log->properties) && count($log->properties) > 0)
                                     <button
                                         type="button"

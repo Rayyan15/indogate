@@ -18,7 +18,7 @@
             <x-ui.th sortable field="city" :sort-field="$sortField" :sort-direction="$sortDirection">{{ __('catalog.partner.city') }}</x-ui.th>
             <x-ui.th>{{ __('catalog.partner.items_count') }}</x-ui.th>
             <x-ui.th>{{ __('catalog.common.status') }}</x-ui.th>
-            <x-ui.th numeric>{{ __('catalog.common.actions') }}</x-ui.th>
+            <x-ui.th>{{ __('catalog.common.actions') }}</x-ui.th>
         </x-slot>
         @forelse ($partners as $partner)
             <x-ui.tr wire:key="partner-{{ $partner->id }}">
@@ -27,10 +27,12 @@
                 <x-ui.td>{{ $partner->city ?? '—' }}</x-ui.td>
                 <x-ui.td class="font-mono">{{ $partner->inventory_items_count }}</x-ui.td>
                 <x-ui.td><x-ui.status :status="$partner->is_active ? 'paid' : 'cancelled'">{{ $partner->is_active ? __('catalog.partner.active') : __('catalog.partner.inactive') }}</x-ui.status></x-ui.td>
-                <x-ui.td numeric>
-                    <x-ui.icon-button type="button" wire:click="$dispatch('edit-partner', { partnerId: {{ $partner->id }} })" :title="__('catalog.common.edit')">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    </x-ui.icon-button>
+                <x-ui.td>
+                    <div class="flex items-center justify-center">
+                        <x-ui.icon-button type="button" wire:click="$dispatch('edit-partner', { partnerId: {{ $partner->id }} })" :title="__('catalog.common.edit')">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </x-ui.icon-button>
+                    </div>
                 </x-ui.td>
             </x-ui.tr>
         @empty

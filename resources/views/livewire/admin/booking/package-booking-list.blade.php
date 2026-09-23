@@ -5,7 +5,7 @@
     <x-ui.page-header :eyebrow="__('booking.eyebrow')" :title="__('booking.list.index_title')" :lede="__('booking.list.index_lede')">
         <x-slot name="actions">
             <x-ui.search-input wire:model.live.debounce.300ms="search" :placeholder="__('booking.list.code').'…'" class="w-48 shrink-0" />
-            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 px-2 text-sm">
+            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[140px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 <option value="">{{ __('booking.list.all_statuses') }}</option>
                 @foreach ($statuses as $status)
                     <option value="{{ $status->value }}">{{ __('booking.status.'.$status->value) }}</option>
@@ -41,7 +41,7 @@
                     <x-ui.th sortable field="departure_date" :sort-field="$sortField" :sort-direction="$sortDirection">{{ __('booking.list.departure') }}</x-ui.th>
                     <x-ui.th sortable field="status" :sort-field="$sortField" :sort-direction="$sortDirection">{{ __('booking.list.status') }}</x-ui.th>
                     <x-ui.th numeric>{{ __('booking.list.total') }}</x-ui.th>
-                    <x-ui.th numeric>{{ __('catalog.common.actions') }}</x-ui.th>
+                    <x-ui.th>{{ __('catalog.common.actions') }}</x-ui.th>
                 </x-slot>
                 @foreach ($bookings as $booking)
                     <x-ui.tr wire:key="booking-{{ $booking->id }}">
@@ -50,10 +50,12 @@
                         <x-ui.td>{{ $booking->departure_date->format('d M Y') }}</x-ui.td>
                         <x-ui.td><x-ui.status :status="$booking->status->value">{{ __('booking.status.'.$booking->status->value) }}</x-ui.status></x-ui.td>
                         <x-ui.td numeric class="font-mono">{{ $booking->currency }} {{ \App\Domain\Finance\Fx::format((int) $booking->total_minor, $booking->currency) }}</x-ui.td>
-                        <x-ui.td numeric>
-                            <x-ui.icon-button :href="route('admin.package-bookings.show', $booking)" :title="__('booking.list.view')">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                            </x-ui.icon-button>
+                        <x-ui.td>
+                            <div class="flex items-center justify-center">
+                                <x-ui.icon-button :href="route('admin.package-bookings.show', $booking)" :title="__('booking.list.view')">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                </x-ui.icon-button>
+                            </div>
                         </x-ui.td>
                     </x-ui.tr>
                 @endforeach

@@ -3,7 +3,7 @@
         <x-slot name="actions">
             <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="Cari kode booking, nama tamu…" class="w-56 shrink-0" />
 
-            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 px-2 text-xs">
+            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[140px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 <option value="">Semua Status Booking</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="partially_paid">Partially Paid</option>

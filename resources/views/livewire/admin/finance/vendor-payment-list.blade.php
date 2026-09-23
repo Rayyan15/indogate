@@ -3,7 +3,7 @@
         <x-slot name="actions">
             <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="Cari vendor, booking, catatan…" class="w-56 shrink-0" />
 
-            <select wire:model.live="partnerFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 px-2 text-xs">
+            <select wire:model.live="partnerFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[140px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 <option value="">Semua Mitra Vendor</option>
                 @foreach($partners as $partner)
                     <option value="{{ $partner->id }}">{{ $partner->name }}</option>
@@ -36,7 +36,7 @@
                 <x-ui.th>{{ __('finance.booking_code') }}</x-ui.th>
                 <x-ui.th>{{ __('finance.description') }}</x-ui.th>
                 <x-ui.th numeric>{{ __('finance.amount') }}</x-ui.th>
-                <x-ui.th numeric>Aksi</x-ui.th>
+                <x-ui.th>Aksi</x-ui.th>
             </x-slot>
             @foreach($vendorPayments as $vp)
                 <x-ui.tr wire:key="vp-{{ $vp->id }}">
@@ -69,11 +69,23 @@
                             </div>
                         @endif
                     </x-ui.td>
-                    <x-ui.td numeric>
+                    <x-ui.td>
                         @can('delete', $vp)
-                            <button type="button" wire:click="deleteVendorPayment({{ $vp->id }})" wire:loading.attr="disabled" class="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50">
-                                Hapus
-                            </button>
+                            <div class="flex items-center justify-center">
+                                <x-ui.icon-button
+                                    variant="ghost"
+                                    type="button"
+                                    wire:click="deleteVendorPayment({{ $vp->id }})"
+                                    wire:loading.attr="disabled"
+                                    class="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Hapus"
+                                    aria-label="Hapus"
+                                >
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </x-ui.icon-button>
+                            </div>
                         @endcan
                     </x-ui.td>
                 </x-ui.tr>

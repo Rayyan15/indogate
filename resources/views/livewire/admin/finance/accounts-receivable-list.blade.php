@@ -43,7 +43,7 @@
                 <x-ui.th numeric>{{ __('finance.total_paid') }}</x-ui.th>
                 <x-ui.th numeric>{{ __('finance.remaining_balance') }}</x-ui.th>
                 <x-ui.th>{{ __('finance.status') }}</x-ui.th>
-                <x-ui.th numeric>{{ __('catalog.common.actions') }}</x-ui.th>
+                <x-ui.th>{{ __('catalog.common.actions') }}</x-ui.th>
             </x-slot>
             @foreach($bookings as $booking)
                 <x-ui.tr wire:key="ar-{{ $booking->id }}">
@@ -87,14 +87,23 @@
                             {{ strtoupper($booking->status->value) }}
                         </span>
                     </x-ui.td>
-                    <x-ui.td numeric>
-                        <div class="inline-flex items-center gap-2">
-                            <a href="{{ $this->invoiceUrl($booking) }}" target="_blank" class="inline-flex items-center rounded border border-neutral-300 bg-neutral-0 px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-                                {{ __('finance.invoice') }}
-                            </a>
-                            <a href="{{ route('admin.package-bookings.show', $booking->id) }}" class="rounded bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-800 hover:bg-neutral-200">
-                                Buka
-                            </a>
+                    <x-ui.td>
+                        <div class="flex items-center justify-center gap-1">
+                            <x-ui.icon-button
+                                :href="$this->invoiceUrl($booking)"
+                                target="_blank"
+                                :title="__('finance.invoice')"
+                                :aria-label="__('finance.invoice')"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </x-ui.icon-button>
+                            <x-ui.icon-button
+                                :href="route('admin.package-bookings.show', $booking->id)"
+                                :title="__('booking.list.view')"
+                                :aria-label="__('booking.list.view')"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </x-ui.icon-button>
                         </div>
                     </x-ui.td>
                 </x-ui.tr>

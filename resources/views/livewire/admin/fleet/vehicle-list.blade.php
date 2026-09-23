@@ -3,7 +3,7 @@
         <x-slot name="actions">
             <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="{{ __('fleet.vehicle_plate') }} / {{ __('fleet.vehicle_type') }}…" class="w-48 shrink-0" />
 
-            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 px-2 text-sm">
+            <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 <option value="">Semua Status</option>
                 <option value="active">{{ __('fleet.status_active') }}</option>
                 <option value="inactive">{{ __('fleet.status_inactive') }}</option>
@@ -25,7 +25,7 @@
                 <x-ui.th>{{ __('fleet.vehicle_type') }}</x-ui.th>
                 <x-ui.th>{{ __('fleet.vehicle_capacity') }}</x-ui.th>
                 <x-ui.th>Status</x-ui.th>
-                <x-ui.th numeric>{{ __('catalog.common.actions') }}</x-ui.th>
+                <x-ui.th>{{ __('catalog.common.actions') }}</x-ui.th>
             </x-slot>
             @foreach($vehicles as $vehicle)
                 <x-ui.tr wire:key="vehicle-{{ $vehicle->id }}">
@@ -45,15 +45,32 @@
                             {{ $vehicle->is_active ? __('fleet.status_active') : __('fleet.status_inactive') }}
                         </button>
                     </x-ui.td>
-                    <x-ui.td numeric>
-                        <div class="inline-flex items-center gap-2">
-                            <button type="button" wire:click="openEditModal({{ $vehicle->id }})" class="text-xs font-medium text-neutral-600 hover:text-neutral-900">
-                                {{ __('catalog.common.edit') }}
-                            </button>
-                            <span class="text-neutral-300">·</span>
-                            <button type="button" wire:click="deleteVehicle({{ $vehicle->id }})" wire:confirm="Apakah Anda yakin ingin menghapus kendaraan ini?" class="text-xs font-medium text-red-600 hover:text-red-800">
-                                {{ __('catalog.common.delete') }}
-                            </button>
+                    <x-ui.td>
+                        <div class="flex items-center justify-center gap-1">
+                            <x-ui.icon-button
+                                variant="ghost"
+                                type="button"
+                                wire:click="openEditModal({{ $vehicle->id }})"
+                                :title="__('catalog.common.edit')"
+                                :aria-label="__('catalog.common.edit')"
+                            >
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </x-ui.icon-button>
+                            <x-ui.icon-button
+                                variant="ghost"
+                                type="button"
+                                wire:click="deleteVehicle({{ $vehicle->id }})"
+                                wire:confirm="Apakah Anda yakin ingin menghapus kendaraan ini?"
+                                class="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                :title="__('catalog.common.delete')"
+                                :aria-label="__('catalog.common.delete')"
+                            >
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </x-ui.icon-button>
                         </div>
                     </x-ui.td>
                 </x-ui.tr>

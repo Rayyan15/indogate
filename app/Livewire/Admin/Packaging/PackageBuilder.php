@@ -100,6 +100,8 @@ class PackageBuilder extends Component
                 'id' => $item->id,
                 'inventory_item_id' => $item->inventory_item_id,
                 'name' => $item->inventoryItem->getTranslation('name', app()->getLocale(), false) ?? '',
+                'type' => $item->inventoryItem->type->value ?? 'other',
+                'partner_name' => $item->inventoryItem->partner?->name ?? '',
                 'day_from' => $item->day_from,
                 'day_to' => $item->day_to,
                 'qty' => $item->qty,
@@ -124,8 +126,9 @@ class PackageBuilder extends Component
                     ->orWhere('name->en', 'like', "%{$escaped}%")
                     ->orWhere('name->ar', 'like', "%{$escaped}%");
             })
+            ->with('partner')
             ->limit(10)
-            ->get(['id', 'name', 'type']);
+            ->get(['id', 'name', 'type', 'partner_id']);
     }
 
     public function recalculate(array $items, int $pax): void
@@ -150,6 +153,27 @@ class PackageBuilder extends Component
     }
 
     public function updatedCurrentPax(): void
+    {
+        if ($this->items !== []) {
+            $this->recalculate($this->items, $this->current_pax);
+        }
+    }
+
+    public function updatedDisplayCurrency(): void
+    {
+        if ($this->items !== []) {
+            $this->recalculate($this->items, $this->current_pax);
+        }
+    }
+
+    public function updatedChannel(): void
+    {
+        if ($this->items !== []) {
+            $this->recalculate($this->items, $this->current_pax);
+        }
+    }
+
+    public function updatedPreviewDate(): void
     {
         if ($this->items !== []) {
             $this->recalculate($this->items, $this->current_pax);
@@ -343,6 +367,8 @@ class PackageBuilder extends Component
             'id' => $row['id'],
             'inventory_item_id' => (int) $row['inventory_item_id'],
             'name' => $row['name'] ?? '',
+            'type' => $row['type'] ?? null,
+            'partner_name' => $row['partner_name'] ?? null,
             'day_from' => (int) $row['day_from'],
             'day_to' => (int) $row['day_to'],
             'qty' => max(1, (int) $row['qty']),
@@ -421,6 +447,15 @@ class PackageBuilder extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.packaging.package-builder');
+        $branchId = CurrentBranch::id();
+        $availableInventory = InventoryItem::query()
+            ->where('is_active', true)
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->with(['partner', 'rates'])
+            ->get();
+
+        return view('livewire.admin.packaging.package-builder', [
+            'availableInventory' => $availableInventory,
+        ]);
     }
 }
