@@ -101,6 +101,8 @@ return [
         'payment_history' => 'سجل المدفوعات',
         'submitted' => 'أُرسل بتاريخ :date',
         'in_review' => 'قيد المراجعة',
+        'proof_uploaded' => 'تم رفع إثبات الدفع. بانتظار تحقق المسؤول.',
+        'payment_not_accepted' => 'هذا الحجز لا يقبل إثباتات الدفع حالياً.',
         'invoice_eyebrow' => 'الفاتورة',
         'grand_total' => 'الإجمالي الكلي',
         'subtotal' => 'المجموع الفرعي',

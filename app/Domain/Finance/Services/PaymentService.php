@@ -7,12 +7,10 @@ use App\Domain\Booking\Models\PackageBooking;
 use App\Domain\Finance\Contracts\PaymentProviderInterface;
 use App\Domain\Finance\Exceptions\PaymentVerificationException;
 use App\Domain\Finance\Exceptions\SelfApprovalException;
+use App\Domain\Finance\Fx;
 use App\Domain\Finance\Models\Payment;
 use App\Domain\Finance\Models\Refund;
 use App\Domain\Finance\Providers\ManualTransferProvider;
-use App\Domain\Pricing\Models\ExchangeRate;
-use App\Domain\Pricing\Models\PaymentChannelCost;
-use App\Domain\Pricing\Money;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentChannel;
 use App\Models\User;
@@ -20,66 +18,82 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
+/**
+ * All payment state changes go through here. The provider (manual transfer
+ * today, a real multi-currency gateway later) only performs the external
+ * side; status rules, locking and booking reconciliation live here so a
+ * new provider can't skip them.
+ */
 class PaymentService
 {
+    public const TYPES = [Payment::TYPE_DOWN_PAYMENT, Payment::TYPE_FULL_PAYMENT, Payment::TYPE_INSTALLMENT];
+
     public function __construct(
         protected ?PaymentProviderInterface $provider = null
     ) {
         $this->provider = $this->provider ?? new ManualTransferProvider;
     }
 
+    public static function channels(): array
+    {
+        return array_column(PaymentChannel::cases(), 'value');
+    }
+
     /**
      * Record a new payment attempt for a booking.
+     *
+     * A custom FX rate is only honoured from a user holding payment.verify;
+     * anyone else gets the current rate (bug-review BF-06).
      */
     public function recordPayment(
         PackageBooking $booking,
         int $amountMinor,
         string $currency,
         string $type = Payment::TYPE_DOWN_PAYMENT,
-        string $channel = 'manual_transfer',
+        string $channel = 'bank_transfer',
         ?float $customFxRate = null,
         ?UploadedFile $proofFile = null,
         ?string $notes = null,
         ?User $creator = null
     ): Payment {
-        if ($booking->status === BookingStatus::CANCELLED) {
-            throw new InvalidArgumentException('Tidak dapat mencatat pembayaran untuk pemesanan yang dibatalkan.');
-        }
-
         if ($amountMinor <= 0) {
             throw new InvalidArgumentException('Jumlah pembayaran harus lebih dari 0.');
         }
 
-        $currency = strtoupper($currency);
-        $fxRate = $this->resolveFxRate($currency, $customFxRate);
-        $decimalPlaces = \App\Domain\Pricing\Models\Currency::where('code', $currency)->value('decimal_places') ?? ($currency === 'IDR' ? 0 : 2);
-        $factor = 10 ** $decimalPlaces;
-        $idrEquivalentMinor = $currency === 'IDR'
-            ? $amountMinor
-            : (int) round(($amountMinor * $fxRate) / $factor);
-
-        // Calculate channel fee if applicable
-        $channelFeeMinor = $this->calculateChannelFee($channel, $amountMinor);
-
-        // Store proof file in private disk
-        $proofPath = null;
-        if ($proofFile) {
-            $proofPath = $proofFile->store('payment-proofs', 'local');
+        if (! in_array($type, self::TYPES, true)) {
+            throw new InvalidArgumentException('Tipe pembayaran tidak valid.');
         }
 
+        if (! in_array($channel, self::channels(), true)) {
+            throw new InvalidArgumentException('Channel pembayaran tidak valid.');
+        }
+
+        $currency = strtoupper($currency);
+        $fxRate = ($customFxRate > 0 && $currency !== 'IDR' && $creator?->can('payment.verify'))
+            ? (float) $customFxRate
+            : Fx::rate($currency);
+        $idrEquivalentMinor = Fx::toIdrMinor($amountMinor, $currency, $fxRate);
+        $channelFeeMinor = Fx::channelFeeMinor($channel, $amountMinor, $currency, $fxRate);
+
         return DB::transaction(function () use (
-            $booking,
-            $amountMinor,
-            $currency,
-            $type,
-            $channel,
-            $fxRate,
-            $idrEquivalentMinor,
-            $channelFeeMinor,
-            $proofPath,
-            $notes,
-            $creator
+            $booking, $amountMinor, $currency, $type, $channel, $fxRate,
+            $idrEquivalentMinor, $channelFeeMinor, $proofFile, $notes, $creator
         ) {
+            $booking = PackageBooking::lockForUpdate()->findOrFail($booking->id);
+
+            if ($booking->status === BookingStatus::CANCELLED) {
+                throw new InvalidArgumentException('Tidak dapat mencatat pembayaran untuk pemesanan yang dibatalkan.');
+            }
+
+            // ponytail: blocks only payments on an already fully-paid booking.
+            // Partial overpayment is allowed (FX rounding, customer tops up);
+            // add a tolerance rule here if finance wants a hard cap.
+            if ($booking->isFullyPaid()) {
+                throw new InvalidArgumentException('Pemesanan sudah lunas; pembayaran tambahan tidak dapat dicatat.');
+            }
+
+            $proofPath = $proofFile?->store('payment-proofs', 'local');
+
             $payment = Payment::create([
                 'branch_id' => $booking->branch_id,
                 'booking_id' => $booking->id,
@@ -104,6 +118,7 @@ class PaymentService
                     'amount_minor' => $amountMinor,
                     'currency' => $currency,
                     'type' => $type,
+                    'fx_rate' => $fxRate,
                 ])
                 ->log('Payment recorded and awaiting verification');
 
@@ -112,30 +127,33 @@ class PaymentService
     }
 
     /**
-     * Verify a payment by a Finance Admin with self-approval protection.
+     * Verify a pending payment. Neither the booking creator nor the person
+     * who recorded the payment may verify it (PRD M9 self-approval).
      */
     public function verifyPayment(Payment $payment, User $verifier): bool
     {
-        // 1. Enforce RBAC permission
         if (! $verifier->can('payment.verify')) {
             throw new PaymentVerificationException('Pengguna tidak memiliki izin untuk memverifikasi pembayaran.');
         }
 
-        // 2. Enforce Self-Approval Restriction (PRD M9: creator cannot verify own booking payment)
-        $booking = $payment->booking;
-        $creatorId = $booking->created_by
-            ?? $booking->statusHistories()->where('from_status', BookingStatus::DRAFT)->first()?->user_id;
+        return DB::transaction(function () use ($payment, $verifier) {
+            $payment = Payment::lockForUpdate()->findOrFail($payment->id);
+            $booking = PackageBooking::lockForUpdate()->findOrFail($payment->booking_id);
 
-        if ($creatorId !== null && (int) $verifier->id === (int) $creatorId) {
-            throw new SelfApprovalException('Pembuat pemesanan tidak diizinkan memverifikasi pembayarannya sendiri.');
-        }
+            $this->assertNotSelfApproval($booking, $payment, $verifier);
 
-        if ($payment->status === Payment::STATUS_VERIFIED) {
-            return true;
-        }
+            if ($payment->status === Payment::STATUS_VERIFIED) {
+                return true; // double click: idempotent no-op
+            }
 
-        return DB::transaction(function () use ($payment, $verifier, $booking) {
-            // Verify via provider
+            if ($payment->status !== Payment::STATUS_PENDING) {
+                throw new PaymentVerificationException('Pembayaran yang sudah ditolak tidak dapat diverifikasi.');
+            }
+
+            if ($booking->status === BookingStatus::CANCELLED) {
+                throw new PaymentVerificationException('Pemesanan sudah dibatalkan; tolak pembayaran ini atau proses refund.');
+            }
+
             $this->provider->verifyPayment($payment, $verifier);
 
             activity('finance')
@@ -148,7 +166,6 @@ class PaymentService
                 ])
                 ->log('Payment verified');
 
-            // Reconcile with booking state machine
             $this->reconcileBookingStatus($booking, $verifier);
 
             return true;
@@ -156,7 +173,8 @@ class PaymentService
     }
 
     /**
-     * Reject a payment with a mandatory reason.
+     * Reject a pending payment with a mandatory reason. A verified payment
+     * is never rejected afterwards — that is what a refund is for.
      */
     public function rejectPayment(Payment $payment, string $reason, User $rejector): bool
     {
@@ -168,24 +186,33 @@ class PaymentService
             throw new InvalidArgumentException('Alasan penolakan pembayaran wajib diisi.');
         }
 
-        $payment->update([
-            'status' => Payment::STATUS_REJECTED,
-            'rejection_reason' => $reason,
-            'verified_by' => $rejector->id,
-            'verified_at' => now(),
-        ]);
+        return DB::transaction(function () use ($payment, $reason, $rejector) {
+            $payment = Payment::lockForUpdate()->findOrFail($payment->id);
 
-        activity('finance')
-            ->causedBy($rejector)
-            ->performedOn($payment)
-            ->withProperties(['reason' => $reason])
-            ->log('Payment rejected');
+            if ($payment->status !== Payment::STATUS_PENDING) {
+                throw new PaymentVerificationException('Hanya pembayaran berstatus pending yang dapat ditolak.');
+            }
 
-        return true;
+            $payment->update([
+                'status' => Payment::STATUS_REJECTED,
+                'rejection_reason' => $reason,
+                'verified_by' => $rejector->id,
+                'verified_at' => now(),
+            ]);
+
+            activity('finance')
+                ->causedBy($rejector)
+                ->performedOn($payment)
+                ->withProperties(['reason' => $reason])
+                ->log('Payment rejected');
+
+            return true;
+        });
     }
 
     /**
-     * Process a refund with a mandatory reason.
+     * Process a refund with a mandatory reason, then move a fully-paid
+     * booking back to partially_paid when money went out (BF-07).
      */
     public function refundPayment(Payment $payment, int $amountMinor, string $reason, User $processor): Refund
     {
@@ -197,11 +224,15 @@ class PaymentService
             throw new InvalidArgumentException('Alasan refund wajib diisi.');
         }
 
-        if ($payment->status !== Payment::STATUS_VERIFIED) {
-            throw new InvalidArgumentException('Hanya pembayaran yang telah diverifikasi yang dapat di-refund.');
-        }
-
         return DB::transaction(function () use ($payment, $amountMinor, $reason, $processor) {
+            // Row lock serialises concurrent refunds of the same payment (BF-03).
+            $payment = Payment::lockForUpdate()->findOrFail($payment->id);
+            $booking = PackageBooking::lockForUpdate()->findOrFail($payment->booking_id);
+
+            if ($payment->status !== Payment::STATUS_VERIFIED) {
+                throw new InvalidArgumentException('Hanya pembayaran yang telah diverifikasi yang dapat di-refund.');
+            }
+
             $refund = $this->provider->processRefund($payment, $amountMinor, $reason, $processor);
 
             activity('finance')
@@ -209,15 +240,33 @@ class PaymentService
                 ->performedOn($refund)
                 ->withProperties([
                     'payment_id' => $payment->id,
-                    'booking_code' => $payment->booking?->code,
+                    'booking_code' => $booking->code,
                     'amount_minor' => $amountMinor,
                     'currency' => $refund->currency,
                     'reason' => $reason,
                 ])
                 ->log('Payment refund processed');
 
+            if ($booking->status === BookingStatus::PAID && ! $booking->fresh()->isFullyPaid()) {
+                (new BookingStateMachine)->transition($booking, BookingStatus::PARTIALLY_PAID, 'Refund: '.$reason, $processor);
+            }
+
             return $refund;
         });
+    }
+
+    private function assertNotSelfApproval(PackageBooking $booking, Payment $payment, User $verifier): void
+    {
+        $bookingCreator = $booking->created_by
+            ?? $booking->statusHistories()->where('from_status', BookingStatus::DRAFT)->first()?->user_id;
+
+        if ($bookingCreator !== null && (int) $bookingCreator === (int) $verifier->id) {
+            throw new SelfApprovalException('Pembuat pemesanan tidak diizinkan memverifikasi pembayarannya sendiri.');
+        }
+
+        if ($payment->created_by !== null && (int) $payment->created_by === (int) $verifier->id) {
+            throw new SelfApprovalException('Pencatat pembayaran tidak diizinkan memverifikasi pembayaran yang ia catat sendiri.');
+        }
     }
 
     /**
@@ -226,64 +275,25 @@ class PaymentService
     private function reconcileBookingStatus(PackageBooking $booking, User $actor): void
     {
         $stateMachine = new BookingStateMachine;
+        $booking->unsetRelation('payments')->unsetRelation('refunds');
         $totalPaid = $booking->totalPaidMinor();
-        $totalRequired = (int) $booking->total_minor;
 
         if ($booking->status === BookingStatus::CONFIRMED && $totalPaid > 0) {
-            $stateMachine->transition(
-                $booking,
-                BookingStatus::PARTIALLY_PAID,
-                'Pembayaran DP diverifikasi',
-                $actor
-            );
+            $stateMachine->transition($booking, BookingStatus::PARTIALLY_PAID, 'Pembayaran DP diverifikasi', $actor);
         }
 
-        if ($booking->status === BookingStatus::PARTIALLY_PAID && $totalPaid >= $totalRequired) {
-            $stateMachine->transition(
-                $booking,
-                BookingStatus::PAID,
-                'Pelunasan diverifikasi',
-                $actor
-            );
+        if ($booking->status === BookingStatus::PARTIALLY_PAID && $totalPaid >= (int) $booking->total_minor) {
+            $stateMachine->transition($booking, BookingStatus::PAID, 'Pelunasan diverifikasi', $actor);
         }
     }
 
     public function resolveFxRate(string $currency, ?float $customRate = null): float
     {
-        $currency = strtoupper($currency);
-        if ($currency === 'IDR') {
-            return 1.00000000;
-        }
-
-        if ($customRate !== null && $customRate > 0) {
-            return (float) $customRate;
-        }
-
-        $rateRecord = ExchangeRate::currentFor($currency);
-        if ($rateRecord) {
-            return (float) $rateRecord->rate;
-        }
-
-        return 1.00000000;
+        return ($customRate > 0 && strtoupper($currency) !== 'IDR') ? (float) $customRate : Fx::rate($currency);
     }
 
-    public function calculateChannelFee(string $channel, int $amountMinor): int
+    public function calculateChannelFee(string $channel, int $amountMinor, string $currency = 'IDR'): int
     {
-        $paymentChannel = PaymentChannel::tryFrom($channel);
-        if (! $paymentChannel) {
-            return 0;
-        }
-
-        $cost = PaymentChannelCost::where('channel', $paymentChannel)->first();
-        if (! $cost) {
-            return 0;
-        }
-
-        $percentageFee = (int) round(($amountMinor * $cost->percent_fee) / 10000);
-        $flatFee = $cost->flat_fee_minor instanceof Money
-            ? $cost->flat_fee_minor->amountMinor
-            : (int) $cost->flat_fee_minor;
-
-        return $percentageFee + $flatFee;
+        return Fx::channelFeeMinor($channel, $amountMinor, $currency, Fx::rate($currency));
     }
 }

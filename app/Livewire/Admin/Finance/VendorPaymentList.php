@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Finance;
 use App\Domain\Booking\Models\PackageBooking;
 use App\Domain\Catalog\Models\Partner;
 use App\Domain\Finance\Models\VendorPayment;
+use App\Domain\Pricing\Models\Currency;
 use App\Domain\Pricing\Models\ExchangeRate;
 use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
@@ -79,7 +80,7 @@ class VendorPaymentList extends Component
             $this->fx_rate = 1.0;
         } else {
             $rate = ExchangeRate::currentFor(strtoupper($this->currency));
-            $this->fx_rate = $rate ? (float) $rate->rate : 1.0;
+            $this->fx_rate = $rate ? (float) $rate->rate : 0.0; // 0 fails validation instead of silently using 1.0
         }
     }
 
@@ -102,19 +103,19 @@ class VendorPaymentList extends Component
             'proofFile' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ]);
 
+        $this->authorize('create', VendorPayment::class);
+
         $proofPath = null;
         if ($this->proofFile) {
             $proofPath = $this->proofFile->store('vendor-payment-proofs', 'local');
         }
 
         $curr = strtoupper($this->currency);
-        $decimalPlaces = \App\Domain\Pricing\Models\Currency::where('code', $curr)->value('decimal_places') ?? ($curr === 'IDR' ? 0 : 2);
+        $decimalPlaces = Currency::where('code', $curr)->value('decimal_places') ?? ($curr === 'IDR' ? 0 : 2);
         $factor = 10 ** $decimalPlaces;
         $idrEquivalentMinor = $curr === 'IDR'
             ? $this->amount_minor
             : (int) round(($this->amount_minor * (float) $this->fx_rate) / $factor);
-
-        $this->authorize('create', VendorPayment::class);
 
         VendorPayment::create([
             'branch_id' => CurrentBranch::id(),

@@ -3,7 +3,9 @@
 namespace App\Domain\Finance\Services;
 
 use App\Domain\Booking\Models\PackageBooking;
+use App\Domain\Finance\Fx;
 use App\Domain\Finance\Models\Payment;
+use App\Domain\Finance\Models\Refund;
 use Illuminate\Database\Eloquent\Collection;
 
 class MarginReportService
@@ -28,22 +30,20 @@ class MarginReportService
             ->where('status', Payment::STATUS_VERIFIED)
             ->get();
 
-        $grossRevenueIdr = (int) $verifiedPayments->sum('idr_equivalent_minor');
-        if ($grossRevenueIdr === 0 && $booking->payments()->exists()) {
-            $grossRevenueIdr = (int) $booking->payments()->sum('idr_equivalent_minor');
-        } elseif ($grossRevenueIdr === 0) {
-            // Fall back to booking total converted to IDR
-            $rate = (float) ($booking->quotation?->locked_rate ?? 1.0);
-            $grossRevenueIdr = (int) round($booking->total_minor * $rate);
+        // Only verified money counts; pending/rejected never do (BF-10).
+        // Completed refunds reduce revenue.
+        $grossRevenueIdr = (int) $verifiedPayments->sum('idr_equivalent_minor')
+            - (int) $booking->refunds()->where('status', Refund::STATUS_COMPLETED)->sum('idr_equivalent_minor');
+
+        if ($verifiedPayments->isEmpty()) {
+            // Expected revenue: booking total at the quotation's locked rate.
+            $grossRevenueIdr = Fx::toIdrMinor((int) $booking->total_minor, $booking->currency, $booking->lockedRate());
         }
 
-        // 2. Channel fees in IDR
-        $channelFeesIdr = 0;
-        foreach ($verifiedPayments as $payment) {
-            $rate = (float) $payment->fx_rate;
-            $feeInIdr = (int) round($payment->channel_fee_minor * ($rate > 0 ? $rate : 1.0));
-            $channelFeesIdr += $feeInIdr;
-        }
+        // 2. Channel fees in IDR (fee is in the payment's minor units, BF-09)
+        $channelFeesIdr = (int) $verifiedPayments->sum(
+            fn ($payment) => Fx::toIdrMinor((int) $payment->channel_fee_minor, $payment->currency, (float) $payment->fx_rate)
+        );
 
         // 3. Vendor costs: actual recorded vendor payments, or fall back to quotation item cost
         $actualVendorPaymentsIdr = (int) $booking->vendorPayments()->sum('idr_equivalent_minor');

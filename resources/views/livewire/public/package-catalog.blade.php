@@ -20,13 +20,9 @@
                             wire:key="curr-btn-{{ $curr }}"
                             type="button"
                             wire:click="setCurrency('{{ $curr }}')"
-<<<<<<< HEAD
                             wire:loading.attr="disabled"
                             wire:target="setCurrency('{{ $curr }}')"
-                            class="px-3 py-1.5 rounded transition-all {{ $currency === $curr ? 'bg-red-600 text-white shadow-sm font-bold' : 'text-neutral-700 hover:text-neutral-900' }} disabled:opacity-50"
-=======
-                            class="px-3 py-1.5 rounded-full transition-colors {{ $currency === $curr ? 'bg-accent-red text-white shadow-sm font-bold' : 'text-white/70 hover:text-white hover:bg-white/10' }}"
->>>>>>> fe6fbe57887a861055f6cfb4140d0ddb4f7a14c5
+                            class="px-3 py-1.5 rounded-full transition-colors {{ $currency === $curr ? 'bg-accent-red text-white shadow-sm font-bold' : 'text-white/70 hover:text-white hover:bg-white/10' }} disabled:opacity-50"
                         >
                             {{ $curr }}
                         </button>
@@ -56,7 +52,7 @@
                         class="w-full py-2.5 px-3 text-sm bg-black/40 border border-white/10 rounded focus:ring-1 focus:ring-accent-red focus:border-accent-red text-white"
                         style="color-scheme: dark;"
                     >
-                        <option value="">{{ __('storefront.filter_destination_all') ?? 'All Destinations' }}</option>
+                        <option value="">{{ __('storefront.filter_all_branches') }}</option>
                         @foreach($branches as $branch)
                             <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                         @endforeach
@@ -121,11 +117,7 @@
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($packages as $package)
-<<<<<<< HEAD
-                        <article wire:key="package-{{ $package->id }}" class="bg-neutral-0 rounded border {{ $package->is_featured ? 'border-2 border-red-600' : 'border-neutral-200' }} overflow-hidden flex flex-col hover:shadow-lg transition-shadow duration-300">
-=======
-                        <article class="bg-[#051121] rounded-3xl border {{ $package->is_featured ? 'border-2 border-accent-red' : 'border-white/5' }} overflow-hidden flex flex-col hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]">
->>>>>>> fe6fbe57887a861055f6cfb4140d0ddb4f7a14c5
+                        <article wire:key="package-{{ $package->id }}" class="bg-[#051121] rounded-3xl border {{ $package->is_featured ? 'border-2 border-accent-red' : 'border-white/5' }} overflow-hidden flex flex-col hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                             <!-- Package Image -->
                             <div class="relative aspect-[16/10] bg-gray-900 overflow-hidden group">
                                 @if($package->cover_image)

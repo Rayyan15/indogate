@@ -4,6 +4,7 @@ namespace Tests\Feature\Finance;
 
 use App\Domain\Booking\ConvertQuotationToBooking;
 use App\Domain\Finance\Services\PaymentService;
+use App\Domain\Pricing\Exceptions\ExchangeRateNotFoundException;
 use App\Domain\Pricing\Models\ExchangeRate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,17 +76,35 @@ class MultiCurrencyPaymentTest extends TestCase
 
         $paymentService = app(PaymentService::class);
 
-        // Custom rate 4300.0
+        // Custom rate 4300.0 — only honoured from a payment.verify holder.
         $payment = $paymentService->recordPayment(
             booking: $booking,
             amountMinor: 50_000,
             currency: 'SAR',
             customFxRate: 4300.0,
-            creator: $csUser
+            creator: User::role('Finance Admin')->firstOrFail()
         );
 
         $this->assertEquals(4300.0, (float) $payment->fx_rate);
         $this->assertSame(2_150_000, $payment->idr_equivalent_minor);
+    }
+
+    public function test_custom_fx_rate_from_sales_is_ignored_and_missing_rate_is_refused(): void
+    {
+        $this->seed();
+        $branch = $this->baliBranch();
+        $booking = (new ConvertQuotationToBooking)->convert(
+            $this->quotationFor($branch, $this->leadFor($branch), $this->packageWithOneHotelRoom($branch)),
+            departureDate: now()->addMonth()->toDateString(),
+            returnDate: null,
+        );
+        $csUser = User::role('CS Admin')->firstOrFail();
+
+        // No stored SAR rate: refuse instead of silently using 1.0 (BF-05).
+        ExchangeRate::where('currency', 'SAR')->delete();
+        $this->expectException(ExchangeRateNotFoundException::class);
+
+        app(PaymentService::class)->recordPayment(booking: $booking, amountMinor: 50_000, currency: 'SAR', customFxRate: 1_000_000.0, creator: $csUser);
     }
 
     public function test_idr_payment_always_has_unit_exchange_rate(): void
@@ -150,11 +169,11 @@ class MultiCurrencyPaymentTest extends TestCase
         $paymentService->verifyPayment($payment1, $financeUser);
 
         // Payment 2: 1.000 SAR @ 4250 IDR/SAR = IDR 4.250.000
+        ExchangeRate::create(['currency' => 'SAR', 'rate' => 4250, 'effective_from' => now()->subMinute(), 'created_by' => $csUser->id]);
         $payment2 = $paymentService->recordPayment(
             booking: $booking,
             amountMinor: 100_000,
             currency: 'SAR',
-            customFxRate: 4250.0,
             creator: $csUser
         );
         $paymentService->verifyPayment($payment2, $financeUser);

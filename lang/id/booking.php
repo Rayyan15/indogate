@@ -78,4 +78,6 @@ return [
         'itinerary' => 'Itinerary',
         'component_name' => 'Komponen',
     ],
+    'convert_already_converted' => 'Penawaran ini sudah dikonversi menjadi booking.',
+    'convert_expired' => 'Penawaran ini sudah kedaluwarsa dan tidak bisa dikonversi.',
 ];

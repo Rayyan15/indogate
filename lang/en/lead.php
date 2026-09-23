@@ -50,4 +50,5 @@ return [
         'submit' => 'Submit',
         'thanks' => 'Thank you, our team will reach out shortly.',
     ],
+    'quotation_rate_missing' => 'One or more package items have no rate for the chosen date. Add the rate before generating a quotation.',
 ];

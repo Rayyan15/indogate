@@ -146,12 +146,29 @@ class BookingViewTest extends TestCase
         ]);
         $user->assignRole('CS Admin');
 
+        $booking->update(['status' => 'paid']);
+
+        Livewire::actingAs($user)
+            ->test(PackageBookingShow::class, ['packageBooking' => $booking])
+            ->call('transitionTo', 'in_progress')
+            ->assertHasNoErrors();
+
+        $this->assertSame('in_progress', $booking->fresh()->status->value);
+    }
+
+    public function test_payment_driven_statuses_cannot_be_set_manually(): void
+    {
+        $this->seed();
+        $branch = $this->baliBranch();
+        $booking = $this->bookingFor($this->quotationFor($branch, $this->leadFor($branch), $this->packageWithOneHotelRoom($branch)));
+        $user = User::role('CS Admin')->firstOrFail();
+
         Livewire::actingAs($user)
             ->test(PackageBookingShow::class, ['packageBooking' => $booking])
             ->call('transitionTo', 'partially_paid')
-            ->assertHasNoErrors();
+            ->assertHasErrors('transition');
 
-        $this->assertSame('partially_paid', $booking->fresh()->status->value);
+        $this->assertSame('confirmed', $booking->fresh()->status->value);
     }
 
     public function test_component_can_add_note_and_cancel_booking(): void

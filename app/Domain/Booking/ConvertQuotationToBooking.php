@@ -2,9 +2,11 @@
 
 namespace App\Domain\Booking;
 
+use App\Domain\Booking\Exceptions\QuotationNotConvertibleException;
 use App\Domain\Booking\Models\PackageBooking;
 use App\Domain\Lead\Models\Quotation;
 use App\Enums\BookingStatus;
+use App\Enums\LeadStatus;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,6 +25,18 @@ class ConvertQuotationToBooking
     public function convert(Quotation $quotation, string $departureDate, ?string $returnDate, ?User $actor = null): PackageBooking
     {
         return DB::transaction(function () use ($quotation, $departureDate, $returnDate, $actor) {
+            // Lock the quotation so a double click / second admin waits here,
+            // then sees the first booking (bug-review BF-08; unique index backs it).
+            $quotation = Quotation::withoutGlobalScopes()->with('items', 'lead')->lockForUpdate()->findOrFail($quotation->id);
+
+            if (PackageBooking::withoutGlobalScopes()->where('quotation_id', $quotation->id)->exists()) {
+                throw new QuotationNotConvertibleException(__('booking.convert_already_converted'));
+            }
+
+            if ($quotation->isExpired()) {
+                throw new QuotationNotConvertibleException(__('booking.convert_expired'));
+            }
+
             $booking = PackageBooking::create([
                 'branch_id' => $quotation->branch_id,
                 'created_by' => $actor?->id,
@@ -46,6 +60,9 @@ class ConvertQuotationToBooking
                 ->causedBy($actor)
                 ->performedOn($booking)
                 ->log('Booking created from quotation');
+
+            // Keep the conversion funnel honest (bug-review lead status finding).
+            $quotation->lead?->update(['status' => LeadStatus::WON]);
 
             return $booking;
         });

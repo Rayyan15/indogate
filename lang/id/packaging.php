@@ -27,6 +27,7 @@ return [
         'base_pax' => 'Base Pax',
         'duration_days' => 'Durasi (hari)',
         'is_template' => 'Simpan sebagai Template',
+        'is_published' => 'Tampilkan di storefront',
         'preview_date' => 'Tanggal Preview',
         'current_pax' => 'Jumlah Tamu',
         'channel' => 'Kanal Pembayaran',

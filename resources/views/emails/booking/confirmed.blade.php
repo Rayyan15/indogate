@@ -9,7 +9,7 @@ Thank you for choosing **Indogate** for your journey to Indonesia. We are please
 **Status:** Confirmed
 **Total Amount:** IDR {{ number_format($booking->total_amount) }}
 
-<x-mail::button :url="route('customer.bookings.show', $booking->id)">
+<x-mail::button :url="route('customer.bookings.show', ['locale' => app()->getLocale(), 'booking' => $booking->id])">
 View Booking Details
 </x-mail::button>
 

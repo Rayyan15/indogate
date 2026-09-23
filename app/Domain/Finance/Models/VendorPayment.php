@@ -9,12 +9,13 @@ use App\Models\User;
 use App\Support\Branch\BelongsToBranch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class VendorPayment extends Model
 {
-    use BelongsToBranch, LogsActivity;
+    use BelongsToBranch, LogsActivity, SoftDeletes;
 
     protected $table = 'vendor_payments';
 

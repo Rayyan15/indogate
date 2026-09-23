@@ -88,6 +88,7 @@ return [
     // Feedback
     'payment_recorded_success' => 'Payment recorded successfully and awaiting Finance verification.',
     'payment_verified_success' => 'Payment verified successfully and booking status updated.',
+    'cancelled_with_paid_balance' => 'Booking cancelled, but it has verified payments. Process the refund decision for the paid balance.',
     'payment_rejected_success' => 'Payment rejected successfully.',
     'refund_processed_success' => 'Refund processed and recorded successfully.',
     'vendor_payment_recorded_success' => 'Vendor payment recorded successfully.',

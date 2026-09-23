@@ -13,7 +13,7 @@
                     <div><span class="text-neutral-500">{{ __('booking.show.lead') }}</span><div class="font-medium">{{ $booking->quotation->lead->name }}</div></div>
                     <div><span class="text-neutral-500">{{ __('booking.show.departure') }}</span><div class="font-medium">{{ $booking->departure_date->format('d M Y') }}</div></div>
                     <div><span class="text-neutral-500">{{ __('booking.show.return') }}</span><div class="font-medium">{{ $booking->return_date?->format('d M Y') ?? '—' }}</div></div>
-                    <div><span class="text-neutral-500">{{ __('booking.show.total') }}</span><div class="font-mono font-medium">{{ number_format($booking->total_minor / 100, 2) }} {{ $booking->currency }}</div></div>
+                    <div><span class="text-neutral-500">{{ __('booking.show.total') }}</span><div class="font-mono font-medium">{{ $booking->currency }} {{ \App\Domain\Finance\Fx::format((int) $booking->total_minor, $booking->currency) }}</div></div>
                 </div>
             </div>
 
@@ -465,7 +465,7 @@
                                 {{ __('finance.channel') }} <span class="text-red-600">*</span>
                             </label>
                             <select wire:model="payment_channel" required class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none">
-                                <option value="manual_transfer">Transfer Bank (Manual)</option>
+                                <option value="bank_transfer">Transfer Bank (Manual)</option>
                                 <option value="international_card">Kartu Kredit Internasional (MDR ~5.5%)</option>
                             </select>
                         </div>

@@ -43,6 +43,7 @@ class RegisteredUserController extends Controller
         ]);
 
         $user->assignRole('Customer');
+        $user->customer()->create(['full_name' => $user->name]);
 
         event(new Registered($user));
 

@@ -78,6 +78,12 @@ class Package extends Model
         return DB::transaction(function () {
             $copy = $this->replicate();
             $copy->is_template = false;
+            // A copy is a draft and must not share files with the original
+            // (replacing the copy's brochure would delete the original's; H-01/M-07).
+            $copy->is_published = false;
+            $copy->is_featured = false;
+            $copy->brochure_path = null;
+            $copy->cover_image = null;
 
             foreach ($this->getTranslations('name') as $locale => $value) {
                 $suffixed = $locale === app()->getLocale() ? $value.' (Copy)' : $value;

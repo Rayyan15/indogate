@@ -34,7 +34,13 @@ class LeadCaptureController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $branch = Branch::where('is_active', true)->firstOrFail();
+        // A lead about a specific package belongs to that package's branch (bug-review 05 M-06).
+        $packageBranchId = isset($data['package_id'])
+            ? Package::withoutGlobalScopes()->whereKey($data['package_id'])->value('branch_id')
+            : null;
+        $branch = Branch::where('is_active', true)
+            ->when($packageBranchId, fn ($q) => $q->whereKey($packageBranchId))
+            ->first() ?? Branch::where('is_active', true)->firstOrFail();
 
         $lead = Lead::create([
             'branch_id' => $branch->id,

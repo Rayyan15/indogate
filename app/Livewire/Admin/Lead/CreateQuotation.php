@@ -3,11 +3,14 @@
 namespace App\Livewire\Admin\Lead;
 
 use App\Domain\Booking\ConvertQuotationToBooking;
+use App\Domain\Booking\Exceptions\QuotationNotConvertibleException;
 use App\Domain\Booking\Models\PackageBooking;
 use App\Domain\Lead\Models\Lead;
 use App\Domain\Lead\Models\Quotation;
 use App\Domain\Lead\QuotationGenerator;
 use App\Domain\Packaging\Models\Package;
+use App\Domain\Pricing\Exceptions\CurrencyMismatchException;
+use App\Domain\Pricing\Exceptions\ExchangeRateNotFoundException;
 use App\Enums\PaymentChannel;
 use App\Support\Branch\CurrentBranch;
 use Carbon\Carbon;
@@ -56,23 +59,29 @@ class CreateQuotation extends Component
                 'required',
                 Rule::exists('packages', 'id')->where('branch_id', CurrentBranch::id()),
             ],
-            'pax' => ['required', 'integer', 'min:1'],
+            'pax' => ['required', 'integer', 'min:1', 'max:500'],
             'preview_date' => ['required', 'date'],
-            'currency' => ['required', 'string', 'size:3'],
-            'channel' => ['required'],
+            'currency' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
+            'channel' => ['required', Rule::enum(PaymentChannel::class)],
         ]);
 
         $lead = Lead::findOrFail($this->leadId);
         $package = Package::findOrFail($data['package_id']);
 
-        $quotation = $generator->generate(
-            lead: $lead,
-            package: $package,
-            pax: $data['pax'],
-            previewDate: Carbon::parse($data['preview_date']),
-            channel: PaymentChannel::from($data['channel']),
-            currency: $data['currency'],
-        );
+        try {
+            $quotation = $generator->generate(
+                lead: $lead,
+                package: $package,
+                pax: $data['pax'],
+                previewDate: Carbon::parse($data['preview_date']),
+                channel: PaymentChannel::from($data['channel']),
+                currency: $data['currency'],
+            );
+        } catch (ExchangeRateNotFoundException|CurrencyMismatchException|\InvalidArgumentException $e) {
+            $this->addError('currency', $e->getMessage());
+
+            return;
+        }
 
         $this->generatedLink = route('quotations.public-show', [
             'locale' => $lead->locale,
@@ -100,12 +109,18 @@ class CreateQuotation extends Component
             'convert_return_date' => ['nullable', 'date', 'after_or_equal:convert_departure_date'],
         ]);
 
-        $booking = (new ConvertQuotationToBooking)->convert(
-            $quotation,
-            $data['convert_departure_date'],
-            $data['convert_return_date'] ?: null,
-            Auth::user(),
-        );
+        try {
+            $booking = (new ConvertQuotationToBooking)->convert(
+                $quotation,
+                $data['convert_departure_date'],
+                $data['convert_return_date'] ?: null,
+                Auth::user(),
+            );
+        } catch (QuotationNotConvertibleException $e) {
+            $this->addError('convert_departure_date', $e->getMessage());
+
+            return;
+        }
 
         $this->convertingQuotationId = null;
         $this->redirect(route('admin.package-bookings.show', ['locale' => app()->getLocale(), 'packageBooking' => $booking]));

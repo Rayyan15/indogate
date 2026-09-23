@@ -78,4 +78,6 @@ return [
         'itinerary' => 'Itinerary',
         'component_name' => 'Component',
     ],
+    'convert_already_converted' => 'This quotation has already been converted into a booking.',
+    'convert_expired' => 'This quotation has expired and can no longer be converted.',
 ];

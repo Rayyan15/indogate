@@ -23,6 +23,7 @@ return [
         'valid_until' => 'Berlaku hingga :date',
         'total' => 'Total',
         'whatsapp_button' => 'Hubungi via WhatsApp',
+        'whatsapp_customer_message' => 'Halo Indogate, saya ingin mendiskusikan penawaran saya: :link',
         'expired_title' => 'Penawaran Telah Kedaluwarsa',
         'expired_body' => 'Silakan hubungi tim kami untuk mendapatkan penawaran terbaru.',
     ],

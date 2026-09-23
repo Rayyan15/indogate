@@ -5,6 +5,7 @@ namespace App\Domain\Packaging;
 use App\Domain\Catalog\Models\Rate;
 use App\Domain\Packaging\Models\Package;
 use App\Domain\Pricing\Converter;
+use App\Domain\Pricing\Exceptions\CurrencyMismatchException;
 use App\Domain\Pricing\Exceptions\ExchangeRateNotFoundException;
 use App\Domain\Pricing\Exceptions\NoApplicableMarginRuleException;
 use App\Domain\Pricing\Money;
@@ -70,12 +71,13 @@ class PackageCalculator
                 items: [new PricingLineItem(Money::of($rate->cost_minor, $rate->currency), $lineQty)],
                 channel: $channel,
                 displayCurrency: $displayCurrency,
+                includeFlatChannelFee: false,
             );
 
             try {
                 $breakdown = $this->pricingEngine->calculate($request);
                 $itemResults[] = new PackageItemResult($item->id, $item->inventory_item_id, $effectiveQty, $breakdown, rateMissing: false);
-            } catch (NoApplicableMarginRuleException|ExchangeRateNotFoundException) {
+            } catch (NoApplicableMarginRuleException|ExchangeRateNotFoundException|CurrencyMismatchException) {
                 $itemResults[] = new PackageItemResult($item->id, $item->inventory_item_id, $effectiveQty, null, rateMissing: true);
             }
         }
@@ -88,20 +90,20 @@ class PackageCalculator
             Money::zero('IDR'),
         );
 
-        $displayCurrencyUpper = strtoupper($displayCurrency);
-        $sumDisplay = array_reduce(
-            $resolved,
-            fn (Money $carry, PackageItemResult $r) => $carry->add($r->breakdown->displayPrice),
-            Money::zero($displayCurrencyUpper),
-        );
+        // The flat channel fee applies once per package, not once per line (H-02).
+        $flatFee = $resolved ? $this->pricingEngine->flatChannelFeeIdr($channel) : Money::zero('IDR');
+        $grandSellIdr = $sum(fn ($b) => $b->sellIdrMinor)->add($flatFee);
 
         return new PackageCalculationResult(
             itemResults: $itemResults,
             grandCostTotal: $sum(fn ($b) => $b->costTotal),
             grandMarginMinor: $sum(fn ($b) => $b->marginMinor),
-            grandChannelCost: $sum(fn ($b) => $b->channelCost),
-            grandSellIdrMinor: $sum(fn ($b) => $b->sellIdrMinor),
-            grandDisplayPrice: $sumDisplay,
+            grandChannelCost: $sum(fn ($b) => $b->channelCost)->add($flatFee),
+            grandSellIdrMinor: $grandSellIdr,
+            // Convert the grand total once instead of summing rounded per-line prices (M-03).
+            grandDisplayPrice: $resolved
+                ? (new Converter)->toDisplayCurrency($grandSellIdr, $displayCurrency)
+                : Money::zero(strtoupper($displayCurrency)),
         );
     }
 }

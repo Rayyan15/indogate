@@ -78,4 +78,6 @@ return [
         'itinerary' => 'برنامج الرحلة',
         'component_name' => 'العنصر',
     ],
+    'convert_already_converted' => 'تم تحويل هذا العرض إلى حجز بالفعل.',
+    'convert_expired' => 'انتهت صلاحية هذا العرض ولا يمكن تحويله.',
 ];

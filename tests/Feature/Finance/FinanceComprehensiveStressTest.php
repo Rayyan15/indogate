@@ -234,7 +234,7 @@ class FinanceComprehensiveStressTest extends TestCase
             ->call('deleteVendorPayment', $vp->id)
             ->assertSet('actionSuccess', 'Pembayaran vendor berhasil dihapus.');
 
-        $this->assertDatabaseMissing('vendor_payments', ['id' => $vp->id]);
+        $this->assertSoftDeleted('vendor_payments', ['id' => $vp->id]);
         $this->assertFalse(Storage::disk('local')->exists($vp->proof_file));
     }
 

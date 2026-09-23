@@ -13,9 +13,15 @@ class BranchSwitcher extends Component
     {
         $this->authorize('branch.switch');
 
-        CurrentBranch::switchTo($branchId);
+        $branch = Branch::where('is_active', true)->findOrFail($branchId);
 
-        $this->redirect(request()->header('Referer') ?? route('admin.dashboard'));
+        CurrentBranch::switchTo($branch->id);
+
+        // Same-host only: the raw Referer header is attacker-influenced.
+        $previous = url()->previous();
+        $sameHost = parse_url($previous, PHP_URL_HOST) === request()->getHost();
+
+        $this->redirect($sameHost ? $previous : route('admin.dashboard'));
     }
 
     public function render(): View

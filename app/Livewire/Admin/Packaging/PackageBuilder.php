@@ -17,8 +17,10 @@ use DateTimeImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -43,6 +45,9 @@ class PackageBuilder extends Component
     public array $description = ['en' => '', 'id' => '', 'ar' => ''];
 
     public bool $is_template = false;
+
+    // New packages start as drafts; publishing to the storefront is explicit (bug-review H-01).
+    public bool $is_published = false;
 
     public int $base_pax = 2;
 
@@ -85,6 +90,7 @@ class PackageBuilder extends Component
             $this->name = ['en' => $package->getTranslation('name', 'en', false) ?? '', 'id' => $package->getTranslation('name', 'id', false) ?? '', 'ar' => $package->getTranslation('name', 'ar', false) ?? ''];
             $this->description = ['en' => $package->getTranslation('description', 'en', false) ?? '', 'id' => $package->getTranslation('description', 'id', false) ?? '', 'ar' => $package->getTranslation('description', 'ar', false) ?? ''];
             $this->is_template = $package->is_template;
+            $this->is_published = (bool) $package->is_published;
             $this->base_pax = $package->base_pax;
             $this->duration_days = $package->duration_days;
             $this->current_pax = $package->base_pax;
@@ -115,8 +121,8 @@ class PackageBuilder extends Component
             ->where(function ($q) {
                 $escaped = addcslashes($this->componentSearch, '%_\\');
                 $q->where('name->id', 'like', "%{$escaped}%")
-                  ->orWhere('name->en', 'like', "%{$escaped}%")
-                  ->orWhere('name->ar', 'like', "%{$escaped}%");
+                    ->orWhere('name->en', 'like', "%{$escaped}%")
+                    ->orWhere('name->ar', 'like', "%{$escaped}%");
             })
             ->limit(10)
             ->get(['id', 'name', 'type']);
@@ -162,6 +168,15 @@ class PackageBuilder extends Component
             'base_pax' => ['required', 'integer', 'min:1'],
             'duration_days' => ['nullable', 'integer', 'min:1'],
             'is_template' => ['boolean'],
+            'is_published' => ['boolean'],
+            // Items come from the client: same-branch inventory only, sane numbers (H-04).
+            'items' => ['array'],
+            'items.*.inventory_item_id' => ['required', 'integer', Rule::exists('inventory_items', 'id')->where('branch_id', $branchId)],
+            'items.*.day_from' => ['required', 'integer', 'min:0'],
+            'items.*.day_to' => ['required', 'integer', 'gte:items.*.day_from'],
+            'items.*.qty' => ['required', 'integer', 'min:1'],
+            'items.*.nights' => ['nullable', 'integer', 'min:0'],
+            'items.*.sort_order' => ['nullable', 'integer'],
         ]);
 
         if ($this->packageId) {
@@ -176,6 +191,7 @@ class PackageBuilder extends Component
             'base_pax' => $validated['base_pax'],
             'duration_days' => $validated['duration_days'],
             'is_template' => $validated['is_template'] ?? false,
+            'is_published' => $validated['is_published'] ?? false,
         ]);
 
         foreach ($this->name as $locale => $value) {
@@ -185,20 +201,23 @@ class PackageBuilder extends Component
             $package->setTranslation('description', $locale, $value ?? '');
         }
 
-        $package->save();
-        $this->packageId = $package->id;
+        // One transaction: a failing row must not leave the package without items (H-05).
+        DB::transaction(function () use ($package) {
+            $package->save();
 
-        $package->items()->delete();
-        foreach ($this->items as $row) {
-            $package->items()->create([
-                'inventory_item_id' => $row['inventory_item_id'],
-                'day_from' => $row['day_from'],
-                'day_to' => $row['day_to'],
-                'qty' => $row['qty'],
-                'nights' => $row['nights'],
-                'sort_order' => $row['sort_order'],
-            ]);
-        }
+            $package->items()->delete();
+            foreach ($this->items as $row) {
+                $package->items()->create([
+                    'inventory_item_id' => $row['inventory_item_id'],
+                    'day_from' => $row['day_from'],
+                    'day_to' => $row['day_to'],
+                    'qty' => $row['qty'],
+                    'nights' => $row['nights'],
+                    'sort_order' => $row['sort_order'],
+                ]);
+            }
+        });
+        $this->packageId = $package->id;
 
         $this->dispatch('package-saved');
 
@@ -229,7 +248,7 @@ class PackageBuilder extends Component
             Storage::disk('public')->delete($package->brochure_path);
         }
 
-        $filename = 'brochure-'.now()->timestamp.'.'.$this->brochure->getClientOriginalExtension();
+        $filename = 'brochure-'.now()->timestamp.'.'.$this->brochure->extension();
         $path = $this->brochure->storeAs("packages/{$package->id}", $filename, 'public');
 
         $package->update(['brochure_path' => $path]);
@@ -358,10 +377,14 @@ class PackageBuilder extends Component
     {
         $canSeeMargin = Auth::user()->can('pricing.manage');
 
-        $items = array_map(function (PackageItemResult $r) use ($canSeeMargin) {
+        $names = InventoryItem::whereIn('id', array_map(fn (PackageItemResult $r) => $r->inventoryItemId, $itemResults))
+            ->get()->mapWithKeys(fn (InventoryItem $i) => [$i->id => $i->name]);
+
+        $items = array_map(function (PackageItemResult $r) use ($canSeeMargin, $names) {
             $row = [
                 'package_item_id' => $r->packageItemId,
                 'inventory_item_id' => $r->inventoryItemId,
+                'name' => $names[$r->inventoryItemId] ?? '#'.$r->inventoryItemId,
                 'effective_qty' => $r->effectiveQty,
                 'rate_missing' => $r->rateMissing,
             ];

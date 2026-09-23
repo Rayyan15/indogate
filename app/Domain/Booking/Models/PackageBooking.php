@@ -2,6 +2,7 @@
 
 namespace App\Domain\Booking\Models;
 
+use App\Domain\Finance\Fx;
 use App\Domain\Finance\Models\Payment;
 use App\Domain\Finance\Models\PaymentIntent;
 use App\Domain\Finance\Models\Refund;
@@ -100,57 +101,51 @@ class PackageBooking extends Model
         return $this->hasMany(Refund::class, 'booking_id');
     }
 
+    /**
+     * Rate used to express other-currency money in this booking's currency:
+     * the rate locked on the quotation, so balances don't drift with
+     * today's exchange rate (bug-review BF-15). Falls back to the current
+     * rate only for legacy bookings without a quotation.
+     */
+    public function lockedRate(): float
+    {
+        if (strtoupper($this->currency) === 'IDR') {
+            return 1.0;
+        }
+
+        $quotation = $this->quotation;
+        $locked = $quotation && strtoupper($quotation->currency) === strtoupper($this->currency)
+            ? (float) $quotation->locked_rate
+            : 0.0;
+
+        return $locked > 0 ? $locked : Fx::rate($this->currency);
+    }
+
+    /**
+     * Converts an amount (given in its own currency plus its IDR
+     * equivalent) into this booking's currency minor units.
+     */
+    public function toBookingCurrencyMinor(string $currency, int $amountMinor, int $idrMinor): int
+    {
+        if (strtoupper($currency) === strtoupper($this->currency)) {
+            return $amountMinor;
+        }
+
+        return Fx::fromIdrMinor($idrMinor, $this->currency, $this->lockedRate());
+    }
+
     public function totalPaidMinor(): int
     {
-        $bookingCurrency = strtoupper($this->currency ?? 'IDR');
-        $bookingDecimals = \App\Domain\Pricing\Models\Currency::where('code', $bookingCurrency)->value('decimal_places')
-            ?? ($bookingCurrency === 'IDR' ? 0 : 2);
-        $bookingFactor = 10 ** $bookingDecimals;
-        $bookingRate = (float) (\App\Domain\Pricing\Models\ExchangeRate::currentFor($bookingCurrency)?->rate ?? 1.0);
+        $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
+        $refunds = $this->relationLoaded('refunds') ? $this->refunds : $this->refunds()->get();
 
-        $verifiedPayments = $this->relationLoaded('payments')
-            ? $this->payments->where('status', Payment::STATUS_VERIFIED)
-            : $this->payments()->where('status', Payment::STATUS_VERIFIED)->get();
+        $paid = $payments->where('status', Payment::STATUS_VERIFIED)
+            ->sum(fn ($p) => $this->toBookingCurrencyMinor($p->currency, (int) $p->amount_minor, (int) $p->idr_equivalent_minor));
 
-        $totalPaid = 0;
-        foreach ($verifiedPayments as $payment) {
-            $paymentCurrency = strtoupper($payment->currency);
-            if ($paymentCurrency === $bookingCurrency) {
-                $totalPaid += (int) $payment->amount_minor;
-            } elseif ($bookingCurrency === 'IDR') {
-                $totalPaid += (int) ($payment->idr_equivalent_minor ?: $payment->amount_minor);
-            } else {
-                $paymentIdr = (int) ($payment->idr_equivalent_minor ?: $payment->amount_minor);
-                if ($bookingRate > 0) {
-                    $totalPaid += (int) round(($paymentIdr / $bookingRate) * $bookingFactor);
-                } else {
-                    $totalPaid += (int) $payment->amount_minor;
-                }
-            }
-        }
+        $refunded = $refunds->where('status', Refund::STATUS_COMPLETED)
+            ->sum(fn ($r) => $this->toBookingCurrencyMinor($r->currency, (int) $r->amount_minor, (int) $r->idr_equivalent_minor));
 
-        $completedRefunds = $this->relationLoaded('refunds')
-            ? $this->refunds->where('status', Refund::STATUS_COMPLETED)
-            : $this->refunds()->where('status', Refund::STATUS_COMPLETED)->get();
-
-        $totalRefunded = 0;
-        foreach ($completedRefunds as $refund) {
-            $refundCurrency = strtoupper($refund->currency);
-            if ($refundCurrency === $bookingCurrency) {
-                $totalRefunded += (int) $refund->amount_minor;
-            } elseif ($bookingCurrency === 'IDR') {
-                $totalRefunded += (int) ($refund->idr_equivalent_minor ?: $refund->amount_minor);
-            } else {
-                $refundIdr = (int) ($refund->idr_equivalent_minor ?: $refund->amount_minor);
-                if ($bookingRate > 0) {
-                    $totalRefunded += (int) round(($refundIdr / $bookingRate) * $bookingFactor);
-                } else {
-                    $totalRefunded += (int) $refund->amount_minor;
-                }
-            }
-        }
-
-        return max(0, $totalPaid - $totalRefunded);
+        return max(0, (int) $paid - (int) $refunded);
     }
 
     public function remainingBalanceMinor(): int

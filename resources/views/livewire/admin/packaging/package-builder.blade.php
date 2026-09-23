@@ -28,6 +28,10 @@
                     <input type="checkbox" wire:model="is_template" class="rounded accent-red-600">
                     {{ __('packaging.builder.is_template') }}
                 </label>
+                <label class="flex items-center gap-2 text-sm text-neutral-700">
+                    <input type="checkbox" wire:model="is_published" class="rounded accent-red-600">
+                    {{ __('packaging.builder.is_published') }}
+                </label>
                 @if($durationWarning)
                     <p class="text-xs text-danger">{{ $durationWarning }}</p>
                 @endif
@@ -135,7 +139,7 @@
                         @foreach($summary['items'] as $row)
                             <div class="flex justify-between border-b border-neutral-100 pb-2">
                                 <dt class="text-neutral-500">
-                                    #{{ $row['inventory_item_id'] }}
+                                    {{ $row['name'] ?? '#'.$row['inventory_item_id'] }}
                                     @if($row['rate_missing'])
                                         <span class="text-danger">({{ __('packaging.builder.rate_missing') }})</span>
                                     @endif

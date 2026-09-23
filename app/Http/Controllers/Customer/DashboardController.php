@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\Payment;
+use App\Support\Branch\BranchScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,31 +12,30 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $customerId = Auth::user()->customer->id ?? Auth::id();
-        $bookings = Booking::where('customer_id', $customerId)->latest()->paginate(10);
+        $customerId = Auth::user()->customer?->id;
+
+        $bookings = Booking::withoutGlobalScope(BranchScope::class)
+            ->where('customer_id', $customerId ?? 0)
+            ->latest()
+            ->paginate(10);
 
         return view('customer.dashboard.index', compact('bookings'));
     }
 
     public function showBooking(Booking $booking)
     {
-        // Ensure the booking belongs to the current user
-        $customerId = Auth::user()->customer->id ?? Auth::id();
-        if ($booking->customer_id !== $customerId) {
-            abort(403);
-        }
+        $this->ensureOwnedByCurrentCustomer($booking);
 
-        $booking->load('items', 'payments');
+        $booking->load('items');
 
         return view('customer.dashboard.booking', compact('booking'));
     }
 
     public function uploadPaymentProof(Request $request, Booking $booking)
     {
-        $customerId = Auth::user()->customer->id ?? Auth::id();
-        if ($booking->customer_id !== $customerId) {
-            abort(403);
-        }
+        $this->ensureOwnedByCurrentCustomer($booking);
+
+        abort_unless($booking->canSubmitPayment(), 422, __('customer.booking.payment_not_accepted'));
 
         $request->validate([
             'proof' => 'required|image|max:2048',
@@ -45,9 +44,23 @@ class DashboardController extends Controller
         $path = $request->file('proof')->store('payment-proofs', 'local');
 
         $booking->update([
-            'status' => 'payment_submitted',
+            'status' => Booking::STATUS_PAYMENT_SUBMITTED,
+            'payment_proof_path' => $path,
+            'payment_submitted_at' => now(),
+            'payment_rejection_reason' => null,
         ]);
 
-        return back()->with('success', 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi admin.');
+        return back()->with('success', __('customer.booking.proof_uploaded'));
+    }
+
+    /**
+     * Strict ownership: a user without a customer row owns nothing. Never
+     * fall back to the user id — users and customers are separate key spaces.
+     */
+    private function ensureOwnedByCurrentCustomer(Booking $booking): void
+    {
+        $customerId = Auth::user()->customer?->id;
+
+        abort_unless($customerId !== null && (int) $booking->customer_id === (int) $customerId, 403);
     }
 }

@@ -48,6 +48,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Staff accounts are deactivated by a Super Admin, never self-deleted
+        // (keeps audit-log causers intact, PRD "nonaktifkan, bukan hapus").
+        abort_if($user->hasAnyRole(['Super Admin', 'CS Admin', 'Finance Admin']), 403);
+
         Auth::logout();
 
         $user->delete();

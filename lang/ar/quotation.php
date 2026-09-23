@@ -23,6 +23,7 @@ return [
         'valid_until' => 'صالح حتى :date',
         'total' => 'الإجمالي',
         'whatsapp_button' => 'تواصل عبر واتساب',
+        'whatsapp_customer_message' => 'مرحباً إندوجيت، أود مناقشة عرض السعر الخاص بي: :link',
         'expired_title' => 'انتهت صلاحية عرض السعر',
         'expired_body' => 'يرجى التواصل مع فريقنا للحصول على عرض سعر محدث.',
     ],

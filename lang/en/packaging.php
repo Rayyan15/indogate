@@ -27,6 +27,7 @@ return [
         'base_pax' => 'Base Pax',
         'duration_days' => 'Duration (days)',
         'is_template' => 'Save as Template',
+        'is_published' => 'Published on storefront',
         'preview_date' => 'Preview Date',
         'current_pax' => 'Guest Count',
         'channel' => 'Payment Channel',

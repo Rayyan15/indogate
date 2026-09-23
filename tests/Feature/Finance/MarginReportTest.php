@@ -109,13 +109,13 @@ class MarginReportTest extends TestCase
         // Booking 1
         $q1 = $this->quotationFor($branch, $lead, $package);
         $b1 = (new ConvertQuotationToBooking)->convert($q1, departureDate: '2026-07-01', returnDate: '2026-07-04', actor: $csUser);
-        $p1 = $paymentService->recordPayment($b1, 5_000_000, 'IDR', channel: 'manual_transfer', creator: $csUser);
+        $p1 = $paymentService->recordPayment($b1, 5_000_000, 'IDR', channel: 'bank_transfer', creator: $csUser);
         $paymentService->verifyPayment($p1, $financeUser);
 
         // Booking 2
         $q2 = $this->quotationFor($branch, $lead, $package);
         $b2 = (new ConvertQuotationToBooking)->convert($q2, departureDate: '2026-07-10', returnDate: '2026-07-13', actor: $csUser);
-        $p2 = $paymentService->recordPayment($b2, 5_000_000, 'IDR', channel: 'manual_transfer', creator: $csUser);
+        $p2 = $paymentService->recordPayment($b2, 5_000_000, 'IDR', channel: 'bank_transfer', creator: $csUser);
         $paymentService->verifyPayment($p2, $financeUser);
 
         $marginService = app(MarginReportService::class);

@@ -46,7 +46,7 @@
         <div class="col">
             <div class="section-title">{{ __('finance.billed_to') }}</div>
             <div class="info-row"><span class="info-label">{{ __('finance.guest_lead') }}:</span> <strong>{{ $booking->quotation?->lead?->name }}</strong></div>
-            <div class="info-row"><span class="info-label">{{ __('finance.contact') }}:</span> {{ $booking->quotation?->lead?->whatsapp ?? $booking->quotation?->lead?->email ?? '—' }}</div>
+            <div class="info-row"><span class="info-label">{{ __('finance.contact') }}:</span> {{ $booking->quotation?->lead?->phone ?: '—' }}</div>
             <div class="info-row"><span class="info-label">{{ __('finance.nationality') }}:</span> {{ $booking->quotation?->lead?->country ?? '—' }}</div>
         </div>
         <div class="col">

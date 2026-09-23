@@ -30,6 +30,11 @@ class BookingPolicy
         return $user->can('booking.manage') && $booking->branch_id === CurrentBranch::id();
     }
 
+    public function verifyPayment(User $user, Booking $booking): bool
+    {
+        return $user->can('payment.verify') && $booking->branch_id === CurrentBranch::id();
+    }
+
     public function assignDriver(User $user, Booking $booking): bool
     {
         return $user->can('driver.assign') && $booking->branch_id === CurrentBranch::id();

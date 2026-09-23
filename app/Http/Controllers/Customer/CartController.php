@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\FlightRoute;
 use App\Models\Hotel;
+use App\Models\PricingRule;
+use App\Support\Branch\BranchScope;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -46,32 +48,43 @@ class CartController extends Controller
 
     public static function resolveItemPrice(string $bookableType, int $bookableId): float
     {
-        $activeRules = \App\Models\PricingRule::where('season_start', '<=', now())
-            ->where('season_end', '>=', now())
-            ->get();
+        return self::resolveItem($bookableType, $bookableId)['price'];
+    }
 
-        if ($bookableType === FlightRoute::class || is_a($bookableType, FlightRoute::class, true)) {
-            $flight = FlightRoute::findOrFail($bookableId);
-            $markup = $activeRules->filter(fn ($r) => in_array($r->service_type, ['flight', 'all']))->max('markup_percent') ?? 0;
+    /**
+     * Server-side price + owning branch of a cart item. The storefront is
+     * public, so items are looked up across branches, but only the owning
+     * branch's pricing rules apply (not the max markup of every branch).
+     *
+     * @return array{price: float, branch_id: int|null}
+     */
+    public static function resolveItem(string $bookableType, int $bookableId): array
+    {
+        [$serviceType, $model] = match (true) {
+            is_a($bookableType, FlightRoute::class, true) => ['flight', FlightRoute::withoutGlobalScope(BranchScope::class)->findOrFail($bookableId)],
+            is_a($bookableType, Hotel::class, true) => ['hotel', Hotel::withoutGlobalScope(BranchScope::class)->findOrFail($bookableId)],
+            is_a($bookableType, Driver::class, true) => ['driver', Driver::withoutGlobalScope(BranchScope::class)->where('is_active', true)->findOrFail($bookableId)],
+            default => throw new \InvalidArgumentException('Tipe item yang dipesan tidak valid.'),
+        };
 
-            return (float) ($flight->base_price * (1 + ($markup / 100)));
-        }
+        $base = match ($serviceType) {
+            'flight' => $model->base_price,
+            'hotel' => $model->base_price_per_night,
+            'driver' => DomainDriver::DAILY_RATE_BASE,
+        };
 
-        if ($bookableType === Hotel::class || is_a($bookableType, Hotel::class, true)) {
-            $hotel = Hotel::findOrFail($bookableId);
-            $markup = $activeRules->filter(fn ($r) => in_array($r->service_type, ['hotel', 'all']))->max('markup_percent') ?? 0;
+        $today = today()->toDateString();
+        $markup = PricingRule::withoutGlobalScope(BranchScope::class)
+            ->where('branch_id', $model->branch_id)
+            ->whereIn('service_type', [$serviceType, 'all'])
+            ->where('season_start', '<=', $today)
+            ->where('season_end', '>=', $today)
+            ->max('markup_percent') ?? 0;
 
-            return (float) ($hotel->base_price_per_night * (1 + ($markup / 100)));
-        }
-
-        if ($bookableType === Driver::class || is_a($bookableType, Driver::class, true)) {
-            Driver::where('is_active', true)->findOrFail($bookableId);
-            $markup = $activeRules->filter(fn ($r) => in_array($r->service_type, ['driver', 'all']))->max('markup_percent') ?? 0;
-
-            return (float) (DomainDriver::DAILY_RATE_BASE * (1 + ($markup / 100)));
-        }
-
-        throw new \InvalidArgumentException('Tipe item yang dipesan tidak valid.');
+        return [
+            'price' => round((float) $base * (1 + ($markup / 100)), 2),
+            'branch_id' => $model->branch_id,
+        ];
     }
 
     public function remove(Request $request, $index)

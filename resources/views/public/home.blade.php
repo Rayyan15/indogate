@@ -140,11 +140,11 @@
                     </div>
                     
                     @guest
-                    <a href="{{ route('admin.dashboard') }}" class="bg-white text-[#030b14] px-6 py-3 rounded-full text-[15px] font-semibold hover:bg-gray-100 transition-colors shadow-lg hidden sm:inline-block">
+                    <a href="{{ route('login') }}" class="bg-white text-[#030b14] px-6 py-3 rounded-full text-[15px] font-semibold hover:bg-gray-100 transition-colors shadow-lg hidden sm:inline-block">
                         Sign In
                     </a>
                     @else
-                    <a href="{{ route('admin.dashboard') }}" class="bg-white text-[#030b14] px-6 py-3 rounded-full text-[15px] font-semibold hover:bg-gray-100 transition-colors shadow-lg">
+                    <a href="{{ auth()->user()->hasAnyRole(['Super Admin', 'Finance Admin', 'CS Admin']) ? route('admin.dashboard') : route('dashboard') }}" class="bg-white text-[#030b14] px-6 py-3 rounded-full text-[15px] font-semibold hover:bg-gray-100 transition-colors shadow-lg">
                         Dashboard
                     </a>
                     @endguest

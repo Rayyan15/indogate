@@ -96,6 +96,8 @@ return [
         'payment_history' => 'Riwayat Pembayaran',
         'submitted' => 'Dikirim :date',
         'in_review' => 'Sedang Ditinjau',
+        'proof_uploaded' => 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi admin.',
+        'payment_not_accepted' => 'Booking ini tidak sedang menerima bukti pembayaran.',
         'invoice_eyebrow' => 'Faktur',
         'grand_total' => 'Total Keseluruhan',
         'subtotal' => 'Subtotal',

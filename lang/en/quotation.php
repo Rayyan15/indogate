@@ -23,6 +23,7 @@ return [
         'valid_until' => 'Valid until :date',
         'total' => 'Total',
         'whatsapp_button' => 'Contact via WhatsApp',
+        'whatsapp_customer_message' => 'Hello Indogate, I would like to discuss my quotation: :link',
         'expired_title' => 'Quotation Expired',
         'expired_body' => 'Please contact our team for an updated quotation.',
     ],

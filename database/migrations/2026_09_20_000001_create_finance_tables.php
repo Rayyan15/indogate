@@ -111,6 +111,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Not fully reversible: up() dropped the legacy payments/payment_proofs
+        // stubs, which down() does not recreate (bug-review DL-06).
         Schema::dropIfExists('refunds');
         Schema::dropIfExists('vendor_payments');
         Schema::dropIfExists('payments');

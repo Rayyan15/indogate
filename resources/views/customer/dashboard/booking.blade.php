@@ -17,21 +17,20 @@
                     </div>
                 </x-ui.panel>
 
-                @if($booking->payments->isNotEmpty())
-                <x-ui.panel :eyebrow="__('customer.booking.finance_eyebrow')" :title="__('customer.booking.payment_history')" flush>
-                    <div class="divide-y divide-neutral-100">
-                        @foreach($booking->payments as $payment)
-                            <div class="flex items-center justify-between px-5 py-3.5">
-                                <div>
-                                    <span class="font-mono text-sm font-medium text-neutral-900">IDR {{ number_format($payment->amount) }}</span>
-                                    <p class="mt-0.5 text-xs text-neutral-500">{{ __('customer.booking.submitted', ['date' => $payment->created_at->format('d M Y, H:i')]) }}</p>
-                                </div>
-                                <x-ui.status :status="$payment->status === 'verified' ? 'paid' : ($payment->status === 'rejected' ? 'cancelled' : 'pending')">
-                                    {{ $payment->status === 'pending' ? __('customer.booking.in_review') : __('admin.common.booking_status.' . $payment->status) }}
-                                </x-ui.status>
-                            </div>
-                        @endforeach
+                @if($booking->payment_submitted_at)
+                <x-ui.panel :eyebrow="__('customer.booking.finance_eyebrow')" :title="__('customer.booking.payment_history')">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="font-mono text-sm font-medium text-neutral-900">IDR {{ number_format($booking->total_amount) }}</span>
+                            <p class="mt-0.5 text-xs text-neutral-500">{{ __('customer.booking.submitted', ['date' => $booking->payment_submitted_at->format('d M Y, H:i')]) }}</p>
+                        </div>
+                        <x-ui.status :status="$booking->status === 'confirmed' ? 'paid' : ($booking->status === 'payment_rejected' ? 'cancelled' : 'pending')">
+                            {{ $booking->status === 'payment_submitted' ? __('customer.booking.in_review') : __('admin.common.booking_status.' . $booking->status) }}
+                        </x-ui.status>
                     </div>
+                    @if($booking->status === 'payment_rejected' && $booking->payment_rejection_reason)
+                        <p class="mt-3 text-xs text-danger">{{ $booking->payment_rejection_reason }}</p>
+                    @endif
                 </x-ui.panel>
                 @endif
             </main>

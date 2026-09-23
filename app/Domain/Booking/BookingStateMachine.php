@@ -23,7 +23,7 @@ class BookingStateMachine
         'quoted' => ['confirmed', 'expired', 'cancelled'],
         'confirmed' => ['partially_paid', 'cancelled'],
         'partially_paid' => ['paid', 'cancelled'],
-        'paid' => ['in_progress', 'cancelled'],
+        'paid' => ['in_progress', 'partially_paid', 'cancelled'], // partially_paid: system-only, after a refund
         'in_progress' => ['completed', 'cancelled'],
         'completed' => [],
         'cancelled' => [],
@@ -55,7 +55,18 @@ class BookingStateMachine
         }
 
         DB::transaction(function () use ($booking, $from, $to, $reason, $actor): void {
-            $booking->update(['status' => $to]);
+            // Conditional update: if someone changed the status since we read
+            // it, zero rows match and we refuse instead of overwriting.
+            $affected = PackageBooking::withoutGlobalScopes()
+                ->whereKey($booking->getKey())
+                ->where('status', $from->value)
+                ->update(['status' => $to->value, 'updated_at' => now()]);
+
+            if ($affected === 0) {
+                throw new InvalidBookingTransitionException('Booking status changed concurrently; reload and try again.');
+            }
+
+            $booking->setAttribute('status', $to)->syncOriginalAttribute('status');
 
             $booking->statusHistories()->create([
                 'from_status' => $from,

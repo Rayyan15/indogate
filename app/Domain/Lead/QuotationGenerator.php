@@ -6,12 +6,15 @@ use App\Domain\Lead\Models\Lead;
 use App\Domain\Lead\Models\Quotation;
 use App\Domain\Packaging\Models\Package;
 use App\Domain\Packaging\PackageCalculator;
+use App\Domain\Pricing\Exceptions\ExchangeRateNotFoundException;
 use App\Domain\Pricing\Models\ExchangeRate;
+use App\Enums\LeadStatus;
 use App\Enums\PaymentChannel;
 use App\Enums\QuotationStatus;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 /**
  * Snapshot, not reference: prices are computed once here via the unmodified
@@ -37,9 +40,18 @@ class QuotationGenerator
         int $validDays = 7,
     ): Quotation {
         $currency = strtoupper($currency);
-        $lockedRate = ExchangeRate::currentFor($currency)?->rate ?? '1.00000000';
+        // No rate = no quote; a silent 1.0 priced a foreign-currency quote in rupiah.
+        $lockedRate = $currency === 'IDR' ? '1.00000000' : (ExchangeRate::currentFor($currency)?->rate
+            ?? throw new ExchangeRateNotFoundException("No exchange rate found for {$currency}."));
 
         $result = $this->calculator->calculate($package, $pax, $previewDate, $channel, $currency);
+
+        // Refuse instead of silently dropping unpriced items from the quote.
+        foreach ($result->itemResults as $itemResult) {
+            if ($itemResult->rateMissing || $itemResult->breakdown === null) {
+                throw new InvalidArgumentException(__('lead.quotation_rate_missing'));
+            }
+        }
 
         return DB::transaction(function () use ($lead, $package, $currency, $lockedRate, $result, $validDays) {
             $quotation = Quotation::create([
@@ -67,6 +79,14 @@ class QuotationGenerator
                     'unit_price_minor' => intdiv($totalMinor, $qty),
                     'total_minor' => $totalMinor,
                 ]);
+            }
+
+            if (in_array($lead->status, [LeadStatus::NEW, LeadStatus::CONTACTED, LeadStatus::QUALIFIED], true)) {
+                $lead->update(['status' => LeadStatus::QUOTED]);
+            }
+
+            if (in_array($lead->status, [LeadStatus::NEW, LeadStatus::CONTACTED, LeadStatus::QUALIFIED], true)) {
+                $lead->update(['status' => LeadStatus::QUOTED]);
             }
 
             return $quotation->fresh('items');

@@ -88,6 +88,7 @@ return [
     // Feedback
     'payment_recorded_success' => 'Pembayaran berhasil dicatat dan menunggu verifikasi Finance.',
     'payment_verified_success' => 'Pembayaran berhasil diverifikasi dan status pemesanan diperbarui.',
+    'cancelled_with_paid_balance' => 'Booking dibatalkan, tetapi masih ada pembayaran terverifikasi. Proses keputusan refund untuk dana yang sudah masuk.',
     'payment_rejected_success' => 'Pembayaran berhasil ditolak.',
     'refund_processed_success' => 'Refund berhasil diproses dan dicatat dalam pembukuan.',
     'vendor_payment_recorded_success' => 'Pembayaran vendor berhasil dicatat.',

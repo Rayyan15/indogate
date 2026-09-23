@@ -33,7 +33,8 @@ class Converter
         $scale = bcpow('10', (string) $decimalPlaces);
 
         $majorAmount = bcdiv((string) $idrAmount->amountMinor, $rate->rate, $decimalPlaces + 4);
-        $minorAmount = bcmul($majorAmount, $scale, 0);
+        // Round half-up; bcmul(..., 0) alone truncates (bug-review M-02).
+        $minorAmount = bcadd(bcmul($majorAmount, $scale, 4), '0.5', 0);
 
         return Money::of((int) $minorAmount, $targetCurrency);
     }

@@ -24,19 +24,19 @@ class TransitionBookingStatuses extends Command
         PackageBooking::withoutGlobalScope(BranchScope::class)
             ->where('status', BookingStatus::PAID)
             ->whereDate('departure_date', '<=', now())
-            ->each(function (PackageBooking $booking) use ($machine, &$advanced) {
+            ->chunkById(200, fn ($chunk) => $chunk->each(function (PackageBooking $booking) use ($machine, &$advanced) {
                 $machine->transition($booking, BookingStatus::IN_PROGRESS);
                 $advanced++;
-            });
+            }));
 
         PackageBooking::withoutGlobalScope(BranchScope::class)
             ->where('status', BookingStatus::IN_PROGRESS)
             ->whereNotNull('return_date')
             ->whereDate('return_date', '<', now())
-            ->each(function (PackageBooking $booking) use ($machine, &$advanced) {
+            ->chunkById(200, fn ($chunk) => $chunk->each(function (PackageBooking $booking) use ($machine, &$advanced) {
                 $machine->transition($booking, BookingStatus::COMPLETED);
                 $advanced++;
-            });
+            }));
 
         $this->info("Advanced {$advanced} booking(s).");
 

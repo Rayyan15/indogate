@@ -1,5 +1,5 @@
 <div>
-    <x-ui.page-header eyebrow="M9 · {{ __('finance.finance') }}" :title="__('finance.margin_report')" lede="Perhitungan margin bersih sebenarnya setelah dikurangi biaya modal vendor dan biaya MDR kanal pembayaran di cabang {{ \App\Support\Branch\CurrentBranch::model()?->name }}">
+    <x-ui.page-header :eyebrow="'M9 · '.__('finance.finance')" :title="__('finance.margin_report')" lede="Perhitungan margin bersih sebenarnya setelah dikurangi biaya modal vendor dan biaya MDR kanal pembayaran di cabang {{ \App\Support\Branch\CurrentBranch::model()?->name }}">
         <x-slot name="actions">
             <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="Cari kode booking, nama tamu…" class="w-56 shrink-0" />
 

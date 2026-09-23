@@ -41,6 +41,11 @@ return new class extends Migration
     public function down(): void
     {
         foreach ($this->tables as $table) {
+            // `payments` may already be the finance-era table (see 2026_09_20).
+            if (! Schema::hasColumn($table, 'branch_id')) {
+                continue;
+            }
+
             Schema::table($table, function (Blueprint $blueprint) {
                 $blueprint->dropConstrainedForeignId('branch_id');
             });

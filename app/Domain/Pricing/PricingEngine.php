@@ -2,8 +2,10 @@
 
 namespace App\Domain\Pricing;
 
+use App\Domain\Finance\Fx;
 use App\Domain\Pricing\Models\ExchangeRate;
 use App\Domain\Pricing\Models\PaymentChannelCost;
+use App\Enums\PaymentChannel;
 
 /**
  * PRD M4 formula, pure integer math throughout:
@@ -24,7 +26,7 @@ class PricingEngine
     {
         $costTotal = array_reduce(
             $request->items,
-            fn (Money $carry, PricingLineItem $item) => $carry->add($item->total()),
+            fn (Money $carry, PricingLineItem $item) => $carry->add($this->toIdr($item->total())),
             Money::zero('IDR'),
         );
 
@@ -62,8 +64,27 @@ class PricingEngine
             return Money::zero('IDR');
         }
 
-        return $costTotal
-            ->multiplyByBasisPoints($cost->percent_fee)
-            ->add($cost->flat_fee_minor);
+        $percent = $costTotal->multiplyByBasisPoints($cost->percent_fee);
+
+        return $request->includeFlatChannelFee ? $percent->add($this->toIdr($cost->flat_fee_minor)) : $percent;
+    }
+
+    /**
+     * Engine math is IDR-only. A rate or flat fee entered in another
+     * currency is converted at today's rate instead of throwing
+     * CurrencyMismatchException (bug-review C-01).
+     */
+    public function toIdr(Money $money): Money
+    {
+        return $money->currency === 'IDR'
+            ? $money
+            : Money::of(Fx::toIdrMinor($money->amountMinor, $money->currency, Fx::rate($money->currency)), 'IDR');
+    }
+
+    public function flatChannelFeeIdr(PaymentChannel $channel): Money
+    {
+        $cost = PaymentChannelCost::query()->where('channel', $channel->value)->first();
+
+        return $cost ? $this->toIdr($cost->flat_fee_minor) : Money::zero('IDR');
     }
 }

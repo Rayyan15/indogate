@@ -50,4 +50,5 @@ return [
         'submit' => 'Kirim',
         'thanks' => 'Terima kasih, tim kami akan segera menghubungi Anda.',
     ],
+    'quotation_rate_missing' => 'Satu atau lebih item paket belum punya rate untuk tanggal yang dipilih. Tambahkan rate sebelum membuat penawaran.',
 ];

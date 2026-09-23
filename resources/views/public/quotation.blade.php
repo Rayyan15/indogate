@@ -21,20 +21,17 @@
                 @foreach($quotation->items as $item)
                     <div class="flex items-center justify-between px-4 py-3 text-sm">
                         <span>{{ is_array($item->description) ? ($item->description[app()->getLocale()] ?? reset($item->description)) : $item->description }} × {{ $item->qty }}</span>
-                        <span class="font-mono">{{ number_format($item->total_minor / 100, 2) }} {{ $quotation->currency }}</span>
+                        <span class="font-mono">{{ $quotation->currency }} {{ \App\Domain\Finance\Fx::format((int) $item->total_minor, $quotation->currency) }}</span>
                     </div>
                 @endforeach
                 <div class="flex items-center justify-between px-4 py-3 text-sm font-medium">
                     <span>{{ __('quotation.public.total') }}</span>
-                    <span class="font-mono">{{ number_format($quotation->items->sum('total_minor') / 100, 2) }} {{ $quotation->currency }}</span>
+                    <span class="font-mono">{{ $quotation->currency }} {{ \App\Domain\Finance\Fx::format((int) $quotation->items->sum('total_minor'), $quotation->currency) }}</span>
                 </div>
             </div>
 
-            @php
-                $template = __('quotation.whatsapp_template', ['name' => $quotation->lead->name], $quotation->lead->locale);
-                $waPhone = preg_replace('/\D/', '', $quotation->lead->phone);
-            @endphp
-            <a href="https://wa.me/{{ $waPhone }}?text={{ urlencode($template) }}" target="_blank"
+            {{-- The customer is the one viewing this page: message the agency, not themselves. --}}
+            <a href="https://wa.me/628111111111?text={{ urlencode(__('quotation.public.whatsapp_customer_message', ['link' => url()->current()])) }}" target="_blank"
                class="mt-6 inline-flex w-full items-center justify-center rounded bg-success px-4 py-3 text-sm font-medium text-neutral-0">
                 {{ __('quotation.public.whatsapp_button') }}
             </a>

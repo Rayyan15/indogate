@@ -96,6 +96,8 @@ return [
         'payment_history' => 'Payment History',
         'submitted' => 'Submitted :date',
         'in_review' => 'In Review',
+        'proof_uploaded' => 'Payment proof uploaded. Awaiting admin verification.',
+        'payment_not_accepted' => 'This booking is not accepting payment proofs.',
         'invoice_eyebrow' => 'Invoice',
         'grand_total' => 'Grand Total',
         'subtotal' => 'Subtotal',

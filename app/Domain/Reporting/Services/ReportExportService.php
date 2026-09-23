@@ -21,7 +21,7 @@ class ReportExportService
         fwrite($handle, "\xEF\xBB\xBF");
 
         // Header
-        fputcsv($handle, [
+        $this->row($handle, [
             'Kode Pemesanan',
             'Cabang',
             'Nama Tamu',
@@ -43,7 +43,7 @@ class ReportExportService
             $calc = $marginService->computeBookingMargin($booking);
             $b = $calc['booking'];
 
-            fputcsv($handle, [
+            $this->row($handle, [
                 $b->code,
                 $b->branch?->name ?? "Cabang #{$b->branch_id}",
                 $b->quotation?->lead?->name ?? '-',
@@ -77,7 +77,7 @@ class ReportExportService
         $handle = fopen('php://temp', 'r+');
         fwrite($handle, "\xEF\xBB\xBF");
 
-        fputcsv($handle, [
+        $this->row($handle, [
             'ID Prospek',
             'Tanggal Masuk',
             'Cabang',
@@ -91,7 +91,7 @@ class ReportExportService
         ]);
 
         foreach ($leads as $lead) {
-            fputcsv($handle, [
+            $this->row($handle, [
                 $lead->id,
                 $lead->created_at?->format('Y-m-d H:i') ?? '-',
                 $lead->branch?->name ?? "Cabang #{$lead->branch_id}",
@@ -122,7 +122,7 @@ class ReportExportService
         $handle = fopen('php://temp', 'r+');
         fwrite($handle, "\xEF\xBB\xBF");
 
-        fputcsv($handle, [
+        $this->row($handle, [
             'Kode Pemesanan',
             'Cabang',
             'Nama Tamu',
@@ -138,7 +138,7 @@ class ReportExportService
         foreach ($bookings as $b) {
             $verifiedPaid = (int) $b->payments()->where('status', 'verified')->sum('idr_equivalent_minor');
 
-            fputcsv($handle, [
+            $this->row($handle, [
                 $b->code,
                 $b->branch?->name ?? "Cabang #{$b->branch_id}",
                 $b->quotation?->lead?->name ?? '-',
@@ -157,5 +157,18 @@ class ReportExportService
         fclose($handle);
 
         return (string) $csv;
+    }
+
+    /**
+     * fputcsv with formula-injection guard: a cell starting with = + - @
+     * (e.g. a lead name typed on the public form) is prefixed with ' so
+     * Excel shows it as text instead of executing it.
+     */
+    private function row($handle, array $cells): void
+    {
+        fputcsv($handle, array_map(
+            fn ($v) => is_string($v) && preg_match('/^[=+\-@\t\r]/', $v) ? "'".$v : $v,
+            $cells,
+        ));
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,11 +25,28 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $user = $request->authenticate();
+
+        if ($user->two_factor_secret && $user->two_factor_confirmed_at) {
+            // Fortify's challenge controller reads these keys.
+            $request->session()->put([
+                'login.id' => $user->getKey(),
+                'login.remember' => $request->boolean('remember'),
+            ]);
+
+            return redirect()->route('two-factor.login');
+        }
+
+        Auth::login($user, $request->boolean('remember'));
 
         $request->session()->regenerate();
 
-        if ($request->user()->hasAnyRole(['Super Admin', 'Finance Admin', 'CS Admin'])) {
+        return self::redirectAfterLogin($user);
+    }
+
+    public static function redirectAfterLogin(User $user): RedirectResponse
+    {
+        if ($user->hasAnyRole(['Super Admin', 'Finance Admin', 'CS Admin'])) {
             return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 

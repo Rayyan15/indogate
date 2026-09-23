@@ -11,9 +11,9 @@
     @livewireStyles
 </head>
 @php
-    // Branch-scoped automatically via Payment's BelongsToBranch global scope.
+    // Storefront bookings awaiting proof verification; branch-scoped via BelongsToBranch.
     $pendingPaymentsCount = auth()->user()?->can('payment.verify')
-        ? \App\Models\Payment::where('status', 'pending')->count()
+        ? \App\Models\Booking::where('status', \App\Models\Booking::STATUS_PAYMENT_SUBMITTED)->count()
         : 0;
 @endphp
 <body class="bg-neutral-50 text-neutral-700 font-body antialiased">
@@ -58,28 +58,19 @@
             @endcanany
 
             @canany(['booking.manage', 'payment.verify'])
-            <x-ui.nav-group key="operations" :label="__('nav.operations')" :active="request()->routeIs(['admin.bookings.*', 'admin.payments.*'])">
-                @can('booking.manage')
+            <x-ui.nav-group key="operations" :label="__('nav.operations')" :active="request()->routeIs('admin.bookings.*')">
                 <a href="{{ route('admin.bookings.index') }}" class="sidebar-link {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                     <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.bookings') }}</span>
-                </a>
-                @endcan
-
-                @can('payment.verify')
-                <a href="{{ route('admin.payments.index') }}" class="sidebar-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.payments') }}</span>
                     @if($pendingPaymentsCount ?? 0)
                         <span class="sidebar-badge">{{ $pendingPaymentsCount }}</span>
                     @endif
                 </a>
-                @endcan
             </x-ui.nav-group>
             @endcanany
 
             @can('catalog.manage')
-            <x-ui.nav-group key="inventory" :label="__('nav.inventory')" :active="request()->routeIs(['admin.hotels.*', 'admin.flights.*', 'admin.drivers.*', 'admin.catalog.*'])">
+            <x-ui.nav-group key="inventory" :label="__('nav.inventory')" :active="request()->routeIs(['admin.hotels.*', 'admin.flights.*', 'admin.catalog.*'])">
                 <a href="{{ route('admin.hotels.index') }}" class="sidebar-link {{ request()->routeIs('admin.hotels.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.hotels') }}</span>
@@ -88,11 +79,6 @@
                 <a href="{{ route('admin.flights.index') }}" class="sidebar-link {{ request()->routeIs('admin.flights.*') ? 'active' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"></path></svg>
                     <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.flights') }}</span>
-                </a>
-
-                <a href="{{ route('admin.drivers.index') }}" class="sidebar-link {{ request()->routeIs('admin.drivers.*') ? 'active' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    <span class="nav-label" x-show="!collapsed" x-transition.opacity.duration.100ms>{{ __('nav.drivers') }}</span>
                 </a>
 
                 <a href="{{ route('admin.catalog.partners.index') }}" class="sidebar-link {{ request()->routeIs('admin.catalog.partners.*') ? 'active' : '' }}">

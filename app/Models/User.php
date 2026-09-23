@@ -40,6 +40,11 @@ class User extends Authenticatable
         return $this->belongsTo(Branch::class);
     }
 
+    public function customer()
+    {
+        return $this->hasOne(Customer::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

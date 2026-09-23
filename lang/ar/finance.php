@@ -88,6 +88,7 @@ return [
     // Feedback
     'payment_recorded_success' => 'تم تسجيل الدفعة بنجاح وفي انتظار تحقق الإدارة المالية.',
     'payment_verified_success' => 'تم التحقق من الدفعة بنجاح وتحديث حالة الحجز.',
+    'cancelled_with_paid_balance' => 'تم إلغاء الحجز ولكن توجد مدفوعات تم التحقق منها. يرجى معالجة قرار الاسترداد للمبلغ المدفوع.',
     'payment_rejected_success' => 'تم رفض الدفعة بنجاح.',
     'refund_processed_success' => 'تمت معالجة الاسترداد وتسجيله بنجاح.',
     'vendor_payment_recorded_success' => 'تم تسجيل دفعة المورد بنجاح.',

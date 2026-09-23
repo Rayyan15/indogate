@@ -16,11 +16,9 @@ class FinanceDocumentController extends Controller
     {
         $booking = $packageBooking;
 
-        // Allow signed access or authenticated user with view access
-        if (! $request->hasValidSignature()) {
-            abort_unless(Auth::check() && (Auth::user()->can('payment.verify') || Auth::user()->can('booking.manage')), 403);
-            abort_unless((int) $booking->branch_id === (int) CurrentBranch::id(), 403);
-        }
+        // Always permission + branch; a signature alone is not authorization.
+        abort_unless(Auth::user()->can('payment.verify') || Auth::user()->can('booking.manage'), 403);
+        abort_unless((int) $booking->branch_id === (int) CurrentBranch::id(), 403);
 
         activity('finance')
             ->causedBy(Auth::user())
@@ -37,10 +35,7 @@ class FinanceDocumentController extends Controller
 
     public function receipt(Request $request, Payment $payment)
     {
-        if (! $request->hasValidSignature()) {
-            abort_unless(Auth::check() && (Auth::user()->can('payment.verify') || Auth::user()->can('booking.manage')), 403);
-            abort_unless((int) $payment->branch_id === (int) CurrentBranch::id(), 403);
-        }
+        $this->authorize('view', $payment);
 
         activity('finance')
             ->causedBy(Auth::user())
@@ -58,6 +53,7 @@ class FinanceDocumentController extends Controller
     public function downloadProof(Request $request, Payment $payment)
     {
         abort_unless($request->hasValidSignature(), 403);
+        $this->authorize('view', $payment);
 
         if (! $payment->proof_file || ! Storage::disk('local')->exists($payment->proof_file)) {
             abort(404);

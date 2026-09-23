@@ -32,6 +32,7 @@ return [
         'base_pax' => 'العدد الأساسي',
         'duration_days' => 'المدة (أيام)',
         'is_template' => 'حفظ كقالب',
+        'is_published' => 'منشور في المتجر',
         'preview_date' => 'تاريخ المعاينة',
         'current_pax' => 'عدد الضيوف',
         'channel' => 'قناة الدفع',

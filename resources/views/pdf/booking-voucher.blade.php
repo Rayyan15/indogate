@@ -18,7 +18,7 @@
     <p class="meta">
         {{ __('booking.pdf.departure') }}: {{ $booking->departure_date->translatedFormat('d M Y') }}
         @if($booking->return_date) · {{ __('booking.pdf.return') }}: {{ $booking->return_date->translatedFormat('d M Y') }} @endif
-        · {{ number_format($booking->total_minor / 100, 2) }} {{ $booking->currency }}
+        · {{ $booking->currency }} {{ \App\Domain\Finance\Fx::format((int) $booking->total_minor, $booking->currency) }}
     </p>
 
     <h2>{{ __('booking.pdf.guests') }}</h2>

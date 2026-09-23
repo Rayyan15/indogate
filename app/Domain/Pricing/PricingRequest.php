@@ -20,5 +20,8 @@ final class PricingRequest
         public readonly string $displayCurrency,
         public readonly ?Override $override = null,
         public readonly ?int $lockedExchangeRateId = null,
+        // false when the caller prices many lines of one order and adds the
+        // flat channel fee once itself (PackageCalculator, bug-review H-02)
+        public readonly bool $includeFlatChannelFee = true,
     ) {}
 }

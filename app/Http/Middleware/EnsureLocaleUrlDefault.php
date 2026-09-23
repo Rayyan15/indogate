@@ -28,7 +28,16 @@ class EnsureLocaleUrlDefault
     public function handle(Request $request, Closure $next): Response
     {
         if (! array_key_exists('locale', URL::getDefaultParameters())) {
-            URL::defaults(['locale' => session('locale', app()->getLocale())]);
+            $locale = session('locale', app()->getLocale());
+
+            // Requests outside the {locale} group (Livewire's /livewire/update)
+            // must render in the session locale too, not fall back to config
+            // (bug-review 05 M-01).
+            if (array_key_exists($locale, config('laravellocalization.supportedLocales'))) {
+                app()->setLocale($locale);
+            }
+
+            URL::defaults(['locale' => $locale]);
         }
 
         return $next($request);

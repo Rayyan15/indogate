@@ -7,12 +7,10 @@ use App\Domain\Packaging\Models\Package;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\BookingGuestDocumentController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\DriverController;
 use App\Http\Controllers\Admin\FinanceDocumentController;
 use App\Http\Controllers\Admin\FleetDutyLetterController;
 use App\Http\Controllers\Admin\FlightRouteController;
 use App\Http\Controllers\Admin\HotelController;
-use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PricingRuleController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
@@ -21,7 +19,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\LeadCaptureController;
 use App\Http\Controllers\Public\QuotationController;
 use App\Http\Controllers\Public\StorefrontController;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -50,7 +47,6 @@ Route::prefix('{locale}')
 
             Route::middleware('permission:catalog.manage')->resource('hotels', HotelController::class);
             Route::middleware('permission:catalog.manage')->resource('flights', FlightRouteController::class);
-            Route::middleware('permission:catalog.manage')->resource('drivers', DriverController::class);
             Route::middleware('permission:pricing.manage')->resource('pricing-rules', PricingRuleController::class)->names('pricing');
 
             Route::middleware('permission:catalog.manage')->prefix('packages')->name('packages.')->group(function () {
@@ -60,7 +56,7 @@ Route::prefix('{locale}')
 
                 // The 'local' disk (storage/app/private) is not web-servable via
                 // the public /storage symlink — stream it through a signed route
-                // instead, same pattern as PaymentController::downloadProof.
+                // instead, same pattern as FinanceDocumentController::downloadProof.
                 Route::get('/{package}/export/{path}', function (Package $package, string $path) {
                     $fullPath = "package-exports/{$package->id}/{$path}";
                     abort_unless(Storage::disk('local')->exists($fullPath), 404);
@@ -88,15 +84,10 @@ Route::prefix('{locale}')
             Route::resource('bookings', BookingController::class)->only(['index', 'show']);
             Route::middleware('permission:driver.assign')->post('bookings/{booking}/assign-driver', [BookingController::class, 'assignDriver'])->name('bookings.assign-driver');
 
+            Route::get('bookings/{booking}/payment-proof', [BookingController::class, 'paymentProof'])->name('bookings.payment-proof');
             Route::middleware('permission:payment.verify')->group(function () {
-                Route::resource('payments', PaymentController::class)->only(['index', 'show']);
-                Route::post('payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
-                Route::post('payments/{payment}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
-
-                // Secure payment proof download (Signed Route target)
-                Route::get('payment-proofs/{proof}', [PaymentController::class, 'downloadProof'])
-                    ->name('payments.download-proof')
-                    ->middleware('signed');
+                Route::post('bookings/{booking}/verify-payment', [BookingController::class, 'verifyPayment'])->name('bookings.verify-payment');
+                Route::post('bookings/{booking}/reject-payment', [BookingController::class, 'rejectPayment'])->name('bookings.reject-payment');
             });
 
             Route::middleware('permission:user.manage')->get('/users', fn () => view('admin.users.index'))->name('users.index');

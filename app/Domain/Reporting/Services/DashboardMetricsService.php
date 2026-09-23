@@ -46,9 +46,14 @@ class DashboardMetricsService
      */
     public function resolveDateRange(string $period, ?string $customStart = null, ?string $customEnd = null): array
     {
-        $now = now();
+        // "Today"/"this month" are the branch's local calendar (Bali = WITA,
+        // Jakarta = WIB), then converted back to the app timezone (UTC) the
+        // timestamps are stored in. Previously the boundaries were UTC days.
+        $tz = CurrentBranch::model()?->timezone ?: 'Asia/Jakarta';
+        $now = now($tz);
+        $toApp = fn (?Carbon $d) => $d?->setTimezone(config('app.timezone'));
 
-        return match ($period) {
+        return array_map($toApp, match ($period) {
             self::PERIOD_TODAY => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
             self::PERIOD_LAST_7_DAYS => [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()],
             self::PERIOD_THIS_MONTH => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
@@ -56,11 +61,11 @@ class DashboardMetricsService
             self::PERIOD_THIS_QUARTER => [$now->copy()->firstOfQuarter()->startOfDay(), $now->copy()->lastOfQuarter()->endOfDay()],
             self::PERIOD_THIS_YEAR => [$now->copy()->startOfYear(), $now->copy()->endOfYear()],
             self::PERIOD_CUSTOM => [
-                $customStart ? Carbon::parse($customStart)->startOfDay() : null,
-                $customEnd ? Carbon::parse($customEnd)->endOfDay() : null,
+                $customStart ? Carbon::parse($customStart, $tz)->startOfDay() : null,
+                $customEnd ? Carbon::parse($customEnd, $tz)->endOfDay() : null,
             ],
             default => [null, null],
-        };
+        });
     }
 
     /**

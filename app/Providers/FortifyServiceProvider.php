@@ -6,14 +6,14 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
-use App\Models\User;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -43,16 +43,16 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
 
-        // PRD M1 manual test #7: a deactivated user must be rejected at login,
-        // not merely hidden from menus.
-        Fortify::authenticateUsing(function (Request $request) {
-            $user = User::where(Fortify::username(), $request->{Fortify::username()})->first();
+        // Login itself (incl. the is_active check) lives in the Breeze
+        // LoginRequest; Fortify only serves the 2FA challenge.
+        Fortify::twoFactorChallengeView('auth.two-factor-challenge');
 
-            if ($user && $user->is_active && Hash::check($request->password, $user->password)) {
-                return $user;
+        $this->app->singleton(TwoFactorLoginResponse::class, fn () => new class implements TwoFactorLoginResponse
+        {
+            public function toResponse($request)
+            {
+                return AuthenticatedSessionController::redirectAfterLogin($request->user());
             }
-
-            return null;
         });
 
         RateLimiter::for('login', function (Request $request) {

@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingItem;
-use App\Models\Customer;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -38,7 +37,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store()
     {
         $cart = session()->get('cart', []);
         if (empty($cart)) {
@@ -54,47 +53,52 @@ class CheckoutController extends Controller
         }
 
         if ($hasRemovedItems) {
-            return redirect()->route('customer.checkout.index')->with('warning', 'Beberapa item dalam keranjang belanja telah diperbarui atau dihapus.');
+            return redirect()->route('checkout.index')->with('warning', 'Beberapa item dalam keranjang belanja telah diperbarui atau dihapus.');
         }
 
-        DB::beginTransaction();
+        // One booking belongs to one branch (the branch that owns the
+        // services), so its admins can see and verify it.
+        $branchIds = array_unique(array_column($validCart, 'branch_id'));
+        if (count($branchIds) > 1) {
+            return redirect()->route('cart.index')->with('error', 'Item dari cabang berbeda harus dipesan terpisah.');
+        }
+
         try {
-            $customer = Auth::user()->customer;
-            if (! $customer) {
-                $customer = Customer::create([
-                    'user_id' => Auth::id(),
-                    'full_name' => Auth::user()->name,
+            $booking = DB::transaction(function () use ($validCart, $totalAmount, $branchIds) {
+                $user = Auth::user();
+                $customer = $user->customer()->firstOrCreate([], ['full_name' => $user->name]);
+
+                $booking = Booking::create([
+                    'branch_id' => $branchIds[0],
+                    'booking_number' => Str::uuid(),
+                    'customer_id' => $customer->id,
+                    'status' => Booking::STATUS_PENDING_PAYMENT,
+                    'total_amount' => (int) round($totalAmount),
+                    'currency' => 'IDR',
                 ]);
-            }
 
-            $booking = Booking::create([
-                'booking_number' => Str::uuid(),
-                'customer_id' => $customer->id,
-                'status' => 'pending_payment',
-                'total_amount' => $totalAmount,
-                'currency' => 'IDR',
-            ]);
+                foreach ($validCart as $item) {
+                    BookingItem::create([
+                        'booking_id' => $booking->id,
+                        'bookable_type' => $item['bookable_type'],
+                        'bookable_id' => $item['bookable_id'],
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['price'],
+                        'subtotal' => $item['price'] * $item['quantity'],
+                    ]);
+                }
 
-            foreach ($validCart as $item) {
-                BookingItem::create([
-                    'booking_id' => $booking->id,
-                    'bookable_type' => $item['bookable_type'],
-                    'bookable_id' => $item['bookable_id'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['price'],
-                    'subtotal' => $item['price'] * $item['quantity'],
-                ]);
-            }
+                return $booking;
+            });
+        } catch (\Throwable $e) {
+            report($e);
 
-            session()->forget('cart');
-            DB::commit();
-
-            return redirect()->route('customer.bookings.show', $booking)->with('success', 'Pemesanan berhasil dibuat. Silakan lanjutkan ke pembayaran.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return back()->with('error', 'Checkout gagal: '.$e->getMessage());
+            return back()->with('error', 'Checkout gagal. Silakan coba lagi atau hubungi kami.');
         }
+
+        session()->forget('cart');
+
+        return redirect()->route('customer.bookings.show', $booking)->with('success', 'Pemesanan berhasil dibuat. Silakan lanjutkan ke pembayaran.');
     }
 
     /**
@@ -113,19 +117,21 @@ class CheckoutController extends Controller
         foreach ($cart as $item) {
             if (! isset($item['bookable_type'], $item['bookable_id'])) {
                 $hasRemovedItems = true;
+
                 continue;
             }
 
             try {
-                $price = CartController::resolveItemPrice($item['bookable_type'], (int) $item['bookable_id']);
+                $resolved = CartController::resolveItem($item['bookable_type'], (int) $item['bookable_id']);
                 $quantity = max(1, (int) ($item['quantity'] ?? 1));
 
-                $item['price'] = $price;
+                $item['price'] = $resolved['price'];
+                $item['branch_id'] = $resolved['branch_id'];
                 $item['quantity'] = $quantity;
 
                 $validCart[] = $item;
-                $totalAmount += $price * $quantity;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException|\InvalidArgumentException $e) {
+                $totalAmount += $resolved['price'] * $quantity;
+            } catch (ModelNotFoundException|\InvalidArgumentException $e) {
                 $hasRemovedItems = true;
             }
         }

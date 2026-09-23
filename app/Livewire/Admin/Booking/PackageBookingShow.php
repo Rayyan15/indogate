@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -197,8 +198,18 @@ class PackageBookingShow extends Component
         $booking = $this->booking();
         $this->authorize('update', $booking);
 
+        $target = BookingStatus::tryFrom($status);
+
+        // Payment-driven statuses are set only by PaymentService (BF-04);
+        // cancellation needs a reason and goes through cancel().
+        if (! $target || in_array($target, [BookingStatus::PARTIALLY_PAID, BookingStatus::PAID, BookingStatus::CANCELLED], true)) {
+            $this->addError('transition', __('booking.show.transition_denied'));
+
+            return;
+        }
+
         try {
-            (new BookingStateMachine)->transition($booking, BookingStatus::from($status), actor: Auth::user());
+            (new BookingStateMachine)->transition($booking, $target, actor: Auth::user());
         } catch (InvalidBookingTransitionException) {
             $this->addError('transition', __('booking.show.transition_denied'));
         }
@@ -211,7 +222,18 @@ class PackageBookingShow extends Component
 
         $this->validate(['cancel_reason' => ['required', 'string', 'max:500']]);
 
-        (new BookingStateMachine)->transition($booking, BookingStatus::CANCELLED, $this->cancel_reason, Auth::user());
+        try {
+            (new BookingStateMachine)->transition($booking, BookingStatus::CANCELLED, $this->cancel_reason, Auth::user());
+        } catch (InvalidBookingTransitionException) {
+            $this->addError('transition', __('booking.show.transition_denied'));
+
+            return;
+        }
+
+        // Money already received needs an explicit refund decision (BF-13).
+        if ($booking->totalPaidMinor() > 0) {
+            $this->financeError = __('finance.cancelled_with_paid_balance');
+        }
 
         $this->showCancelModal = false;
         $this->reset('cancel_reason');
@@ -344,8 +366,9 @@ class PackageBookingShow extends Component
         if (strtoupper($this->payment_currency) === 'IDR') {
             $this->payment_fx_rate = 1.0;
         } else {
+            // 0 = no rate yet; PaymentService refuses rather than using 1.0.
             $rate = ExchangeRate::currentFor(strtoupper($this->payment_currency));
-            $this->payment_fx_rate = $rate ? (float) $rate->rate : 1.0;
+            $this->payment_fx_rate = $rate ? (float) $rate->rate : 0.0;
         }
     }
 
@@ -356,11 +379,11 @@ class PackageBookingShow extends Component
         $this->authorize('update', $booking);
 
         $this->validate([
-            'payment_type' => ['required', 'string'],
+            'payment_type' => ['required', Rule::in(PaymentService::TYPES)],
             'payment_amount_minor' => ['required', 'integer', 'min:1'],
-            'payment_currency' => ['required', 'string', 'size:3'],
-            'payment_fx_rate' => ['required', 'numeric', 'min:0.00000001'],
-            'payment_channel' => ['required', 'string'],
+            'payment_currency' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
+            'payment_fx_rate' => ['nullable', 'numeric', 'min:0'],
+            'payment_channel' => ['required', Rule::in(PaymentService::channels())],
             'payment_notes' => ['nullable', 'string', 'max:500'],
             'paymentProofFile' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ]);
@@ -407,6 +430,7 @@ class PackageBookingShow extends Component
     {
         $this->reset(['financeError', 'financeSuccess']);
         $payment = Payment::findOrFail($paymentId);
+        $this->authorize('refund', $payment);
         $this->refundingPaymentId = $payment->id;
         $this->refund_amount_minor = $payment->amount_minor;
         $this->refund_reason = '';
@@ -484,7 +508,11 @@ class PackageBookingShow extends Component
 
         return view('livewire.admin.booking.package-booking-show', [
             'booking' => $booking,
-            'nextStatuses' => $stateMachine->nextStatuses($booking->status),
+            // Payment-driven statuses are set by PaymentService only (see transitionTo).
+            'nextStatuses' => array_values(array_filter(
+                $stateMachine->nextStatuses($booking->status),
+                fn (BookingStatus $s) => ! in_array($s, [BookingStatus::PARTIALLY_PAID, BookingStatus::PAID], true),
+            )),
             'suggestedDrivers' => $suggestedDrivers,
             'genderWarning' => $genderWarning,
             'availableVehicles' => $availableVehicles,

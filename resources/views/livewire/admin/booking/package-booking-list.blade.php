@@ -49,7 +49,7 @@
                         <x-ui.td>{{ $booking->quotation->lead->name }}</x-ui.td>
                         <x-ui.td>{{ $booking->departure_date->format('d M Y') }}</x-ui.td>
                         <x-ui.td><x-ui.status :status="$booking->status->value">{{ __('booking.status.'.$booking->status->value) }}</x-ui.status></x-ui.td>
-                        <x-ui.td numeric class="font-mono">{{ number_format($booking->total_minor / 100, 2) }} {{ $booking->currency }}</x-ui.td>
+                        <x-ui.td numeric class="font-mono">{{ $booking->currency }} {{ \App\Domain\Finance\Fx::format((int) $booking->total_minor, $booking->currency) }}</x-ui.td>
                         <x-ui.td numeric>
                             <x-ui.icon-button :href="route('admin.package-bookings.show', $booking)" :title="__('booking.list.view')">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>

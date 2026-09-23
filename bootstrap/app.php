@@ -3,6 +3,7 @@
 use App\Console\Commands\ExpireQuotations;
 use App\Console\Commands\TransitionBookingStatuses;
 use App\Http\Middleware\EnsureLocaleUrlDefault;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\SetActiveBranch;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Console\Scheduling\Schedule;
@@ -10,6 +11,7 @@ use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -32,6 +34,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'setLocale' => SetLocale::class,
         ]);
 
+        // Logged-in staff opening /login etc. must land on the admin
+        // dashboard; the default 'dashboard' is the customer one (403 for staff).
+        $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->hasAnyRole(['Super Admin', 'Finance Admin', 'CS Admin'])
+            ? route('admin.dashboard')
+            : route('dashboard'));
+
+        $middleware->appendToGroup('web', EnsureUserIsActive::class);
         $middleware->appendToGroup('web', SetActiveBranch::class);
         $middleware->appendToGroup('web', EnsureLocaleUrlDefault::class);
 

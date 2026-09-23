@@ -16,7 +16,7 @@ class PermissionTest extends TestCase
         $cs = User::where('email', 'cs.bali@indogate.com')->firstOrFail();
 
         $this->actingAs($cs)->get(route('admin.hotels.index'))->assertOk();
-        $this->actingAs($cs)->get(route('admin.payments.index'))->assertForbidden();
+        $this->actingAs($cs)->get(route('admin.finance.payments'))->assertForbidden();
     }
 
     public function test_finance_admin_reaches_payments_but_not_catalog(): void
@@ -24,7 +24,7 @@ class PermissionTest extends TestCase
         $this->seed();
         $finance = User::where('email', 'finance.bali@indogate.com')->firstOrFail();
 
-        $this->actingAs($finance)->get(route('admin.payments.index'))->assertOk();
+        $this->actingAs($finance)->get(route('admin.finance.payments'))->assertOk();
         $this->actingAs($finance)->get(route('admin.hotels.index'))->assertForbidden();
     }
 

@@ -55,24 +55,40 @@
                 </form>
             </x-ui.panel>
 
-            <x-ui.panel :eyebrow="__('admin.bookings.finance_eyebrow')" :title="__('admin.bookings.payment_history')" flush>
-                <div class="divide-y divide-neutral-100">
-                    @forelse($booking->payments as $payment)
-                    <div class="px-5 py-3.5">
-                        <div class="flex items-center justify-between">
-                            <span class="font-mono text-sm font-medium text-neutral-900">IDR {{ number_format($payment->amount) }}</span>
-                            @if($payment->status === 'pending')
-                                <x-ui.button variant="ghost" :href="route('admin.payments.show', $payment)">{{ __('admin.common.review') }}</x-ui.button>
-                            @else
-                                <x-ui.status :status="$payment->status === 'verified' ? 'paid' : 'cancelled'">{{ __('admin.common.booking_status.' . $payment->status) }}</x-ui.status>
-                            @endif
-                        </div>
-                        <p class="mt-1 text-xs text-neutral-500">{{ $payment->created_at->diffForHumans() }}</p>
-                    </div>
-                    @empty
+            <x-ui.panel :eyebrow="__('admin.bookings.finance_eyebrow')" :title="__('admin.bookings.payment_history')">
+                @if(session('error'))
+                    <p class="mb-3 text-xs text-danger">{{ session('error') }}</p>
+                @endif
+
+                @if($booking->payment_proof_path)
+                    <p class="text-xs text-neutral-500">{{ __('admin.bookings.proof_submitted_at', ['date' => $booking->payment_submitted_at?->format('d M Y, H:i')]) }}</p>
+                    <a href="{{ route('admin.bookings.payment-proof', $booking) }}" target="_blank" class="mt-2 block">
+                        <img src="{{ route('admin.bookings.payment-proof', $booking) }}" alt="{{ __('admin.bookings.payment_proof') }}" class="max-h-72 w-full rounded border border-neutral-200 object-contain">
+                    </a>
+
+                    @if($booking->status === \App\Models\Booking::STATUS_CONFIRMED && $booking->payment_verified_at)
+                        <p class="mt-3 text-xs text-neutral-600">{{ __('admin.bookings.verified_by', ['name' => $booking->paymentVerifier?->name ?? '—', 'date' => $booking->payment_verified_at->format('d M Y, H:i')]) }}</p>
+                    @elseif($booking->status === \App\Models\Booking::STATUS_PAYMENT_REJECTED)
+                        <p class="mt-3 text-xs text-danger">{{ __('admin.bookings.rejected_reason', ['reason' => $booking->payment_rejection_reason]) }}</p>
+                    @endif
+
+                    @if($booking->status === \App\Models\Booking::STATUS_PAYMENT_SUBMITTED)
+                        @can('verifyPayment', $booking)
+                        <form action="{{ route('admin.bookings.verify-payment', $booking) }}" method="POST" class="mt-4">
+                            @csrf
+                            <x-ui.button variant="primary" type="submit" class="w-full">{{ __('admin.bookings.verify_payment') }}</x-ui.button>
+                        </form>
+                        <form action="{{ route('admin.bookings.reject-payment', $booking) }}" method="POST" class="mt-3 space-y-2">
+                            @csrf
+                            <textarea name="reason" rows="2" required maxlength="500" class="admin-input w-full" placeholder="{{ __('admin.bookings.reject_reason_placeholder') }}"></textarea>
+                            @error('reason') <p class="text-xs text-danger">{{ $message }}</p> @enderror
+                            <x-ui.button variant="secondary" type="submit" class="w-full">{{ __('admin.bookings.reject_payment') }}</x-ui.button>
+                        </form>
+                        @endcan
+                    @endif
+                @else
                     <x-ui.empty :title="__('admin.bookings.no_payments_yet')" />
-                    @endforelse
-                </div>
+                @endif
             </x-ui.panel>
         </aside>
     </div>
