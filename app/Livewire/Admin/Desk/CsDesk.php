@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Desk;
 
+use App\Domain\Booking\AwaitingPaymentBookings;
 use App\Domain\Booking\Models\PackageBooking;
 use App\Domain\Lead\Models\Lead;
 use App\Domain\Lead\Models\Quotation;
@@ -29,7 +30,7 @@ class CsDesk extends Component
 
     public function mount(): void
     {
-        abort_unless(Auth::user()?->canAny(['lead.manage', 'booking.manage']), 403);
+        abort_unless(Auth::user()?->can('desk.cs'), 403);
     }
 
     public function render(): View
@@ -83,9 +84,7 @@ class CsDesk extends Component
     {
         $query = Lead::where(fn (Builder $q) => $q
             ->where('status', LeadStatus::NEW)
-            ->orWhere(fn (Builder $due) => $due
-                ->where('follow_up_at', '<=', now())
-                ->whereNotIn('status', [LeadStatus::WON, LeadStatus::LOST])));
+            ->orWhere(fn (Builder $due) => $due->followUpOverdue()));
 
         return [
             'count' => (clone $query)->count(),
@@ -110,15 +109,11 @@ class CsDesk extends Component
 
     private function awaitingPayment(): array
     {
-        $query = PackageBooking::with(['quotation.lead', 'payments', 'refunds'])
-            ->whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::PARTIALLY_PAID]);
-
-        // ponytail: balance is computed in PHP (FX-aware), fine at branch scale; move to SQL if open bookings reach thousands.
-        $open = $query->orderBy('departure_date')->get()->filter(fn (PackageBooking $b) => $b->remainingBalanceMinor() > 0);
+        $open = app(AwaitingPaymentBookings::class)->get();
 
         return [
             'count' => $open->count(),
-            'items' => $open->take(self::LIST_LIMIT)->values(),
+            'items' => $open->take(self::LIST_LIMIT),
         ];
     }
 

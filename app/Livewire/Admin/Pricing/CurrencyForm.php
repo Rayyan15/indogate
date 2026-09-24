@@ -20,11 +20,15 @@ class CurrencyForm extends Component
 
     public bool $is_active = true;
 
+    public int $spread_bps = 0;
+
+    public int $display_rounding = 0;
+
     #[On('create-currency')]
     public function openForCreate(): void
     {
         $this->authorize('pricing.manage');
-        $this->reset(['originalCode', 'code', 'symbol', 'decimal_places', 'is_active']);
+        $this->reset(['originalCode', 'code', 'symbol', 'decimal_places', 'is_active', 'spread_bps', 'display_rounding']);
         $this->decimal_places = 2;
         $this->is_active = true;
         $this->dispatch('open-modal', 'currency-form');
@@ -41,6 +45,8 @@ class CurrencyForm extends Component
         $this->symbol = $currency->symbol;
         $this->decimal_places = $currency->decimal_places;
         $this->is_active = $currency->is_active;
+        $this->spread_bps = $currency->spread_bps;
+        $this->display_rounding = $currency->display_rounding;
 
         $this->dispatch('open-modal', 'currency-form');
     }
@@ -54,6 +60,8 @@ class CurrencyForm extends Component
             'symbol' => ['required', 'string', 'max:8'],
             'decimal_places' => ['required', 'integer', 'min:0', 'max:4'],
             'is_active' => ['boolean'],
+            'spread_bps' => ['required', 'integer', 'min:0', 'max:5000'],
+            'display_rounding' => ['required', 'integer', 'min:0'],
         ]);
         $validated['code'] = strtoupper($validated['code']);
 

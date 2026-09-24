@@ -19,11 +19,13 @@ class ExchangeRateForm extends Component
 
     public string $effective_from = '';
 
+    public string $pinned_until = '';
+
     #[On('create-exchange-rate')]
     public function openForCreate(): void
     {
         $this->authorize('pricing.manage');
-        $this->reset(['currency', 'rate', 'effective_from']);
+        $this->reset(['currency', 'rate', 'effective_from', 'pinned_until']);
         $this->effective_from = now()->format('Y-m-d\TH:i');
         $this->dispatch('open-modal', 'exchange-rate-form');
     }
@@ -36,11 +38,14 @@ class ExchangeRateForm extends Component
             'currency' => ['required', 'string', 'size:3', 'alpha'],
             'rate' => ['required', 'numeric', 'gt:0'],
             'effective_from' => ['required', 'date'],
+            'pinned_until' => ['nullable', 'date', 'after:effective_from'],
         ]);
 
         ExchangeRate::create([
             'currency' => strtoupper($validated['currency']),
             'rate' => $validated['rate'],
+            'source' => ExchangeRate::SOURCE_MANUAL,
+            'pinned_until' => $validated['pinned_until'] ?: null,
             'effective_from' => $validated['effective_from'],
             'created_by' => auth()->id(),
         ]);

@@ -1,10 +1,10 @@
 <div>
-    <x-ui.page-header :eyebrow="'M9 · '.__('finance.finance')" :title="__('finance.margin_report')" lede="Perhitungan margin bersih sebenarnya setelah dikurangi biaya modal vendor dan biaya MDR kanal pembayaran di cabang {{ \App\Support\Branch\CurrentBranch::model()?->name }}">
+    <x-ui.page-header :eyebrow="'M9 · '.__('finance.finance')" :title="__('finance.margin_report')" :lede="__('finance.margin_lede', ['branch' => \App\Support\Branch\CurrentBranch::model()?->name])">
         <x-slot name="actions">
-            <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="Cari kode booking, nama tamu…" class="w-56 shrink-0" />
+            <x-ui.search-input wire:model.live.debounce.300ms="search" :placeholder="__('finance.booking_search_ph')" class="w-56 shrink-0" />
 
             <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[140px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
-                <option value="">Semua Status Booking</option>
+                <option value="">{{ __('finance.margin_all_status') }}</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="partially_paid">Partially Paid</option>
                 <option value="paid">Paid</option>
@@ -38,7 +38,7 @@
     </div>
 
     @if(empty($rows))
-        <x-ui.empty :title="__('finance.margin_report')" text="Tidak ada data pemesanan untuk laporan margin." />
+        <x-ui.empty :title="__('finance.margin_report')" :text="__('finance.margin_empty')" />
     @else
         <x-ui.table>
             <x-slot name="head">

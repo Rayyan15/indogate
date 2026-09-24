@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Notifications;
 
 use App\Livewire\Admin\NotificationBell;
+use App\Support\Notifications\NotificationTypes;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -11,17 +12,6 @@ use Livewire\WithPagination;
 class NotificationIndex extends Component
 {
     use WithPagination;
-
-    public const TYPES = [
-        'new_website_lead',
-        'online_payment_received',
-        'online_payment_failed',
-        'manual_payment_pending',
-        'storefront_proof_uploaded',
-        'quotation_expiring',
-        'departure_without_driver',
-        'lead_follow_up_due',
-    ];
 
     #[Url]
     public string $type = '';
@@ -55,13 +45,13 @@ class NotificationIndex extends Component
     {
         $query = auth()->user()->notifications()->latest();
 
-        if (in_array($this->type, self::TYPES, true)) {
+        if (in_array($this->type, NotificationTypes::ALL, true)) {
             $query->where('data->type', $this->type);
         }
 
         return view('livewire.admin.notifications.notification-index', [
             'notifications' => $query->paginate(20),
-            'typeOptions' => collect(self::TYPES)->mapWithKeys(fn ($t) => [$t => __("notifications.$t.title")])->all(),
+            'typeOptions' => collect(NotificationTypes::ALL)->mapWithKeys(fn ($t) => [$t => __("notifications.$t.title")])->all(),
         ]);
     }
 }

@@ -1,17 +1,17 @@
 <div>
     @error('fleet')<div class="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{{ $message }}</div>@enderror
-    <x-ui.page-header eyebrow="M8 · {{ __('fleet.fleet') }}" :title="__('fleet.drivers')" lede="{{ __('fleet.drivers') }} di cabang {{ \App\Support\Branch\CurrentBranch::model()?->name }}">
+    <x-ui.page-header eyebrow="M8 · {{ __('fleet.fleet') }}" :title="__('fleet.drivers')" :lede="__('fleet.drivers_lede', ['branch' => \App\Support\Branch\CurrentBranch::model()?->name])">
         <x-slot name="actions">
             <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="{{ __('fleet.driver_name') }} / {{ __('fleet.driver_phone') }}…" class="w-48 shrink-0" />
             
             <select wire:model.live="genderFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
-                <option value="">Semua Gender</option>
+                <option value="">{{ __('fleet.all_gender') }}</option>
                 <option value="male">{{ __('fleet.gender_male') }}</option>
                 <option value="female">{{ __('fleet.gender_female') }}</option>
             </select>
 
             <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
-                <option value="">Semua Status</option>
+                <option value="">{{ __('admin.i18n.all_status') }}</option>
                 <option value="active">{{ __('fleet.status_active') }}</option>
                 <option value="inactive">{{ __('fleet.status_inactive') }}</option>
             </select>

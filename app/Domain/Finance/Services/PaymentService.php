@@ -270,10 +270,18 @@ class PaymentService
      * system (no human approver, so self-approval rules don't apply) and move
      * the booking along. Caller holds the intent row lock.
      */
-    public function recordGatewayPayment(PaymentIntent $intent, string $providerReference): Payment
+    public function recordGatewayPayment(PaymentIntent $intent, string $providerReference): ?Payment
     {
         return DB::transaction(function () use ($intent, $providerReference) {
             $booking = PackageBooking::withoutGlobalScopes()->lockForUpdate()->findOrFail($intent->booking_id);
+
+            // Overpayment guard: several pending intents may exist per booking.
+            $booking->unsetRelation('payments')->unsetRelation('refunds');
+            if ($booking->status === BookingStatus::CANCELLED || $intent->amount_minor > $booking->remainingBalanceMinor()) {
+                $this->flagForReview($intent, $providerReference);
+
+                return null;
+            }
 
             $payment = Payment::withoutGlobalScopes()->create([
                 'branch_id' => $intent->branch_id,
@@ -299,6 +307,13 @@ class PaymentService
                 'paid_at' => now(),
             ]);
 
+            PaymentIntent::withoutGlobalScopes()
+                ->where('booking_id', $booking->id)
+                ->where('id', '!=', $intent->id)
+                ->where('status', PaymentIntent::STATUS_PENDING)
+                ->lockForUpdate()
+                ->update(['status' => PaymentIntent::STATUS_CANCELLED, 'failure_reason' => 'Superseded by another payment']);
+
             activity('finance')
                 ->performedOn($payment)
                 ->withProperties([
@@ -318,6 +333,32 @@ class PaymentService
 
             return $payment;
         });
+    }
+
+    /**
+     * Money arrived but cannot be applied: log it and queue it for a manual refund.
+     * A still-pending intent becomes completed (money was taken) so the expiry job
+     * and isPayable() can no longer touch it; an expired/cancelled one keeps its status.
+     */
+    public function flagForReview(PaymentIntent $intent, string $providerReference): void
+    {
+        activity('finance')->performedOn($intent)
+            ->withProperties(['reference' => $providerReference, 'amount_minor' => $intent->amount_minor, 'intent_status' => $intent->status])
+            ->log('Gateway payment needs manual refund review');
+
+        $update = ['needs_review_at' => now()];
+        if ($intent->status === PaymentIntent::STATUS_PENDING) {
+            $update += ['status' => PaymentIntent::STATUS_COMPLETED, 'provider_reference' => $providerReference, 'paid_at' => now()];
+        }
+        $intent->update($update);
+    }
+
+    /** Finance confirmed the flagged gateway payment was handled (refunded or accepted). */
+    public function resolveReview(PaymentIntent $intent, User $reviewer): void
+    {
+        $intent->update(['needs_review_at' => null]);
+
+        activity('finance')->performedOn($intent)->causedBy($reviewer)->log('Gateway payment review resolved');
     }
 
     private function assertNotSelfApproval(PackageBooking $booking, Payment $payment, User $verifier): void

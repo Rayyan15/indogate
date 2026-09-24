@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Finance;
 use App\Domain\Finance\Exceptions\PaymentVerificationException;
 use App\Domain\Finance\Exceptions\SelfApprovalException;
 use App\Domain\Finance\Models\Payment;
+use App\Domain\Finance\Models\PaymentIntent;
 use App\Domain\Finance\Services\PaymentService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,8 @@ class PaymentList extends Component
 
     public string $typeFilter = '';
 
+    public string $sourceFilter = '';
+
     public bool $showRejectModal = false;
 
     #[Locked]
@@ -38,6 +41,7 @@ class PaymentList extends Component
         'search' => ['except' => ''],
         'statusFilter' => ['except' => ''],
         'typeFilter' => ['except' => ''],
+        'sourceFilter' => ['except' => ''],
     ];
 
     public function mount(): void
@@ -61,6 +65,20 @@ class PaymentList extends Component
     public function updatingTypeFilter(): void
     {
         $this->resetPage();
+    }
+
+    public function updatingSourceFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function resolveReview(int $intentId, PaymentService $service): void
+    {
+        $this->reset(['actionError', 'actionSuccess']);
+        abort_unless(Auth::user()->can('payment.verify'), 403);
+
+        $service->resolveReview(PaymentIntent::whereNotNull('needs_review_at')->findOrFail($intentId), Auth::user());
+        $this->actionSuccess = __('payment.admin.review_resolved');
     }
 
     public function verifyPayment(int $paymentId): void
@@ -132,6 +150,7 @@ class PaymentList extends Component
     {
         $query = Payment::with(['booking.quotation.lead', 'creator', 'verifiedByUser'])
             ->when($this->statusFilter !== '', fn ($q) => $q->where('status', $this->statusFilter))
+            ->when($this->sourceFilter !== '', fn ($q) => $q->where('source', $this->sourceFilter))
             ->when($this->typeFilter !== '', fn ($q) => $q->where('type', $this->typeFilter))
             ->when($this->search !== '', function ($q) {
                 $term = addcslashes($this->search, '%_\\');
@@ -145,6 +164,7 @@ class PaymentList extends Component
 
         return view('livewire.admin.finance.payment-list', [
             'payments' => $query->paginate(15),
+            'reviewIntents' => PaymentIntent::with('booking')->whereNotNull('needs_review_at')->oldest('needs_review_at')->limit(50)->get(),
         ]);
     }
 }

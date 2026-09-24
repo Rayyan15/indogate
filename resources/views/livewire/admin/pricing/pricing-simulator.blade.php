@@ -36,6 +36,8 @@
                 </x-ui.field>
             </div>
 
+            <x-ui.money-preview amount="$wire.cost_minor" currency="'IDR'" />
+
             <label class="flex items-center gap-2 text-sm text-neutral-700">
                 <input type="checkbox" wire:model.live="use_override" class="rounded accent-red-600">
                 {{ __('pricing.simulator.override_toggle') }}

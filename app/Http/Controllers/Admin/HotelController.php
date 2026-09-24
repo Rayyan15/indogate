@@ -36,6 +36,7 @@ class HotelController extends Controller
             'location' => 'required|string|max:255',
             'star_rating' => 'required|integer|min:1|max:5',
             'base_price_per_night' => 'required|numeric|min:0',
+            'currency' => 'sometimes|string|size:3|exists:currencies,code',
         ]);
 
         Hotel::create($validated);
@@ -69,6 +70,7 @@ class HotelController extends Controller
             'location' => 'required|string|max:255',
             'star_rating' => 'required|integer|min:1|max:5',
             'base_price_per_night' => 'required|numeric|min:0',
+            'currency' => 'sometimes|string|size:3|exists:currencies,code',
         ]);
 
         $hotel->update($validated);

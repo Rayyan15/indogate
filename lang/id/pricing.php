@@ -2,6 +2,8 @@
 
 return [
     'eyebrow' => 'Mesin Harga & Kurs',
+    'fx_stale' => 'Kurs lebih lama dari 24 jam. Pengambilan otomatis mungkin terblokir; cek notifikasi atau jalankan fx:fetch --force.',
+    'preview' => ['label' => 'Pratinjau'],
     'tabs' => [
         'currencies' => 'Mata Uang',
         'exchange_rates' => 'Kurs',
@@ -27,6 +29,10 @@ return [
         'code' => 'Kode',
         'symbol' => 'Simbol',
         'decimal_places' => 'Desimal',
+        'spread_bps' => 'Spread (bps)',
+        'spread_hint' => '150 = +1,5% pada harga storefront',
+        'display_rounding' => 'Pembulatan tampilan',
+        'rounding_hint' => 'Bulatkan harga storefront ke atas ke kelipatan unit ini (0 = mati)',
         'form_title' => 'Mata Uang Baru',
         'form_title_edit' => 'Ubah Mata Uang',
         'no_data' => 'Belum ada mata uang',
@@ -39,6 +45,12 @@ return [
         'effective_from' => 'Berlaku Sejak',
         'created_by' => 'Dibuat Oleh',
         'system' => 'Sistem',
+        'source' => 'Sumber',
+        'source_auto' => 'Otomatis',
+        'source_manual' => 'Manual',
+        'pinned_until' => 'Pin sampai',
+        'pinned_hint' => 'Fetch otomatis tidak menimpa selama di-pin',
+        'pinned_badge' => 'Di-pin sampai :date',
         'form_title' => 'Kurs Baru',
         'no_data' => 'Belum ada kurs',
         'current_badge' => 'Terkini',

@@ -7,6 +7,8 @@
  */
 return [
     'eyebrow' => 'محرك التسعير والعملات',
+    'fx_stale' => 'أسعار الصرف أقدم من 24 ساعة. قد يكون الجلب التلقائي متوقفاً.',
+    'preview' => ['label' => 'معاينة'],
     'tabs' => [
         'currencies' => 'العملات',
         'exchange_rates' => 'أسعار الصرف',
@@ -32,6 +34,10 @@ return [
         'code' => 'الرمز',
         'symbol' => 'الرمز التوضيحي',
         'decimal_places' => 'الخانات العشرية',
+        'spread_bps' => 'الهامش (نقطة أساس)',
+        'spread_hint' => '150 = ‎+1.5٪ على أسعار الواجهة',
+        'display_rounding' => 'تقريب العرض',
+        'rounding_hint' => 'تقريب أسعار الواجهة للأعلى إلى مضاعفات هذا العدد (0 = إيقاف)',
         'form_title' => 'عملة جديدة',
         'form_title_edit' => 'تعديل العملة',
         'no_data' => 'لا توجد عملات بعد',
@@ -44,6 +50,12 @@ return [
         'effective_from' => 'ساري من',
         'created_by' => 'أنشأه',
         'system' => 'النظام',
+        'source' => 'المصدر',
+        'source_auto' => 'تلقائي',
+        'source_manual' => 'يدوي',
+        'pinned_until' => 'تثبيت حتى',
+        'pinned_hint' => 'لن يستبدله الجلب التلقائي أثناء التثبيت',
+        'pinned_badge' => 'مثبت حتى :date',
         'form_title' => 'سعر جديد',
         'no_data' => 'لا توجد أسعار بعد',
         'current_badge' => 'الحالي',

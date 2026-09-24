@@ -4,7 +4,7 @@
     class="space-y-4"
 >
     {{-- Header --}}
-    <x-ui.page-header :eyebrow="__('lead.eyebrow')" :title="__('lead.list.index_title')" :lede="__('lead.list.index_lede')">
+    <x-ui.page-header :eyebrow="__('lead.eyebrow')" title="{{ __('lead.list.index_title') }}" :lede="__('lead.list.index_lede')">
         <x-slot name="actions">
             <x-ui.button variant="primary" :href="route('admin.leads.create')" class="shrink-0 flex items-center gap-1.5 shadow-sm">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -28,7 +28,7 @@
                 <input
                     type="text"
                     wire:model.live.debounce.300ms="search"
-                    placeholder="Cari nama atau no. telepon…"
+                    placeholder="{{ __('lead.search_name_phone_ph') }}"
                     class="h-9 w-full rounded border border-neutral-200 bg-neutral-50/50 ps-9 pe-3 text-xs text-neutral-800 placeholder-neutral-400 focus:border-red-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-600 transition"
                 >
             </div>
@@ -83,7 +83,7 @@
     </div>
 
     @if($leads->isEmpty() && !($statusFilter || $sourceFilter || $dueOnly || $search))
-        <x-ui.empty :title="__('lead.list.no_data')" text="Belum ada calon pelanggan atau permintaan masuk terdaftar.">
+        <x-ui.empty title="{{ __('lead.list.no_data') }}" text="Belum ada calon pelanggan atau permintaan masuk terdaftar.">
             <x-ui.button variant="primary" :href="route('admin.leads.create')">{{ __('lead.list.create') }}</x-ui.button>
         </x-ui.empty>
     @else
@@ -120,7 +120,7 @@
                         <x-ui.td>@include('livewire.admin.lead.partials.follow-up-badge', ['lead' => $lead])</x-ui.td>
                         <x-ui.td>
                             <div class="flex items-center justify-center">
-                                <x-ui.icon-button :href="route('admin.leads.edit', $lead)" :title="__('lead.list.edit')">
+                                <x-ui.icon-button :href="route('admin.leads.edit', $lead)" title="{{ __('lead.list.edit') }}">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </x-ui.icon-button>
                             </div>
@@ -129,7 +129,7 @@
                 @empty
                     <tr>
                         <td colspan="7" class="py-8 text-center text-xs text-neutral-400">
-                            Tidak ada lead yang cocok dengan filter pencarian.
+                            {{ __('lead.no_match') }}
                         </td>
                     </tr>
                 @endforelse
@@ -240,7 +240,7 @@
                                                 {{ $lead->assignee->name }}
                                             </span>
                                         @else
-                                            <span class="text-[11px] text-neutral-400 italic">Belum ada PIC</span>
+                                            <span class="text-[11px] text-neutral-400 italic">{{ __('lead.no_pic') }}</span>
                                         @endif
                                     </div>
 
@@ -254,7 +254,7 @@
                                 <svg class="h-5 w-5 text-neutral-300 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                 </svg>
-                                <span class="text-[11px] text-neutral-400 font-medium">Belum ada lead</span>
+                                <span class="text-[11px] text-neutral-400 font-medium">{{ __('lead.no_lead') }}</span>
                             </div>
                         @endforelse
                     </div>

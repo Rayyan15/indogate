@@ -180,6 +180,7 @@ return [
         'star_rating' => 'Peringkat Bintang',
         'stars_suffix' => 'Bintang',
         'base_price_per_night' => 'Harga Dasar per Malam (IDR)',
+        'currency' => 'Mata uang',
         'base_price_placeholder' => 'cth. 1500000',
         'save_hotel' => 'Simpan Hotel',
         'update_hotel' => 'Perbarui Hotel',
@@ -272,5 +273,20 @@ return [
         'is_active' => 'Aktif',
         'cancel' => 'Batal',
         'save' => 'Simpan',
+    ],
+
+    // i18n sweep
+    'i18n' => [
+        'select_branch' => 'Pilih Cabang',
+        'view_all' => 'Lihat Semua',
+        'won' => 'Berhasil',
+        'lost' => 'Gagal',
+        'no_lost_notes' => 'Tidak ada catatan alasan penolakan pada periode ini.',
+        'unassigned' => 'Belum Ditugaskan',
+        'all_status' => 'Semua Status',
+        'all' => 'Semua',
+        'today' => 'Hari Ini',
+        'fleet_calendar' => 'Kalender Armada',
+        'search_booking_guest' => 'Cari kode booking atau nama tamu...',
     ],
 ];

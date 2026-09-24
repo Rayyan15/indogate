@@ -27,6 +27,16 @@ class ConverterTest extends TestCase
         $this->assertSame(100000, $result->amountMinor);
     }
 
+    public function test_display_conversion_overflow_throws(): void
+    {
+        $user = User::factory()->create();
+        Currency::create(['code' => 'USD', 'symbol' => '$', 'decimal_places' => 2, 'is_active' => true]);
+        ExchangeRate::create(['currency' => 'USD', 'rate' => '0.01000000', 'effective_from' => now()->subDay(), 'created_by' => $user->id]);
+
+        $this->expectException(\OverflowException::class);
+        (new Converter)->toDisplayCurrency(Money::of(PHP_INT_MAX, 'IDR'), 'USD');
+    }
+
     public function test_idr_to_idr_is_passthrough(): void
     {
         $result = (new Converter)->toDisplayCurrency(Money::of(500_000, 'IDR'), 'IDR');

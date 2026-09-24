@@ -11,7 +11,7 @@ class Hotel extends Model
 {
     use BelongsToBranch, HasFactory, HasTranslations;
 
-    protected $fillable = ['branch_id', 'name', 'description', 'location', 'star_rating', 'base_price_per_night'];
+    protected $fillable = ['branch_id', 'name', 'description', 'location', 'star_rating', 'base_price_per_night', 'currency'];
 
     /**
      * PRD M2 step 9: spatie/laravel-translatable, not a plain array cast —

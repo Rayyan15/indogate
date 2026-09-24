@@ -71,7 +71,7 @@ class StorefrontController extends Controller
     public function switchCurrency(Request $request, $locale = null): RedirectResponse
     {
         $currency = $request->input('currency');
-        if (in_array($currency, StorefrontCurrency::SUPPORTED_CURRENCIES, true)) {
+        if (StorefrontCurrency::isSupported($currency)) {
             StorefrontCurrency::set($currency);
         }
 

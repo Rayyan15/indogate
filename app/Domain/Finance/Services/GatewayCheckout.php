@@ -7,6 +7,9 @@ use App\Domain\Finance\Contracts\GatewayProvider;
 use App\Domain\Finance\Contracts\PaymentProviderInterface;
 use App\Domain\Finance\Models\Payment;
 use App\Domain\Finance\Models\PaymentIntent;
+use App\Domain\Finance\Exceptions\InvalidWebhookSignatureException;
+use App\Domain\Finance\Exceptions\MalformedWebhookException;
+use App\Domain\Finance\Exceptions\WebhookNotConfiguredException;
 use App\Enums\BookingStatus;
 use App\Notifications\OnlinePaymentFailed;
 use App\Support\Notify;
@@ -92,18 +95,22 @@ class GatewayCheckout
     /**
      * @return string outcome: processed | duplicate | ignored
      *
-     * @throws InvalidArgumentException on a bad signature or payload
+     * @throws WebhookNotConfiguredException|InvalidWebhookSignatureException|MalformedWebhookException
      */
     public function handleWebhook(string $provider, string $body, ?string $signature): string
     {
+        if (blank(config('payments.webhook_secret'))) {
+            throw new WebhookNotConfiguredException('PAYMENT_WEBHOOK_SECRET is not configured; webhook refused.');
+        }
+
         if (! $signature || ! hash_equals(self::sign($body), $signature)) {
-            throw new InvalidArgumentException('Invalid webhook signature.');
+            throw new InvalidWebhookSignatureException('Invalid webhook signature.');
         }
 
         $event = json_decode($body, true);
 
         if (! is_array($event) || empty($event['event_id']) || empty($event['type']) || empty($event['intent'])) {
-            throw new InvalidArgumentException('Malformed webhook payload.');
+            throw new MalformedWebhookException('Malformed webhook payload.');
         }
 
         return DB::transaction(function () use ($provider, $event) {
@@ -124,7 +131,13 @@ class GatewayCheckout
                 ->where('provider', $provider)
                 ->where('public_token', $event['intent'])
                 ->lockForUpdate()
-                ->firstOrFail();
+                ->first();
+
+            if (! $intent) {
+                DB::table('payment_webhook_events')->where('id', $log)->update(['processed_at' => now()]);
+
+                return 'unknown_intent';
+            }
 
             $outcome = 'ignored';
             $pending = $intent->status === PaymentIntent::STATUS_PENDING;
@@ -139,22 +152,23 @@ class GatewayCheckout
                     if (! $pending) {
                         $intent->update(['notes' => trim($intent->notes.' late')]);
                     }
-                    app(PaymentService::class)->recordGatewayPayment($intent, $reference);
-                    $outcome = $pending ? 'processed' : 'processed_late';
+                    $payment = app(PaymentService::class)->recordGatewayPayment($intent, $reference);
+                    $outcome = $payment === null ? 'needs_review' : ($pending ? 'processed' : 'processed_late');
                 } else {
-                    activity('finance')->performedOn($intent)
-                        ->withProperties(['reference' => $reference, 'intent_status' => $intent->status])
-                        ->log('Gateway payment needs manual refund review');
+                    app(PaymentService::class)->flagForReview($intent, $reference);
                     $outcome = 'needs_review';
                 }
             } elseif ($pending) {
-                match ($event['type']) {
-                    self::EVENT_FAILED => $intent->update(['status' => PaymentIntent::STATUS_CANCELLED, 'failure_reason' => $event['reason'] ?? null]),
-                    self::EVENT_EXPIRED => $intent->update(['status' => PaymentIntent::STATUS_EXPIRED]),
-                    default => throw new InvalidArgumentException('Unknown event type.'),
+                $new = match ($event['type']) {
+                    self::EVENT_FAILED => ['status' => PaymentIntent::STATUS_CANCELLED, 'failure_reason' => $event['reason'] ?? null],
+                    self::EVENT_EXPIRED => ['status' => PaymentIntent::STATUS_EXPIRED],
+                    default => null,
                 };
-                $outcome = 'processed';
-                self::notifyFailed($intent);
+                if ($new !== null) {
+                    $intent->update($new);
+                    $outcome = 'processed';
+                    $this->notifyFailed($intent);
+                }
             }
 
             DB::table('payment_webhook_events')->where('id', $log)->update(['processed_at' => now()]);
@@ -164,7 +178,7 @@ class GatewayCheckout
     }
 
     /** Tell the booking creator an online payment attempt failed or expired. */
-    public static function notifyFailed(PaymentIntent $intent): void
+    public function notifyFailed(PaymentIntent $intent): void
     {
         $booking = PackageBooking::withoutGlobalScopes()->find($intent->booking_id);
 

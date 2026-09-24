@@ -56,7 +56,7 @@ class PackageCatalog extends Component
 
     public function setCurrency(string $currency): void
     {
-        if (in_array($currency, StorefrontCurrency::SUPPORTED_CURRENCIES, true)) {
+        if (StorefrontCurrency::isSupported($currency)) {
             StorefrontCurrency::set($currency);
             $this->currency = $currency;
         }

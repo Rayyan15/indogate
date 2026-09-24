@@ -51,4 +51,10 @@ return [
         'thanks' => 'Terima kasih, tim kami akan segera menghubungi Anda.',
     ],
     'quotation_rate_missing' => 'Satu atau lebih item paket belum punya rate untuk tanggal yang dipilih. Tambahkan rate sebelum membuat penawaran.',
+
+    // i18n sweep
+    'search_name_phone_ph' => 'Cari nama atau no. telepon…',
+    'no_match' => 'Tidak ada lead yang cocok dengan filter pencarian.',
+    'no_pic' => 'Belum ada PIC',
+    'no_lead' => 'Belum ada lead',
 ];

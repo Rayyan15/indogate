@@ -51,6 +51,7 @@ class PricingDemoSeeder extends Seeder
         Currency::updateOrCreate(['code' => 'USD'], ['symbol' => '$', 'decimal_places' => 2, 'is_active' => true]);
         Currency::updateOrCreate(['code' => 'SAR'], ['symbol' => 'SR', 'decimal_places' => 2, 'is_active' => true]);
         Currency::updateOrCreate(['code' => 'EUR'], ['symbol' => '€', 'decimal_places' => 2, 'is_active' => true]);
+        Currency::updateOrCreate(['code' => 'AED'], ['symbol' => 'AED', 'decimal_places' => 2, 'is_active' => true]);
         Currency::updateOrCreate(['code' => 'KRW'], ['symbol' => '₩', 'decimal_places' => 0, 'is_active' => false]);
     }
 

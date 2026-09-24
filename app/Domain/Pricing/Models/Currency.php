@@ -17,13 +17,15 @@ class Currency extends Model
 
     public $incrementing = false;
 
-    protected $fillable = ['code', 'symbol', 'decimal_places', 'is_active'];
+    protected $fillable = ['code', 'symbol', 'decimal_places', 'is_active', 'spread_bps', 'display_rounding'];
 
     protected function casts(): array
     {
         return [
             'decimal_places' => 'integer',
             'is_active' => 'boolean',
+            'spread_bps' => 'integer',
+            'display_rounding' => 'integer',
         ];
     }
 

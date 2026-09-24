@@ -185,6 +185,7 @@ return [
         'star_rating' => 'تصنيف النجوم',
         'stars_suffix' => 'نجوم',
         'base_price_per_night' => 'السعر الأساسي لليلة (روبية)',
+        'currency' => 'العملة',
         'base_price_placeholder' => 'مثال: 1500000',
         'save_hotel' => 'حفظ الفندق',
         'update_hotel' => 'تحديث الفندق',
@@ -277,5 +278,20 @@ return [
         'is_active' => 'نشط',
         'cancel' => 'إلغاء',
         'save' => 'حفظ',
+    ],
+
+    // i18n sweep
+    'i18n' => [
+        'select_branch' => 'اختر الفرع',
+        'view_all' => 'عرض الكل',
+        'won' => 'ناجح',
+        'lost' => 'فاشل',
+        'no_lost_notes' => 'لا توجد ملاحظات أسباب رفض في هذه الفترة.',
+        'unassigned' => 'غير مُسند',
+        'all_status' => 'كل الحالات',
+        'all' => 'الكل',
+        'today' => 'اليوم',
+        'fleet_calendar' => 'تقويم الأسطول',
+        'search_booking_guest' => 'ابحث برمز الحجز أو اسم الضيف...',
     ],
 ];

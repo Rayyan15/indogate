@@ -82,4 +82,15 @@ return [
     'cancelled_successfully' => 'Penugasan berhasil dibatalkan.',
     'deleted_successfully' => 'Data berhasil dihapus.',
     'has_future_assignments' => 'Tidak bisa dinonaktifkan/dihapus: masih ada penugasan aktif. Batalkan penugasan dulu.',
+
+    // i18n sweep
+    'all_gender' => 'Semua Gender',
+    'search_assignment_ph' => 'Cari driver, plat, booking…',
+    'active_date' => 'Tanggal Aktif:',
+    'assignment_total' => 'Total :count penugasan aktif pada tanggal ini',
+    'cancel_reason_hint' => 'Masukkan alasan pembatalan penugasan driver. Alasan ini akan tercatat dalam audit log.',
+    'calendar_lede' => 'Jadwal penugasan driver dan armada di cabang :branch',
+    'drivers_lede' => 'Driver di cabang :branch',
+    'vehicles_lede' => 'Kendaraan di cabang :branch',
+    'no_vehicle_data' => 'Belum ada data kendaraan untuk filter ini.',
 ];

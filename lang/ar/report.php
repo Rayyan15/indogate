@@ -81,4 +81,13 @@ return [
     'no_bookings' => 'لم يتم العثور على حجوزات في الفترة المحددة.',
     'no_pending_verifications' => 'تم التحقق من جميع المدفوعات.',
     'all_clear' => 'الوضع مكتمل',
+
+    // i18n sweep
+    'lost_reason_notes' => 'سبب الخسارة / ملاحظات',
+    'running_assignments' => 'المهام الجارية',
+    'active_hotel_partners' => 'شركاء الفنادق النشطون',
+    'fleet_schedule' => 'جدول تكليف الأسطول',
+    'vehicle' => 'المركبة',
+    'date_range' => 'نطاق التاريخ',
+    'won_count' => ':count ناجح',
 ];

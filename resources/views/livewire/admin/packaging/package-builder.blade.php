@@ -1,12 +1,12 @@
 <div>
-    <x-ui.page-header :eyebrow="__('packaging.eyebrow')" :title="__('packaging.builder.title')" :lede="__('packaging.builder.lede')">
+    <x-ui.page-header :eyebrow="__('packaging.eyebrow')" title="{{ __('packaging.builder.title') }}" :lede="__('packaging.builder.lede')">
         <x-slot name="actions">
             <div class="flex items-center gap-2">
                 <x-ui.button variant="ghost" :href="route('admin.packages.index')">
                     <svg class="h-4 w-4 me-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    <span>Kembali</span>
+                    <span>{{ __('packaging.back') }}</span>
                 </x-ui.button>
             </div>
         </x-slot>
@@ -46,7 +46,7 @@
                         <div>
                             <div class="relative">
                                 <span class="absolute inset-y-0 start-0 flex items-center ps-3 text-xs font-bold text-neutral-400">ID</span>
-                                <input type="text" wire:model="name.id" placeholder="Nama paket dalam Bahasa Indonesia" class="admin-input ps-10">
+                                <input type="text" wire:model="name.id" placeholder="{{ __('packaging.name_id_ph') }}" class="admin-input ps-10">
                             </div>
                             @error('name.id') <span class="text-xs text-red-600 mt-1 block">{{ $message }}</span> @enderror
                         </div>
@@ -80,7 +80,7 @@
                         </label>
                         <div class="mt-1 relative">
                             <input type="number" min="1" wire:model="duration_days" class="admin-input pe-14 font-mono" placeholder="3">
-                            <span class="absolute inset-y-0 end-0 flex items-center pe-3 text-xs text-neutral-400 font-medium">Hari</span>
+                            <span class="absolute inset-y-0 end-0 flex items-center pe-3 text-xs text-neutral-400 font-medium">{{ __('packaging.days') }}</span>
                         </div>
                         <p class="mt-1 text-[11px] text-neutral-500">Total rentang hari kegiatan pada jadwal tur (misal: 3 hari).</p>
                         @error('duration_days') <span class="text-xs text-red-600 mt-1 block">{{ $message }}</span> @enderror
@@ -166,8 +166,8 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 min-w-0">
                         <div class="bg-neutral-0/80 p-2.5 rounded border border-blue-100 min-w-0">
-                            <p class="font-semibold text-neutral-900">1. Jadwal Hari (Itinerari)</p>
-                            <p class="mt-0.5 text-[11px] text-neutral-600 leading-relaxed">0 = Hari pertama kedatangan, 1 = Hari kedua, dst. Rentang 0 s/d 2 berarti mencakup hari ke-1 sampai hari ke-3.</p>
+                            <p class="font-semibold text-neutral-900">{{ __('packaging.day_schedule') }}</p>
+                            <p class="mt-0.5 text-[11px] text-neutral-600 leading-relaxed">{{ __('packaging.day_schedule_hint') }}</p>
                         </div>
                         <div class="bg-neutral-0/80 p-2.5 rounded border border-blue-100 min-w-0">
                             <p class="font-semibold text-neutral-900">2. Jumlah Unit (Qty)</p>
@@ -194,7 +194,7 @@
                             <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-800">
                                 Rekomendasi Komponen (Berdasarkan Kategori)
                             </h4>
-                            <p class="text-[11px] text-neutral-500 mt-0.5">Pilih langsung dari inventaris utama di bawah tanpa perlu mengetik pencarian.</p>
+                            <p class="text-[11px] text-neutral-500 mt-0.5">{{ __('packaging.pick_inventory_hint') }}</p>
                         </div>
                         <div class="inline-flex items-center p-1 bg-neutral-100 rounded-lg border border-neutral-200/80 flex-wrap gap-1 text-xs">
                             <button
@@ -203,7 +203,7 @@
                                 class="px-3 py-1 rounded-md text-xs font-medium transition cursor-pointer"
                                 :class="activeCat === 'all' ? 'bg-neutral-0 text-neutral-900 shadow-2xs font-bold' : 'text-neutral-600 hover:text-neutral-900'"
                             >
-                                Semua ({{ ($availableInventory ?? collect())->count() }})
+                                {{ __('packaging.all_count', ['count' => ($availableInventory ?? collect())->count()]) }}
                             </button>
                             <button
                                 type="button"
@@ -219,7 +219,7 @@
                                 class="px-3 py-1 rounded-md text-xs font-medium transition cursor-pointer"
                                 :class="activeCat === 'vehicle' ? 'bg-emerald-600 text-white shadow-2xs font-bold' : 'text-neutral-600 hover:text-emerald-700'"
                             >
-                                Driver & Armada ({{ $vehicleItems->count() }})
+                                {{ __('packaging.driver_fleet_count', ['count' => $vehicleItems->count()]) }}
                             </button>
                             <button
                                 type="button"
@@ -253,10 +253,10 @@
                                     default => 'bg-blue-50 text-blue-700 border-blue-200',
                                 };
                                 $categoryLabel = match($typeCategory) {
-                                    'room' => 'Hotel / Room',
-                                    'vehicle' => 'Driver & Armada',
-                                    'ticket' => 'Flight & Tiket',
-                                    default => 'Aktivitas & Tur',
+                                    'room' => __('packaging.cat_room'),
+                                    'vehicle' => __('packaging.driver_fleet'),
+                                    'ticket' => __('packaging.cat_ticket'),
+                                    default => __('packaging.cat_activity'),
                                 };
                             @endphp
                             <div
@@ -285,12 +285,12 @@
                                         type="button"
                                         x-on:click="addItem({{ $inv->id }}, @js($invName), '{{ $typeCategory }}', @js($inv->partner?->name ?? ''))"
                                         class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 hover:bg-red-600 px-3 py-1.5 text-xs font-semibold text-red-700 hover:text-white transition shadow-2xs cursor-pointer"
-                                        title="Tambah ke Paket"
+                                        title="{{ __('packaging.add_to_package') }}"
                                     >
                                         <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                                         </svg>
-                                        <span>Tambah</span>
+                                        <span>{{ __('packaging.add') }}</span>
                                     </button>
                                 </div>
                             </div>
@@ -301,7 +301,7 @@
                 {{-- Component Search & Picker --}}
                 <div class="relative pt-1">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-1.5">
-                        Atau Cari Komponen Spesifik
+                        {{ __('packaging.search_specific') }}
                     </label>
                     <div class="relative">
                         <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-neutral-400">
@@ -352,7 +352,7 @@
                         </div>
                     @elseif($componentSearch !== '' && $this->componentResults->isEmpty())
                         <div class="absolute z-30 mt-1 w-full rounded-lg border border-neutral-200 bg-neutral-0 p-4 shadow-lg text-center text-xs text-neutral-500">
-                            Tidak ada item inventaris yang cocok dengan "{{ $componentSearch }}".
+                            {{ __('packaging.no_inventory_match', ['q' => $componentSearch]) }}
                         </div>
                     @endif
                 </div>
@@ -365,7 +365,7 @@
                         </svg>
                     </div>
                     <h4 class="mt-3 text-sm font-semibold text-neutral-800">{{ __('packaging.builder.no_component') }}</h4>
-                    <p class="mt-1 text-xs text-neutral-500 max-w-sm mx-auto">Klik tombol <strong>+ Tambah</strong> pada kartu rekomendasi kategori di atas (Hotel, Driver, Flight, atau Aktivitas) untuk memulai penyusunan paket.</p>
+                    <p class="mt-1 text-xs text-neutral-500 max-w-sm mx-auto">{!! __('packaging.empty_hint') !!}</p>
                 </div>
 
                 {{-- Items Table --}}
@@ -375,7 +375,7 @@
                             <tr>
                                 <th scope="col" class="py-2.5 px-1.5 w-7 text-center text-neutral-400 font-normal">#</th>
                                 <th scope="col" class="py-2.5 px-2 text-center w-[160px] max-w-[170px]">Komponen Layanan</th>
-                                <th scope="col" class="py-2.5 px-1.5 text-center w-[115px]">Jadwal Hari</th>
+                                <th scope="col" class="py-2.5 px-1.5 text-center w-[115px]">{{ __('packaging.day_schedule_col') }}</th>
                                 <th scope="col" class="py-2.5 px-1 text-center w-[76px]">Jumlah</th>
                                 <th scope="col" class="py-2.5 px-1 text-center w-[76px]">Menginap</th>
                                 <th scope="col" class="py-2.5 px-2 text-center w-[125px]">Subtotal</th>
@@ -401,7 +401,7 @@
                                                 </template>
                                                 <template x-if="row.type === 'vehicle'">
                                                     <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                                                        Armada
+                                                        {{ __('packaging.fleet_badge') }}
                                                     </span>
                                                 </template>
                                                 <template x-if="row.type === 'ticket'">
@@ -469,7 +469,7 @@
                                                             }
                                                         "
                                                         class="h-5 w-4 flex items-center justify-center text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 text-xs font-bold transition select-none cursor-pointer"
-                                                        title="Kurangi Hari"
+                                                        title="{{ __('packaging.decrease_day') }}"
                                                     >−</button>
                                                     <input
                                                         type="number"
@@ -499,7 +499,7 @@
                                                             recalculate();
                                                         "
                                                         class="h-5 w-4 flex items-center justify-center text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 text-xs font-bold transition select-none cursor-pointer"
-                                                        title="Tambah Hari"
+                                                        title="{{ __('packaging.increase_day') }}"
                                                     >+</button>
                                                 </div>
                                                 <span class="text-[9px] text-neutral-400 font-medium select-none">hr</span>
@@ -528,7 +528,7 @@
                                                     type="button"
                                                     x-on:click="row.qty++; recalculate();"
                                                     class="h-6 w-5 flex items-center justify-center text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 text-xs font-bold transition select-none cursor-pointer"
-                                                    title="Tambah"
+                                                    title="{{ __('packaging.add') }}"
                                                 >+</button>
                                             </div>
                                             <span class="mt-0.5 text-[9px] font-medium text-neutral-400 capitalize tracking-tight" x-text="getQtyUnit(row)"></span>
@@ -557,7 +557,7 @@
                                                         type="button"
                                                         x-on:click="row.nights = (row.nights || 0) + 1; recalculate();"
                                                         class="h-6 w-5 flex items-center justify-center text-indigo-700 hover:text-indigo-950 hover:bg-indigo-100 text-xs font-bold transition select-none cursor-pointer"
-                                                        title="Tambah Malam"
+                                                        title="{{ __('packaging.add_night') }}"
                                                     >+</button>
                                                 </div>
                                                 <span class="mt-0.5 text-[9px] font-medium text-indigo-500">malam</span>
@@ -591,8 +591,8 @@
                                             type="button"
                                             x-on:click="removeItem(index)"
                                             class="inline-flex h-6 w-6 items-center justify-center rounded text-neutral-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
-                                            title="Hapus Komponen"
-                                            aria-label="Hapus Komponen"
+                                            title="{{ __('packaging.remove_component') }}"
+                                            aria-label="{{ __('packaging.remove_component') }}"
                                         >
                                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -608,7 +608,7 @@
                 {{-- Action Reminder Bar --}}
                 <div class="flex items-center justify-between pt-2">
                     <p class="text-xs text-neutral-500">
-                        Perubahan komponen langsung dihitung di peramban. Klik <strong>Simpan Paket</strong> saat susunan selesai.
+                        {!! __('packaging.live_calc_hint') !!}
                     </p>
                     <div class="flex items-center gap-2">
                         <x-ui.button variant="secondary" type="button" x-on:click="recalculate()">

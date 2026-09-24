@@ -2,6 +2,8 @@
 
 return [
     'eyebrow' => 'Pricing & Currency Engine',
+    'fx_stale' => 'Exchange rates are older than 24 hours. Auto-fetch may be blocked; check notifications or run fx:fetch --force.',
+    'preview' => ['label' => 'Preview'],
     'tabs' => [
         'currencies' => 'Currencies',
         'exchange_rates' => 'Exchange Rates',
@@ -27,6 +29,10 @@ return [
         'code' => 'Code',
         'symbol' => 'Symbol',
         'decimal_places' => 'Decimals',
+        'spread_bps' => 'Spread (bps)',
+        'spread_hint' => '150 = +1.5% on storefront prices',
+        'display_rounding' => 'Display rounding',
+        'rounding_hint' => 'Round storefront prices up to a multiple of this many units (0 = off)',
         'form_title' => 'New Currency',
         'form_title_edit' => 'Edit Currency',
         'no_data' => 'No currencies yet',
@@ -39,6 +45,12 @@ return [
         'effective_from' => 'Effective From',
         'created_by' => 'Created By',
         'system' => 'System',
+        'source' => 'Source',
+        'source_auto' => 'Auto',
+        'source_manual' => 'Manual',
+        'pinned_until' => 'Pin until',
+        'pinned_hint' => 'Auto-fetch will not override while pinned',
+        'pinned_badge' => 'Pinned until :date',
         'form_title' => 'New Rate',
         'no_data' => 'No rates yet',
         'current_badge' => 'Current',

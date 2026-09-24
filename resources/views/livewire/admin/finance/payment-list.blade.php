@@ -1,17 +1,23 @@
 <div>
-    <x-ui.page-header :eyebrow="'M9 · '.__('finance.finance')" :title="__('finance.payments')" lede="Kelola verifikasi pembayaran pemesanan di cabang {{ \App\Support\Branch\CurrentBranch::model()?->name }}">
+    <x-ui.page-header :eyebrow="'M9 · '.__('finance.finance')" :title="__('finance.payments')" :lede="__('payment.admin.list_lede', ['branch' => \App\Support\Branch\CurrentBranch::model()?->name])">
         <x-slot name="actions">
-            <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="Cari kode booking, tamu, kanal…" class="w-56 shrink-0" />
+            <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="{{ __('payment.admin.search_placeholder') }}" class="w-56 shrink-0" />
 
             <select wire:model.live="typeFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
-                <option value="">Semua Jenis</option>
+                <option value="">{{ __('payment.admin.all_types') }}</option>
                 <option value="down_payment">{{ __('finance.type_down_payment') }}</option>
                 <option value="full_payment">{{ __('finance.type_full_payment') }}</option>
                 <option value="installment">{{ __('finance.type_installment') }}</option>
             </select>
 
+            <select wire:model.live="sourceFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                <option value="">{{ __('payment.admin.all_sources') }}</option>
+                <option value="gateway">{{ __('payment.admin.source_gateway') }}</option>
+                <option value="manual">{{ __('payment.admin.source_manual') }}</option>
+            </select>
+
             <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
-                <option value="">Semua Status</option>
+                <option value="">{{ __('payment.admin.all_statuses') }}</option>
                 <option value="pending">{{ __('finance.status_pending') }}</option>
                 <option value="verified">{{ __('finance.status_verified') }}</option>
                 <option value="rejected">{{ __('finance.status_rejected') }}</option>
@@ -39,8 +45,29 @@
         </div>
     @endif
 
+    @if($reviewIntents->isNotEmpty())
+        <div class="mb-4 rounded border border-amber-300 bg-amber-50 p-4">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-900">{{ __('payment.admin.review_title') }}</h3>
+            <p class="mt-1 text-xs text-amber-800">{{ __('payment.admin.review_hint') }}</p>
+            <ul class="mt-3 space-y-2">
+                @foreach($reviewIntents as $intent)
+                    <li wire:key="review-{{ $intent->id }}" class="flex items-center justify-between gap-3 text-xs">
+                        <span class="min-w-0 text-neutral-800">
+                            <a href="{{ route('admin.package-bookings.show', $intent->booking_id) }}" class="font-mono font-bold text-red-600 hover:underline">{{ $intent->booking?->code }}</a>
+                            · <span class="font-mono tabular-nums" dir="ltr">{{ $intent->currency }} {{ \App\Domain\Finance\Fx::format((int) $intent->amount_minor, $intent->currency) }}</span>
+                            · <span class="font-mono text-neutral-500" dir="ltr">{{ $intent->provider_reference ?? $intent->public_token }}</span>
+                        </span>
+                        @can('payment.verify')
+                            <button type="button" wire:click="resolveReview({{ $intent->id }})" class="shrink-0 rounded border border-amber-400 px-3 py-1 font-medium text-amber-900 hover:bg-amber-100">{{ __('payment.admin.review_resolve') }}</button>
+                        @endcan
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     @if($payments->isEmpty())
-        <x-ui.empty :title="__('finance.payments')" text="Belum ada catatan pembayaran yang cocok dengan filter." />
+        <x-ui.empty :title="__('finance.payments')" :text="__('payment.admin.list_empty')" />
     @else
         <x-ui.table>
             <x-slot name="head">
@@ -129,8 +156,8 @@
                                         type="button"
                                         wire:click="verifyPayment({{ $item->id }})"
                                         class="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                                        title="Verifikasi"
-                                        aria-label="Verifikasi"
+                                        title="{{ __('payment.admin.verify') }}"
+                                        aria-label="{{ __('payment.admin.verify') }}"
                                     >
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </x-ui.icon-button>
@@ -139,8 +166,8 @@
                                         type="button"
                                         wire:click="openRejectModal({{ $item->id }})"
                                         class="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        title="Tolak"
-                                        aria-label="Tolak"
+                                        title="{{ __('payment.admin.reject') }}"
+                                        aria-label="{{ __('payment.admin.reject') }}"
                                     >
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </x-ui.icon-button>
@@ -165,7 +192,7 @@
                     {{ __('finance.reject_payment') }}
                 </h3>
                 <p class="mt-1 text-xs text-neutral-600">
-                    Masukkan alasan penolakan pembayaran. Bukti dan catatan ini akan disimpan dalam riwayat audit.
+                    {{ __('payment.admin.reject_hint') }}
                 </p>
 
                 <form wire:submit="rejectPayment" class="mt-4 space-y-4">
@@ -173,7 +200,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700">
                             {{ __('finance.rejection_reason') }} <span class="text-red-600">*</span>
                         </label>
-                        <textarea wire:model="rejectionReason" rows="3" required placeholder="Contoh: Bukti transfer tidak terbaca / dana belum masuk rekening" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none"></textarea>
+                        <textarea wire:model="rejectionReason" rows="3" required placeholder="{{ __('payment.admin.reject_placeholder') }}" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none"></textarea>
                         @error('rejectionReason') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
                     </div>
 

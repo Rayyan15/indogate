@@ -25,6 +25,9 @@ class CurrencySwitchTest extends TestCase
 
     public function test_currency_switch_updates_session(): void
     {
+        \App\Domain\Pricing\Models\Currency::create(['code' => 'SAR', 'symbol' => 'SAR', 'decimal_places' => 2, 'is_active' => true]);
+        \App\Domain\Pricing\Models\Currency::create(['code' => 'IDR', 'symbol' => 'Rp', 'decimal_places' => 0, 'is_active' => true]);
+        ExchangeRate::create(['currency' => 'SAR', 'rate' => '4250', 'effective_from' => now()->subMinute()]);
         $response = $this->post('/en/currency', ['currency' => 'SAR']);
         $response->assertRedirect();
         $this->assertEquals('SAR', session('storefront_currency'));

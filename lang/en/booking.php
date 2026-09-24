@@ -83,4 +83,17 @@ return [
     'convert_expired' => 'This quotation has expired and can no longer be converted.',
 
     'no_balance_due' => 'Paid in full — nothing due',
+
+    'assign_hint' => 'Driver and vehicle assignment for this booking',
+    'phone_label' => 'Phone:',
+    'languages_label' => 'Languages:',
+    'vehicle_label' => 'Vehicle:',
+    'period_label' => 'Period:',
+    'period_to' => 'to',
+    'notes_label' => 'Notes:',
+    'pick_driver' => '-- Select Driver (:count available) --',
+    'no_vehicle' => '-- No Vehicle / Driver Brings Own --',
+    'assign_notes_ph' => 'Example: Guest needs an Arabic-speaking driver for airport pickup',
+    'cancel_assign_hint' => 'Enter the reason for cancelling the driver assignment. This reason will be recorded in the audit log.',
+    'cancel_assign_ph' => 'Example: Guest cancelled the private driver assignment',
 ];

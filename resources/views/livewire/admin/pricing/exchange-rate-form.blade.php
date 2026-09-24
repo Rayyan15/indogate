@@ -18,6 +18,10 @@
                 <input type="datetime-local" wire:model="effective_from" class="admin-input">
             </x-ui.field>
 
+            <x-ui.field :label="__('pricing.exchange_rate.pinned_until')" :hint="__('pricing.exchange_rate.pinned_hint')" :error="$errors->first('pinned_until')">
+                <input type="datetime-local" wire:model="pinned_until" class="admin-input">
+            </x-ui.field>
+
             <div class="flex justify-end gap-3 border-t border-neutral-200 pt-5">
                 <x-ui.button variant="secondary" type="button" x-on:click="$dispatch('close-modal', 'exchange-rate-form')">{{ __('pricing.common.cancel') }}</x-ui.button>
                 <x-ui.button variant="primary" type="submit" wire:loading.attr="disabled">{{ __('pricing.common.save') }}</x-ui.button>

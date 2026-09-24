@@ -83,4 +83,17 @@ return [
     'convert_expired' => 'Penawaran ini sudah kedaluwarsa dan tidak bisa dikonversi.',
 
     'no_balance_due' => 'Lunas — tidak ada tagihan',
+
+    'assign_hint' => 'Penugasan driver dan armada untuk pemesanan ini',
+    'phone_label' => 'Telp:',
+    'languages_label' => 'Bahasa:',
+    'vehicle_label' => 'Kendaraan:',
+    'period_label' => 'Periode:',
+    'period_to' => 's/d',
+    'notes_label' => 'Catatan:',
+    'pick_driver' => '-- Pilih Driver (:count tersedia) --',
+    'no_vehicle' => '-- Tanpa Kendaraan / Driver Bawa Sendiri --',
+    'assign_notes_ph' => 'Contoh: Tamu butuh driver berbahasa Arab untuk penjemputan bandara',
+    'cancel_assign_hint' => 'Masukkan alasan pembatalan penugasan driver. Alasan ini akan tercatat dalam audit log.',
+    'cancel_assign_ph' => 'Contoh: Tamu membatalkan penugasan driver pribadi',
 ];

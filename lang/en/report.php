@@ -81,4 +81,13 @@ return [
     'no_bookings' => 'No bookings found in the selected period.',
     'no_pending_verifications' => 'All payments have been verified.',
     'all_clear' => 'All Clear',
+
+    // i18n sweep
+    'lost_reason_notes' => 'Loss Reason / Notes',
+    'running_assignments' => 'Ongoing Assignments',
+    'active_hotel_partners' => 'Active Hotel Partners',
+    'fleet_schedule' => 'Fleet Assignment Schedule',
+    'vehicle' => 'Vehicle',
+    'date_range' => 'Date Range',
+    'won_count' => ':count Won',
 ];

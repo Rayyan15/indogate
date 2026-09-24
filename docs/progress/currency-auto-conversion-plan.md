@@ -1,6 +1,6 @@
 # Rencana Konversi Mata Uang Otomatis (Real-time)
 
-Status: **pengambilan kurs otomatis (fx:fetch, fawazahmed0) dikerjakan 2026-09-24; pratinjau konversi di form admin belum** · Dibuat: 2026-09-23
+Status: **tahap 1-6 selesai 2026-09-24** (fx:fetch, source/pin, spread+pembulatan tampilan, activity log, pratinjau `<x-ui.money-preview>` di form rate inventori/channel cost/simulator, hotels.currency, daftar mata uang storefront dinamis). Belum: QA Chrome (tahap 7), FxRateSource interface (sengaja dilewati: satu vendor, YAGNI), grafik mini 30 hari (opsional), fetch hourly (menunggu keputusan owner) · Dibuat: 2026-09-23
 
 ## 1. Tujuan
 

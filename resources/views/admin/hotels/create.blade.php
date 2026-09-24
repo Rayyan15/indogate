@@ -26,6 +26,13 @@
                     <x-ui.field :label="__('admin.hotels.base_price_per_night')" :error="$errors->first('base_price_per_night')">
                         <input type="number" step="1000" min="0" name="base_price_per_night" value="{{ old('base_price_per_night') }}" placeholder="{{ __('admin.hotels.base_price_placeholder') }}" class="admin-input font-mono" required>
                     </x-ui.field>
+                    <x-ui.field :label="__('admin.hotels.currency')" :error="$errors->first('currency')">
+                        <select name="currency" class="admin-input">
+                            @foreach(\App\Domain\Pricing\Models\Currency::where('is_active', true)->orderBy('code')->pluck('code') as $code)
+                                <option value="{{ $code }}" {{ old('currency', 'IDR') === $code ? 'selected' : '' }}>{{ $code }}</option>
+                            @endforeach
+                        </select>
+                    </x-ui.field>
                 </div>
                 <div class="flex gap-3 border-t border-neutral-200 pt-6">
                     <x-ui.button variant="primary" type="submit">{{ __('admin.hotels.save_hotel') }}</x-ui.button>

@@ -30,6 +30,7 @@ return [
         'user' => 'Users',
         'activitylog' => 'Audit',
         'branch' => 'Branch',
+        'desk' => 'Desk',
     ],
     'perm' => [
         'catalog.manage' => ['label' => 'Manage catalog', 'description' => 'Add/edit hotels, flights, partners, items and packages.'],
@@ -45,5 +46,7 @@ return [
         'user.manage' => ['label' => 'Manage users', 'description' => 'Add users and manage role permissions.'],
         'activitylog.view' => ['label' => 'View audit log', 'description' => 'See security activity history.'],
         'branch.switch' => ['label' => 'Switch branch', 'description' => 'View and switch to other branches.'],
+        'desk.cs' => ['label' => 'CS Desk', 'description' => 'Opens the CS Desk (work queue).'],
+        'desk.admin' => ['label' => 'Admin Desk', 'description' => 'Opens the branch Admin Desk (supervision).'],
     ],
 ];

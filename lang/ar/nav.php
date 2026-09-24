@@ -9,6 +9,7 @@ return [
     'overview' => 'نظرة عامة',
     'dashboard' => 'لوحة التحكم',
     'cs_desk' => 'مكتب خدمة العملاء',
+    'admin_desk' => 'مكتب الإدارة',
     'roles' => 'صلاحيات الأدوار',
     'operations' => 'العمليات',
     'bookings' => 'الحجوزات',

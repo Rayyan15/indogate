@@ -1,10 +1,10 @@
 <div>
     <x-ui.page-header :eyebrow="'M9 · '.__('finance.finance')" :title="__('finance.vendor_payments')" lede="Pencatatan pengeluaran dan pembayaran modal ke mitra vendor cabang {{ \App\Support\Branch\CurrentBranch::model()?->name }}">
         <x-slot name="actions">
-            <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="Cari vendor, booking, catatan…" class="w-56 shrink-0" />
+            <x-ui.search-input wire:model.live.debounce.300ms="search" :placeholder="__('finance.vp_search_ph')" class="w-56 shrink-0" />
 
             <select wire:model.live="partnerFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[140px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
-                <option value="">Semua Mitra Vendor</option>
+                <option value="">{{ __('finance.vp_all_vendors') }}</option>
                 @foreach($partners as $partner)
                     <option value="{{ $partner->id }}">{{ $partner->name }}</option>
                 @endforeach
@@ -36,7 +36,7 @@
                 <x-ui.th>{{ __('finance.booking_code') }}</x-ui.th>
                 <x-ui.th>{{ __('finance.description') }}</x-ui.th>
                 <x-ui.th numeric>{{ __('finance.amount') }}</x-ui.th>
-                <x-ui.th>Aksi</x-ui.th>
+                <x-ui.th>{{ __('finance.action') }}</x-ui.th>
             </x-slot>
             @foreach($vendorPayments as $vp)
                 <x-ui.tr wire:key="vp-{{ $vp->id }}">
@@ -53,7 +53,7 @@
                                 {{ $vp->booking->code }}
                             </a>
                         @else
-                            <span class="text-neutral-400 text-xs">— (Biaya Operasional Umum)</span>
+                            <span class="text-neutral-400 text-xs">{{ __('finance.vp_general_cost') }}</span>
                         @endif
                     </x-ui.td>
                     <x-ui.td class="text-xs text-neutral-600">
@@ -78,8 +78,8 @@
                                     wire:click="deleteVendorPayment({{ $vp->id }})"
                                     wire:loading.attr="disabled"
                                     class="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    title="Hapus"
-                                    aria-label="Hapus"
+                                    :title="__('finance.delete_label')"
+                                    :aria-label="__('finance.delete_label')"
                                 >
                                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -111,7 +111,7 @@
                             {{ __('finance.partner') }} <span class="text-red-600">*</span>
                         </label>
                         <select wire:model="partner_id" required class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none">
-                            <option value="">-- Pilih Mitra Vendor --</option>
+                            <option value="">{{ __('finance.vp_pick_vendor') }}</option>
                             @foreach($partners as $p)
                                 <option value="{{ $p->id }}">{{ $p->name }} ({{ strtoupper($p->type?->value ?? '') }})</option>
                             @endforeach
@@ -121,10 +121,10 @@
 
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700">
-                            Terkait Pemesanan (Opsional)
+                            {{ __('finance.vp_linked_booking') }}
                         </label>
                         <select wire:model="booking_id" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none">
-                            <option value="">-- Tidak Terikat / Umum --</option>
+                            <option value="">{{ __('finance.vp_unlinked') }}</option>
                             @foreach($recentBookings as $b)
                                 <option value="{{ $b->id }}">{{ $b->code }} — {{ $b->quotation?->lead?->name }}</option>
                             @endforeach
@@ -145,9 +145,9 @@
                                 {{ __('finance.currency') }} <span class="text-red-600">*</span>
                             </label>
                             <select wire:model.live="currency" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none">
-                                <option value="IDR">IDR (Rupiah)</option>
-                                <option value="SAR">SAR (Riyal)</option>
-                                <option value="USD">USD (Dollar)</option>
+                                <option value="IDR">{{ __('finance.cur_idr') }}</option>
+                                <option value="SAR">{{ __('finance.cur_sar') }}</option>
+                                <option value="USD">{{ __('finance.cur_usd') }}</option>
                             </select>
                         </div>
                     </div>
@@ -173,7 +173,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700">
                             {{ __('finance.description') }}
                         </label>
-                        <input type="text" wire:model="description" placeholder="Contoh: Pembayaran deposit kamar hotel 3 malam" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none" />
+                        <input type="text" wire:model="description" :placeholder="__('finance.vp_desc_ph')" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none" />
                         @error('description') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                     </div>
 

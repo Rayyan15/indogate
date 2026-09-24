@@ -6,6 +6,7 @@ use App\Enums\LeadSource;
 use App\Enums\LeadStatus;
 use App\Models\User;
 use App\Support\Branch\BelongsToBranch;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -36,6 +37,12 @@ class Lead extends Model
         return $this->follow_up_at !== null
             && $this->follow_up_at->lte(now())
             && ! in_array($this->status, [LeadStatus::WON, LeadStatus::LOST], true);
+    }
+
+    public function scopeFollowUpOverdue(Builder $query): Builder
+    {
+        return $query->where('follow_up_at', '<=', now())
+            ->whereNotIn('status', [LeadStatus::WON, LeadStatus::LOST]);
     }
 
     public function getActivitylogOptions(): LogOptions

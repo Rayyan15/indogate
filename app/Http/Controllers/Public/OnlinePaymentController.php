@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Public;
 
 use App\Domain\Booking\Models\PackageBooking;
+use App\Domain\Finance\Exceptions\InvalidWebhookSignatureException;
+use App\Domain\Finance\Exceptions\MalformedWebhookException;
+use App\Domain\Finance\Exceptions\WebhookNotConfiguredException;
 use App\Domain\Finance\Models\Payment;
 use App\Domain\Finance\Models\PaymentIntent;
 use App\Domain\Finance\Services\GatewayCheckout;
@@ -79,6 +82,7 @@ class OnlinePaymentController extends Controller
     public function simulator(PaymentIntent $intent): View|RedirectResponse
     {
         abort_unless($intent->provider === 'simulator', 404);
+        abort_unless($this->checkout->isEnabled(), 404);
 
         if (! $intent->isPayable()) {
             return redirect()->route('payments.result', ['intent' => $intent->public_token]);
@@ -93,6 +97,7 @@ class OnlinePaymentController extends Controller
     public function simulate(Request $request, PaymentIntent $intent): RedirectResponse
     {
         abort_unless($intent->provider === 'simulator', 404);
+        abort_unless($this->checkout->isEnabled(), 404);
         $outcome = $request->validate(['outcome' => ['required', 'in:paid,failed,expired']])['outcome'];
 
         $body = json_encode([
@@ -104,7 +109,12 @@ class OnlinePaymentController extends Controller
         ]);
 
         // Called in-process: `php artisan serve` is single-threaded, an HTTP call to ourselves would deadlock.
-        $this->checkout->handleWebhook('simulator', $body, GatewayCheckout::sign($body));
+        try {
+            $this->checkout->handleWebhook('simulator', $body, GatewayCheckout::sign($body));
+        } catch (WebhookNotConfiguredException $e) {
+            report($e);
+            abort(503, 'Webhook secret not configured.');
+        }
 
         return redirect()->route('payments.result', ['intent' => $intent->public_token]);
     }
@@ -124,10 +134,14 @@ class OnlinePaymentController extends Controller
     {
         try {
             $outcome = $this->checkout->handleWebhook($provider, $request->getContent(), $request->header('X-Signature'));
-        } catch (InvalidArgumentException $e) {
+        } catch (WebhookNotConfiguredException $e) {
             report($e);
 
+            return response()->json(['error' => 'Webhook secret not configured'], 503);
+        } catch (InvalidWebhookSignatureException $e) {
             return response()->json(['error' => $e->getMessage()], 401);
+        } catch (MalformedWebhookException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
         }
 
         return response()->json(['status' => $outcome]);

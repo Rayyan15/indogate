@@ -4,6 +4,7 @@ return [
     'overview' => 'Overview',
     'dashboard' => 'Dashboard',
     'cs_desk' => 'CS Desk',
+    'admin_desk' => 'Admin Desk',
     'roles' => 'Role Permissions',
     'operations' => 'Operations',
     'bookings' => 'Bookings',

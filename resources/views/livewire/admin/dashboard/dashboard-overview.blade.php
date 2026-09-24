@@ -153,7 +153,7 @@
             <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5">
                 <h3 class="text-sm font-semibold text-neutral-900">{{ __('report.recent_bookings') }}</h3>
                 <a href="{{ route('admin.package-bookings.index') }}" class="text-xs text-blue-600 hover:text-blue-700 hover:underline">
-                    Lihat Semua
+                    {{ __('admin.i18n.view_all') }}
                 </a>
             </div>
             <div class="divide-y divide-neutral-100">
@@ -195,7 +195,7 @@
             <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5">
                 <h3 class="text-sm font-semibold text-neutral-900">{{ __('report.pending_verifications') }}</h3>
                 <a href="{{ route('admin.finance.payments') }}" class="text-xs text-blue-600 hover:text-blue-700 hover:underline">
-                    Lihat Semua
+                    {{ __('admin.i18n.view_all') }}
                 </a>
             </div>
             <div class="divide-y divide-neutral-100">
@@ -227,7 +227,7 @@
             <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5">
                 <h3 class="text-sm font-semibold text-neutral-900">{{ __('report.fleet_utilization') }}</h3>
                 <a href="{{ route('admin.fleet.calendar') }}" class="text-xs text-blue-600 hover:text-blue-700 hover:underline">
-                    Kalender Armada
+                    {{ __('admin.i18n.fleet_calendar') }}
                 </a>
             </div>
             <div class="grid grid-cols-2 gap-4 p-5 text-xs">
@@ -269,11 +269,11 @@
                     <p class="mt-1 font-mono text-lg font-bold text-blue-900">{{ $metrics['lead_funnel']['by_status']['quoted'] }}</p>
                 </div>
                 <div class="rounded border border-emerald-200 bg-emerald-50/50 p-2.5">
-                    <span class="text-[10px] uppercase font-semibold text-emerald-700">Berhasil</span>
+                    <span class="text-[10px] uppercase font-semibold text-emerald-700">{{ __('admin.i18n.won') }}</span>
                     <p class="mt-1 font-mono text-lg font-bold text-emerald-900">{{ $metrics['lead_funnel']['won_count'] }}</p>
                 </div>
                 <div class="rounded border border-rose-200 bg-rose-50/50 p-2.5">
-                    <span class="text-[10px] uppercase font-semibold text-rose-700">Gagal</span>
+                    <span class="text-[10px] uppercase font-semibold text-rose-700">{{ __('admin.i18n.lost') }}</span>
                     <p class="mt-1 font-mono text-lg font-bold text-rose-900">{{ $metrics['lead_funnel']['lost_count'] }}</p>
                 </div>
             </div>
@@ -283,7 +283,7 @@
         <div class="rounded border border-neutral-200 bg-neutral-0 p-5 shadow-sm">
             <h3 class="text-sm font-semibold text-neutral-900 mb-3">{{ __('report.lost_reasons') }}</h3>
             @if(empty($metrics['lead_funnel']['lost_reasons']))
-            <p class="text-xs text-neutral-500 py-3 text-center">Tidak ada catatan alasan penolakan pada periode ini.</p>
+            <p class="text-xs text-neutral-500 py-3 text-center">{{ __('admin.i18n.no_lost_notes') }}</p>
             @else
             <ul class="divide-y divide-neutral-100 text-xs">
                 @foreach($metrics['lead_funnel']['lost_reasons'] as $reason => $count)

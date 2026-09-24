@@ -79,6 +79,7 @@
                         <x-ui.field :label="__('catalog.item.rate_cost')" :error="$errors->first('rate_cost_minor')">
                             <input type="number" min="0" wire:model="rate_cost_minor" class="admin-input font-mono">
                         </x-ui.field>
+                        <x-ui.money-preview class="col-span-2" amount="$wire.rate_cost_minor" currency="$wire.rate_currency" />
                         <x-ui.field :label="__('catalog.item.rate_currency')" :error="$errors->first('rate_currency')">
                             <input type="text" maxlength="3" wire:model="rate_currency" class="admin-input font-mono uppercase">
                         </x-ui.field>

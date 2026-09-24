@@ -112,7 +112,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
                     <div>
                         <h3 class="text-sm font-medium text-neutral-900">{{ __('fleet.assignments') }}</h3>
-                        <p class="text-xs text-neutral-500">Penugasan driver dan armada untuk pemesanan ini</p>
+                        <p class="text-xs text-neutral-500">{{ __('booking.assign_hint') }}</p>
                     </div>
                     {{-- Gender Preference Switcher --}}
                     <div class="flex items-center gap-1">
@@ -146,20 +146,20 @@
                                     </span>
                                 </div>
                                 <div class="text-xs text-neutral-600">
-                                    Telp: <span class="font-mono">{{ $booking->activeAssignment->driver?->phone ?? '—' }}</span>
+                                    {{ __('booking.phone_label') }} <span class="font-mono">{{ $booking->activeAssignment->driver?->phone ?? '—' }}</span>
                                     @if(!empty($booking->activeAssignment->driver?->languages))
-                                        · Bahasa: {{ implode(', ', (array) $booking->activeAssignment->driver->languages) }}
+                                        · {{ __('booking.languages_label') }} {{ implode(', ', (array) $booking->activeAssignment->driver->languages) }}
                                     @endif
                                 </div>
                                 @if($booking->activeAssignment->vehicle)
                                     <div class="text-xs text-neutral-700 pt-1">
-                                        Kendaraan: <strong class="font-mono">{{ $booking->activeAssignment->vehicle->plate }}</strong> ({{ $booking->activeAssignment->vehicle->type }} · {{ __('fleet.capacity_pax', ['count' => $booking->activeAssignment->vehicle->capacity]) }})
+                                        {{ __('booking.vehicle_label') }} <strong class="font-mono">{{ $booking->activeAssignment->vehicle->plate }}</strong> ({{ $booking->activeAssignment->vehicle->type }} · {{ __('fleet.capacity_pax', ['count' => $booking->activeAssignment->vehicle->capacity]) }})
                                     </div>
                                 @endif
                                 <div class="text-xs text-neutral-500 pt-1">
-                                    Periode: {{ $booking->activeAssignment->date_from->translatedFormat('d M Y') }} s/d {{ $booking->activeAssignment->date_to->translatedFormat('d M Y') }}
+                                    {{ __('booking.period_label') }} {{ $booking->activeAssignment->date_from->translatedFormat('d M Y') }} {{ __('booking.period_to') }} {{ $booking->activeAssignment->date_to->translatedFormat('d M Y') }}
                                     @if($booking->activeAssignment->notes)
-                                        · Catatan: {{ $booking->activeAssignment->notes }}
+                                        · {{ __('booking.notes_label') }} {{ $booking->activeAssignment->notes }}
                                     @endif
                                 </div>
                             </div>
@@ -202,7 +202,7 @@
                                             {{ __('fleet.driver') }} <span class="text-red-600">*</span>
                                         </label>
                                         <select wire:model="selected_driver_id" required class="w-full rounded border border-neutral-300 px-3 py-2 text-xs focus:border-red-500 focus:outline-none">
-                                            <option value="">-- Pilih Driver ({{ $suggestedDrivers->count() }} tersedia) --</option>
+                                            <option value="">{{ __('booking.pick_driver', ['count' => $suggestedDrivers->count()]) }}</option>
                                             @foreach($suggestedDrivers as $driver)
                                                 <option value="{{ $driver->id }}">
                                                     {{ $driver->name }} ({{ $driver->gender === 'female' ? 'Perempuan' : 'Laki-laki' }})
@@ -218,10 +218,10 @@
                                             {{ __('fleet.vehicle') }} (Opsional)
                                         </label>
                                         <select wire:model="selected_vehicle_id" class="w-full rounded border border-neutral-300 px-3 py-2 text-xs focus:border-red-500 focus:outline-none">
-                                            <option value="">-- Tanpa Kendaraan / Driver Bawa Sendiri --</option>
+                                            <option value="">{{ __('booking.no_vehicle') }}</option>
                                             @foreach($availableVehicles as $veh)
                                                 <option value="{{ $veh->id }}">
-                                                    {{ $veh->plate }} — {{ $veh->type }} ({{ $veh->capacity }} Pax)
+                                                    {{ $veh->plate }} — {{ $veh->type }} ({{ __('fleet.capacity_pax', ['count' => $veh->capacity]) }})
                                                 </option>
                                             @endforeach
                                         </select>
@@ -250,7 +250,7 @@
                                     <label class="block text-xs font-semibold text-neutral-700 mb-1">
                                         {{ __('fleet.notes') }}
                                     </label>
-                                    <input type="text" wire:model="assignment_notes" placeholder="Contoh: Tamu butuh driver berbahasa Arab untuk penjemputan bandara" class="w-full rounded border border-neutral-300 px-3 py-1.5 text-xs" />
+                                    <input type="text" wire:model="assignment_notes" :placeholder="__('booking.assign_notes_ph')" class="w-full rounded border border-neutral-300 px-3 py-1.5 text-xs" />
                                     @error('assignment_notes') <span class="text-[10px] text-red-600">{{ $message }}</span> @enderror
                                 </div>
 
@@ -336,7 +336,7 @@
 
                 {{-- Payment History List --}}
                 <div class="mt-4 border-t border-neutral-100 pt-3">
-                    <h4 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">Riwayat Pembayaran</h4>
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">{{ __('finance.payment_history') }}</h4>
                     <div class="space-y-2">
                         @forelse($bookingPayments as $payment)
                             <div wire:key="payment-{{ $payment->id }}" class="rounded border border-neutral-100 bg-neutral-50 p-2 text-xs">
@@ -372,7 +372,7 @@
                                     <div class="flex items-center gap-2">
                                         @if($payment->proof_file)
                                             <a href="{{ $this->proofUrl($payment) }}" target="_blank" class="text-blue-600 hover:underline">
-                                                Bukti
+                                                {{ __('finance.proof') }}
                                             </a>
                                         @endif
                                         @if($payment->status === 'verified')
@@ -385,18 +385,18 @@
                                     @can('payment.verify')
                                         @if($payment->status === 'pending')
                                             <button type="button" wire:click="verifyBookingPayment({{ $payment->id }})" wire:loading.attr="disabled" wire:target="verifyBookingPayment({{ $payment->id }})" class="font-bold text-emerald-700 hover:underline disabled:opacity-50">
-                                                Verifikasi
+                                                {{ __('finance.verify') }}
                                             </button>
                                         @elseif($payment->status === 'verified')
                                             <button type="button" wire:click="openRefundModal({{ $payment->id }})" wire:loading.attr="disabled" wire:target="openRefundModal({{ $payment->id }})" class="text-red-600 hover:underline disabled:opacity-50">
-                                                Refund
+                                                {{ __('finance.refund') }}
                                             </button>
                                         @endif
                                     @endcan
                                 </div>
                             </div>
                         @empty
-                            <p class="text-[11px] text-neutral-400 italic">Belum ada catatan pembayaran.</p>
+                            <p class="text-[11px] text-neutral-400 italic">{{ __('finance.no_payment_records') }}</p>
                         @endforelse
                     </div>
                 </div>
@@ -471,7 +471,7 @@
                     {{ __('fleet.cancel_assignment') }}
                 </h3>
                 <p class="mt-1 text-xs text-neutral-600">
-                    Masukkan alasan pembatalan penugasan driver. Alasan ini akan tercatat dalam audit log.
+                    {{ __('booking.cancel_assign_hint') }}
                 </p>
 
                 <form wire:submit="cancelAssignment" class="mt-4 space-y-4">
@@ -479,7 +479,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700">
                             {{ __('fleet.cancel_reason') }} <span class="text-red-600">*</span>
                         </label>
-                        <textarea wire:model="cancel_assignment_reason" rows="3" required placeholder="Contoh: Tamu membatalkan penugasan driver pribadi" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none"></textarea>
+                        <textarea wire:model="cancel_assignment_reason" rows="3" required :placeholder="__('booking.cancel_assign_ph')" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none"></textarea>
                         @error('cancel_assignment_reason') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
                     </div>
 
@@ -522,8 +522,8 @@
                                 {{ __('finance.channel') }} <span class="text-red-600">*</span>
                             </label>
                             <select wire:model="payment_channel" required class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none">
-                                <option value="bank_transfer">Transfer Bank (Manual)</option>
-                                <option value="international_card">Kartu Kredit Internasional (MDR ~5.5%)</option>
+                                <option value="bank_transfer">{{ __('finance.channel_bank_transfer') }}</option>
+                                <option value="international_card">{{ __('finance.channel_intl_card') }}</option>
                             </select>
                         </div>
                     </div>
@@ -570,7 +570,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700">
                             {{ __('finance.notes') }}
                         </label>
-                        <input type="text" wire:model="payment_notes" placeholder="Contoh: Transfer Bank Mandiri rek 12345678 a.n. Tamu" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none" />
+                        <input type="text" wire:model="payment_notes" :placeholder="__('finance.payment_notes_ph')" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none" />
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3 pt-3 border-t border-neutral-100">
@@ -594,7 +594,7 @@
                     {{ __('finance.process_refund') }}
                 </h3>
                 <p class="mt-1 text-xs text-neutral-600">
-                    Pengembalian dana (refund) wajib disertai alasan tertulis yang sah untuk audit keuangan.
+                    {{ __('finance.refund_hint') }}
                 </p>
 
                 <form wire:submit="processRefund" class="mt-4 space-y-4">
@@ -610,7 +610,7 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700">
                             {{ __('finance.refund_reason') }} <span class="text-red-600">*</span>
                         </label>
-                        <textarea wire:model="refund_reason" rows="3" required placeholder="Contoh: Tamu membatalkan satu kamar hotel karena perubahan jadwal penerbangan" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none"></textarea>
+                        <textarea wire:model="refund_reason" rows="3" required :placeholder="__('finance.refund_reason_ph')" class="mt-1 block w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none"></textarea>
                         @error('refund_reason') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
                     </div>
 

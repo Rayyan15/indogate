@@ -1,6 +1,6 @@
 <div class="space-y-6">
     {{-- Header with Tab Navigation & Controls --}}
-    <x-ui.page-header :eyebrow="__('report.reports')" :title="__('report.reports')" :lede="__('report.dashboard_lede')">
+    <x-ui.page-header :eyebrow="__('report.reports')" title="{{ __('report.reports') }}" :lede="__('report.dashboard_lede')">
         <x-slot name="actions">
             <div class="flex flex-wrap items-center gap-2">
                 {{-- Branch Selector --}}
@@ -103,7 +103,7 @@
 
         {{-- Search Toolbar --}}
         <div class="flex items-center justify-between">
-            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari kode booking atau nama tamu..." class="h-9 w-72 rounded border border-neutral-300 px-3 text-xs placeholder:text-neutral-400 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+            <input type="text" wire:model.live.debounce.300ms="search" placeholder="{{ __('admin.i18n.search_booking_guest') }}" class="h-9 w-72 rounded border border-neutral-300 px-3 text-xs placeholder:text-neutral-400 focus:border-red-600 focus:ring-1 focus:ring-red-600">
         </div>
 
         {{-- Bookings Margin Table --}}
@@ -177,7 +177,7 @@
                 <div class="text-[11px] font-semibold uppercase tracking-wider text-emerald-800">{{ __('report.conversion_rate') }}</div>
                 <div class="mt-2 flex items-baseline justify-between">
                     <span class="text-2xl font-bold font-mono text-emerald-950">{{ $data['funnel']['conversion_rate'] }}%</span>
-                    <span class="text-xs text-emerald-700 font-semibold">{{ $data['funnel']['won_count'] }} Berhasil</span>
+                    <span class="text-xs text-emerald-700 font-semibold">{{ __('report.won_count', ['count' => $data['funnel']['won_count']]) }}</span>
                 </div>
             </div>
             <div class="rounded border border-rose-200 bg-rose-50/50 p-4 shadow-sm">
@@ -208,11 +208,11 @@
                         <p class="mt-1 font-mono text-lg font-bold text-blue-900">{{ $data['funnel']['by_status']['quoted'] }}</p>
                     </div>
                     <div class="rounded border border-emerald-200 bg-emerald-50/50 p-2.5">
-                        <span class="text-[10px] uppercase font-semibold text-emerald-700">Berhasil</span>
+                        <span class="text-[10px] uppercase font-semibold text-emerald-700">{{ __('admin.i18n.won') }}</span>
                         <p class="mt-1 font-mono text-lg font-bold text-emerald-900">{{ $data['funnel']['won_count'] }}</p>
                     </div>
                     <div class="rounded border border-rose-200 bg-rose-50/50 p-2.5">
-                        <span class="text-[10px] uppercase font-semibold text-rose-700">Gagal</span>
+                        <span class="text-[10px] uppercase font-semibold text-rose-700">{{ __('admin.i18n.lost') }}</span>
                         <p class="mt-1 font-mono text-lg font-bold text-rose-900">{{ $data['funnel']['lost_count'] }}</p>
                     </div>
                 </div>
@@ -221,7 +221,7 @@
             <div class="rounded border border-neutral-200 bg-neutral-0 p-5 shadow-sm">
                 <h3 class="text-sm font-semibold text-neutral-900 mb-3">{{ __('report.lost_reasons') }}</h3>
                 @if(empty($data['funnel']['lost_reasons']))
-                <p class="text-xs text-neutral-500 py-3 text-center">Tidak ada catatan alasan penolakan pada periode ini.</p>
+                <p class="text-xs text-neutral-500 py-3 text-center">{{ __('admin.i18n.no_lost_notes') }}</p>
                 @else
                 <ul class="divide-y divide-neutral-100 text-xs">
                     @foreach($data['funnel']['lost_reasons'] as $reason => $count)
@@ -245,7 +245,7 @@
                             <th class="px-4 py-2.5 text-center font-semibold">Kontak</th>
                             <th class="px-4 py-2.5 text-center font-semibold">Sumber</th>
                             <th class="px-4 py-2.5 text-center font-semibold">Status</th>
-                            <th class="px-4 py-2.5 text-center font-semibold">Alasan Kalah / Catatan</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.lost_reason_notes') }}</th>
                             <th class="px-4 py-2.5 text-center font-semibold">Penanggung Jawab</th>
                         </tr>
                     </thead>
@@ -265,7 +265,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-center text-neutral-600">{{ $lead->lost_reason ?? '-' }}</td>
-                            <td class="px-4 py-3 text-center text-neutral-500">{{ $lead->assignee?->name ?? 'Belum Ditugaskan' }}</td>
+                            <td class="px-4 py-3 text-center text-neutral-500">{{ $lead->assignee?->name ?? __('admin.i18n.unassigned') }}</td>
                         </tr>
                         @empty
                         <tr>
@@ -300,11 +300,11 @@
                 <div class="mt-1 text-[11px] text-neutral-500">{{ $data['operations_stats']['vehicles_in_use'] }} armada berjalan</div>
             </div>
             <div class="rounded border border-neutral-200 bg-neutral-0 p-4 shadow-sm">
-                <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Penugasan Berjalan</div>
+                <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.running_assignments') }}</div>
                 <div class="mt-2 text-2xl font-bold font-mono text-neutral-900">{{ $data['operations_stats']['active_assignments'] }}</div>
             </div>
             <div class="rounded border border-neutral-200 bg-neutral-0 p-4 shadow-sm">
-                <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Mitra Hotel Aktif</div>
+                <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{{ __('report.active_hotel_partners') }}</div>
                 <div class="mt-2 text-2xl font-bold font-mono text-neutral-900">{{ $data['operations_stats']['hotel_partners'] }}</div>
             </div>
         </div>
@@ -312,7 +312,7 @@
         {{-- Driver Assignments Table --}}
         <div class="rounded border border-neutral-200 bg-neutral-0 shadow-sm overflow-hidden">
             <div class="border-b border-neutral-100 px-5 py-3.5 flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-neutral-900">Jadwal Penugasan Armada</h3>
+                <h3 class="text-sm font-semibold text-neutral-900">{{ __('report.fleet_schedule') }}</h3>
                 <a href="{{ route('admin.fleet.calendar') }}" class="text-xs text-blue-600 hover:text-blue-700 hover:underline">
                     Buka Kalender
                 </a>
@@ -322,16 +322,16 @@
                     <thead class="bg-neutral-50 text-neutral-600 border-b border-neutral-200">
                         <tr>
                             <th class="px-4 py-2.5 text-center font-semibold">Driver</th>
-                            <th class="px-4 py-2.5 text-center font-semibold">Kendaraan</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.vehicle') }}</th>
                             <th class="px-4 py-2.5 text-center font-semibold">Kode Booking / Tamu</th>
-                            <th class="px-4 py-2.5 text-center font-semibold">Rentang Tanggal</th>
+                            <th class="px-4 py-2.5 text-center font-semibold">{{ __('report.date_range') }}</th>
                             <th class="px-4 py-2.5 text-center font-semibold">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-100 text-neutral-800">
                         @forelse($data['assignments'] as $assign)
                         <tr wire:key="assignment-{{ $assign->id }}" class="hover:bg-neutral-50/50">
-                            <td class="px-4 py-3 text-center font-medium text-neutral-900">{{ $assign->driver?->name ?? 'Belum Ditugaskan' }}</td>
+                            <td class="px-4 py-3 text-center font-medium text-neutral-900">{{ $assign->driver?->name ?? __('admin.i18n.unassigned') }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span class="font-mono text-neutral-900">{{ $assign->vehicle?->plate ?? '-' }}</span>
                                 <span class="text-neutral-500 text-[11px]">({{ $assign->vehicle?->type ?? '-' }})</span>

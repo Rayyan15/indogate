@@ -30,6 +30,7 @@ return [
         'user' => 'Pengguna',
         'activitylog' => 'Audit',
         'branch' => 'Cabang',
+        'desk' => 'Meja',
     ],
     'perm' => [
         'catalog.manage' => ['label' => 'Kelola katalog', 'description' => 'Tambah/ubah hotel, penerbangan, partner, item, dan paket.'],
@@ -45,5 +46,7 @@ return [
         'user.manage' => ['label' => 'Kelola pengguna', 'description' => 'Tambah pengguna dan atur hak akses role.'],
         'activitylog.view' => ['label' => 'Lihat audit log', 'description' => 'Lihat riwayat aktivitas keamanan.'],
         'branch.switch' => ['label' => 'Pindah cabang', 'description' => 'Lihat dan pindah ke data cabang lain.'],
+        'desk.cs' => ['label' => 'Meja CS', 'description' => 'Membuka Meja CS (antrian kerja).'],
+        'desk.admin' => ['label' => 'Meja Admin', 'description' => 'Membuka Meja Admin cabang (pengawasan).'],
     ],
 ];

@@ -72,6 +72,32 @@ class FetchExchangeRatesTest extends TestCase
         $this->assertSame(1, ExchangeRate::where('currency', 'SAR')->count());
     }
 
+    public function test_force_bypasses_guard_and_manual_rate_does_not_block_auto(): void
+    {
+        ExchangeRate::query()->delete();
+        ExchangeRate::create(['currency' => 'USD', 'rate' => '10000', 'effective_from' => now()->subDay()]);
+        Http::fake([self::PRIMARY => Http::response($this->payload())]);
+
+        $this->artisan('fx:fetch --force')->expectsOutputToContain('forced')->assertSuccessful();
+
+        $this->assertSame('16000.00000000', ExchangeRate::currentFor('USD')->rate);
+    }
+
+    public function test_skip_notifies_pricing_managers(): void
+    {
+        ExchangeRate::query()->delete();
+        ExchangeRate::create(['currency' => 'USD', 'rate' => '10000', 'effective_from' => now()->subDay(), 'created_by' => null]);
+        Http::fake([self::PRIMARY => Http::response($this->payload())]);
+        \Illuminate\Support\Facades\Notification::fake();
+        $u = \App\Models\User::permission('pricing.manage')->where('is_active', true)->whereNotNull('branch_id')->first();
+        $this->assertNotNull($u);
+        $this->assertGreaterThan(0, \App\Support\Notify::recipients($u->branch_id, "pricing.manage")->count());
+
+        $this->artisan('fx:fetch')->assertSuccessful();
+
+        \Illuminate\Support\Facades\Notification::assertSentTo($u, \App\Notifications\FxRateNeedsReview::class);
+    }
+
     public function test_storefront_currency_without_rates_falls_back_to_idr(): void
     {
         ExchangeRate::query()->delete();

@@ -81,4 +81,13 @@ return [
     'no_bookings' => 'Belum ada pemesanan dalam periode yang dipilih.',
     'no_pending_verifications' => 'Semua pembayaran telah diverifikasi.',
     'all_clear' => 'Kondisi Aman',
+
+    // i18n sweep
+    'lost_reason_notes' => 'Alasan Kalah / Catatan',
+    'running_assignments' => 'Penugasan Berjalan',
+    'active_hotel_partners' => 'Mitra Hotel Aktif',
+    'fleet_schedule' => 'Jadwal Penugasan Armada',
+    'vehicle' => 'Kendaraan',
+    'date_range' => 'Rentang Tanggal',
+    'won_count' => ':count Berhasil',
 ];

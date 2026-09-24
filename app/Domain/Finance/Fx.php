@@ -42,11 +42,43 @@ final class Fx
         return $value;
     }
 
+    public static function currency(string $currency): ?Currency
+    {
+        $currency = strtoupper($currency);
+
+        return self::remember("cur:{$currency}", fn () => Currency::find($currency));
+    }
+
+    /** The rate row in force today (any source). */
+    public static function currentRate(string $currency): ?ExchangeRate
+    {
+        $currency = strtoupper($currency);
+
+        return self::remember('rate:'.$currency.':'.now()->toDateString(), fn () => ExchangeRate::currentFor($currency));
+    }
+
+    /**
+     * Active currencies that can be priced: IDR (the pivot) plus every active
+     * currency with a stored rate. Ordered by code.
+     *
+     * @return list<string>
+     */
+    public static function pricedCurrencies(): array
+    {
+        return self::remember('priced', function () {
+            $priced = ExchangeRate::query()->distinct()->pluck('currency');
+
+            return Currency::where('is_active', true)
+                ->where(fn ($q) => $q->where('code', 'IDR')->orWhereIn('code', $priced))
+                ->orderBy('code')->pluck('code')->all();
+        });
+    }
+
     public static function decimals(string $currency): int
     {
         $currency = strtoupper($currency);
 
-        return self::remember("dec:{$currency}", fn () => (int) (Currency::where('code', $currency)->value('decimal_places') ?? ($currency === 'IDR' ? 0 : 2)));
+        return self::currency($currency)?->decimal_places ?? ($currency === 'IDR' ? 0 : 2);
     }
 
     /**
@@ -60,7 +92,7 @@ final class Fx
             return 1.0;
         }
 
-        $rate = self::remember('rate:'.$currency.':'.now()->toDateString(), fn () => ExchangeRate::currentFor($currency)?->rate);
+        $rate = self::currentRate($currency)?->rate;
         if ($rate === null) {
             throw new ExchangeRateNotFoundException("Kurs untuk {$currency} belum tersedia. Tambahkan kurs terlebih dahulu.");
         }

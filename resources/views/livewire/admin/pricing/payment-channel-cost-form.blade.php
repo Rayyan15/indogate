@@ -23,6 +23,7 @@
                 <input type="number" min="0" wire:model="flat_fee_minor" class="admin-input">
             </x-ui.field>
 
+            <x-ui.money-preview amount="$wire.flat_fee_minor" currency="$wire.currency" />
             <x-ui.field :label="__('pricing.channel_cost.currency')" :error="$errors->first('currency')">
                 <input type="text" wire:model="currency" maxlength="3" class="admin-input uppercase">
             </x-ui.field>

@@ -13,7 +13,7 @@ class RoleMatrix extends Component
 {
     public const SUPER_ADMIN = 'Super Admin';
 
-    public const PROTECTED_ROLES = ['Super Admin', 'CS Admin', 'Finance Admin', 'Customer'];
+    public const PROTECTED_ROLES = ['Super Admin', 'Admin', 'CS Admin', 'Finance Admin', 'Customer'];
 
     private const CONFLICTING = ['booking.manage', 'payment.verify'];
 

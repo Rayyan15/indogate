@@ -181,6 +181,7 @@ return [
         'star_rating' => 'Star Rating',
         'stars_suffix' => 'Stars',
         'base_price_per_night' => 'Base Price per Night (IDR)',
+        'currency' => 'Currency',
         'base_price_placeholder' => 'e.g. 1500000',
         'save_hotel' => 'Save Hotel',
         'update_hotel' => 'Update Hotel',
@@ -273,5 +274,20 @@ return [
         'is_active' => 'Active',
         'cancel' => 'Cancel',
         'save' => 'Save',
+    ],
+
+    // i18n sweep
+    'i18n' => [
+        'select_branch' => 'Select Branch',
+        'view_all' => 'View All',
+        'won' => 'Won',
+        'lost' => 'Lost',
+        'no_lost_notes' => 'No rejection reason notes in this period.',
+        'unassigned' => 'Unassigned',
+        'all_status' => 'All Statuses',
+        'all' => 'All',
+        'today' => 'Today',
+        'fleet_calendar' => 'Fleet Calendar',
+        'search_booking_guest' => 'Search booking code or guest name...',
     ],
 ];

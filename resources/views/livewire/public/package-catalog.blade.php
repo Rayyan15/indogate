@@ -15,7 +15,7 @@
                 <!-- Currency Quick Switcher inside Catalog (Real-time live reactive) -->
                 <div class="flex items-center gap-2 self-start md:self-auto bg-black/40 p-1 rounded-full border border-white/10 text-xs font-semibold backdrop-blur-md">
                     <span class="text-white/50 px-2">{{ __('storefront.currency_label') }}:</span>
-                    @foreach(\App\Support\Storefront\StorefrontCurrency::SUPPORTED_CURRENCIES as $curr)
+                    @foreach(\App\Support\Storefront\StorefrontCurrency::supported() as $curr)
                         <button
                             wire:key="curr-btn-{{ $curr }}"
                             type="button"

@@ -1,0 +1,12 @@
+{
+    "name": "INDOGATE Admin",
+    "short_name": "INDOGATE",
+    "start_url": "/id/admin/dashboard",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#dc2626",
+    "icons": [
+        { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    ]
+}

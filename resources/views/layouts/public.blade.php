@@ -58,7 +58,7 @@
                     <form action="{{ route('public.currency.switch', ['locale' => app()->getLocale()]) }}" method="POST" class="inline-block">
                         @csrf
                         <div class="flex items-center text-xs font-semibold text-white/70 bg-black/40 rounded-full border border-white/20 p-1 backdrop-blur-md shadow-lg">
-                            @foreach(\App\Support\Storefront\StorefrontCurrency::SUPPORTED_CURRENCIES as $curr)
+                            @foreach(\App\Support\Storefront\StorefrontCurrency::supported() as $curr)
                                 <button
                                     type="submit"
                                     name="currency"
@@ -128,7 +128,7 @@
                 <!-- Currency Form Mobile -->
                 <form action="{{ route('public.currency.switch', ['locale' => app()->getLocale()]) }}" method="POST" class="flex gap-1 text-xs">
                     @csrf
-                    @foreach(\App\Support\Storefront\StorefrontCurrency::SUPPORTED_CURRENCIES as $curr)
+                    @foreach(\App\Support\Storefront\StorefrontCurrency::supported() as $curr)
                         <button type="submit" name="currency" value="{{ $curr }}" class="px-2.5 py-1 rounded-full border {{ \App\Support\Storefront\StorefrontCurrency::current() === $curr ? 'bg-red-600 text-white font-bold border-red-600' : 'border-white/30 text-white' }}">
                             {{ $curr }}
                         </button>

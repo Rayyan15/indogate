@@ -82,4 +82,15 @@ return [
     'cancelled_successfully' => 'تم إلغاء المهمة بنجاح.',
     'deleted_successfully' => 'تم الحذف بنجاح.',
     'has_future_assignments' => 'لا يمكن التعطيل أو الحذف: توجد تعيينات نشطة. ألغِها أولاً.',
+
+    // i18n sweep
+    'all_gender' => 'كل الأجناس',
+    'search_assignment_ph' => 'ابحث عن سائق أو لوحة أو حجز…',
+    'active_date' => 'التاريخ النشط:',
+    'assignment_total' => 'إجمالي :count مهام نشطة في هذا التاريخ',
+    'cancel_reason_hint' => 'أدخل سبب إلغاء تكليف السائق. سيتم تسجيله في سجل التدقيق.',
+    'calendar_lede' => 'جدول تكليف السائقين والأسطول في الفرع :branch',
+    'drivers_lede' => 'السائقون في الفرع :branch',
+    'vehicles_lede' => 'المركبات في الفرع :branch',
+    'no_vehicle_data' => 'لا توجد بيانات مركبات لهذا الفلتر بعد.',
 ];

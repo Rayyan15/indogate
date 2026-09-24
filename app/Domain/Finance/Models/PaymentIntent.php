@@ -42,6 +42,7 @@ class PaymentIntent extends Model
         'expires_at',
         'provider_reference',
         'paid_at',
+        'needs_review_at',
         'failure_reason',
     ];
 
@@ -53,6 +54,7 @@ class PaymentIntent extends Model
             'fx_rate' => 'decimal:8',
             'expires_at' => 'datetime',
             'paid_at' => 'datetime',
+            'needs_review_at' => 'datetime',
         ];
     }
 
@@ -65,7 +67,7 @@ class PaymentIntent extends Model
 
     public function isPayable(): bool
     {
-        return $this->status === self::STATUS_PENDING && ($this->expires_at === null || $this->expires_at->isFuture());
+        return $this->status === self::STATUS_PENDING && $this->needs_review_at === null && ($this->expires_at === null || $this->expires_at->isFuture());
     }
 
     public function branch(): BelongsTo

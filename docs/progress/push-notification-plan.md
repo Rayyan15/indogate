@@ -1,6 +1,21 @@
 # Rencana Notifikasi (In-App + Push) — Panel Admin
 
-Status: **Fase 1 (lonceng in-app) dikerjakan 2026-09-24; Fase 2 (web push) belum** · Dibuat: 2026-09-23
+Status: **Fase 1 (lonceng in-app) selesai 2026-09-24; Fase 2 (web push + preferensi + jam tenang) selesai 2026-09-24** · Dibuat: 2026-09-23
+
+## 0. Status pengerjaan (2026-09-24)
+
+Selesai: seluruh pemicu §2 (termasuk H-1 tanpa driver lewat permission `driver.assign`, quotation, follow-up), lonceng + riwayat + prune, dan Fase 2:
+- Paket `laravel-notification-channels/webpush` (VAPID di `.env`: `VAPID_SUBJECT/PUBLIC_KEY/PRIVATE_KEY`, dibuat dengan `php artisan webpush:vapid`; di Windows perlu `OPENSSL_CONF` ke `extras/ssl/openssl.cnf`). Tabel `push_subscriptions`, `users.notification_preferences`.
+- `public/sw.js`, `public/manifest.json`, `public/icons/icon.svg`, `public/js/staff-push.js` (izin diminta hanya setelah tombol ditekan).
+- Endpoint `POST/DELETE admin/push-subscriptions` (staff saja, hanya milik sendiri). Subscription mati (404/410) dihapus otomatis oleh `ReportHandler` paket saat pengiriman.
+- Halaman Notifikasi: panel aktifkan perangkat + preferensi push per jenis + jam tenang (default 22:00-07:00 waktu cabang). `StaffNotification::via()` menambah channel push hanya bila jenis aktif dan tidak sedang jam tenang; in-app selalu masuk.
+
+Sengaja belum dikerjakan:
+- Pengecualian jam tenang untuk pembayaran gagal booking berangkat <= 24 jam: menunggu keputusan owner (§9 no. 2).
+- Penggabungan "3 lead baru" dalam 1 menit: dedupe per record sudah ada; penggabungan butuh keputusan format teks, ditunda.
+- Isi push memakai locale default aplikasi (user belum punya kolom locale).
+- Menu topbar khusus: pintu masuk lewat "Lihat semua" di dropdown lonceng ke halaman Notifikasi.
+- QA perangkat nyata (Chrome Android, iOS PWA) dan naskah demo: perlu HTTPS/localhost dan perangkat.
 
 ## 1. Tujuan
 
@@ -69,7 +84,7 @@ Aturan penerima:
 
 ### 4.3 Preferensi & kenyamanan
 - Kolom `users.notification_preferences` (json): on/off per jenis × saluran (in-app selalu on; push bisa dimatikan per jenis).
-- **Jam tenang** per user (default 22:00–07:00 waktu cabang): push ditahan, in-app tetap masuk. Pengecualian yang diusulkan: "pembayaran gagal" untuk booking yang berangkat ≤ 24 jam.
+- **Jam tenang** per user (default 22:00–07:00 waktu cabang): push dibungkam (tidak ditunda atau dikirim ulang), in-app tetap masuk. Pengecualian yang diusulkan: "pembayaran gagal" untuk booking yang berangkat ≤ 24 jam.
 - **Throttle:** maksimal 1 push per jenis per record per 10 menit (sama dengan dedupe). Lead website yang masuk beruntun digabung jadi "3 lead baru" kalau datang dalam 1 menit.
 
 ### 4.4 Fase 3 (opsional, nanti) — Customer
@@ -97,7 +112,7 @@ Fase 1 (langkah 1–4): ± **3 hari**. Fase 2 (5–7): ± **2,5 hari**.
 - Lead website memberi notifikasi ke user ber-`lead.manage` di cabang itu, termasuk role custom.
 - Job H-1 hanya memilih booking berangkat besok yang belum punya driver aktif.
 - Lonceng: jumlah belum dibaca benar, klik menandai dibaca dan redirect ke `url`, dan user tidak bisa membaca notifikasi milik orang lain.
-- Jam tenang: push ditahan, notifikasi database tetap tersimpan.
+- Jam tenang: push dibungkam (tidak ditunda), notifikasi database tetap tersimpan.
 - `Notification::fake()` untuk semua test di atas. Push tidak dikirim sungguhan.
 
 ## 7. Naskah demo presentasi (± 3 menit)

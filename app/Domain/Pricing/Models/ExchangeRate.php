@@ -4,26 +4,32 @@ namespace App\Domain\Pricing\Models;
 
 use App\Domain\Finance\Fx;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+use App\Domain\Pricing\Services\RateChangeLogger;
 
 /**
  * Insert-only: rows are never updated. "Current rate" for a currency is the
  * latest row where effective_from <= now().
  */
+#[ObservedBy(RateChangeLogger::class)]
 class ExchangeRate extends Model
 {
-    use LogsActivity;
+    public const SOURCE_MANUAL = 'manual';
 
-    protected $fillable = ['currency', 'rate', 'effective_from', 'created_by'];
+    public const SOURCE_API_PREFIX = 'api:';
+
+    public const SOURCE_FAWAZAHMED0 = 'api:fawazahmed0';
+
+    protected $fillable = ['currency', 'rate', 'source', 'pinned_until', 'effective_from', 'created_by'];
 
     protected function casts(): array
     {
         return [
             'rate' => 'decimal:8',
             'effective_from' => 'datetime',
+            'pinned_until' => 'datetime',
         ];
     }
 
@@ -34,9 +40,14 @@ class ExchangeRate extends Model
         static::deleted($flush);
     }
 
-    public function getActivitylogOptions(): LogOptions
+    public function isPinned(): bool
     {
-        return LogOptions::defaults()->logFillable();
+        return $this->pinned_until !== null && $this->pinned_until->isFuture();
+    }
+
+    public function isAuto(): bool
+    {
+        return str_starts_with($this->source, self::SOURCE_API_PREFIX);
     }
 
     public function creator(): BelongsTo

@@ -1,17 +1,17 @@
 <div>
-    <x-ui.page-header eyebrow="M8 · {{ __('fleet.fleet') }}" :title="__('fleet.assignment_calendar')" lede="Jadwal penugasan driver dan armada di cabang {{ \App\Support\Branch\CurrentBranch::model()?->name }}">
+    <x-ui.page-header eyebrow="M8 · {{ __('fleet.fleet') }}" :title="__('fleet.assignment_calendar')" :lede="__('fleet.calendar_lede', ['branch' => \App\Support\Branch\CurrentBranch::model()?->name])">
         <x-slot name="actions">
-            <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="Cari driver, plat, booking…" class="w-48 shrink-0" />
+            <x-ui.search-input wire:model.live.debounce.300ms="search" :placeholder="__('fleet.search_assignment_ph')" class="w-48 shrink-0" />
 
             <div class="flex items-center gap-1 shrink-0">
                 <input type="date" wire:model.live="selectedDate" class="h-9 rounded border border-neutral-300 bg-neutral-0 px-2 text-sm focus:border-red-500 focus:outline-none" />
                 <button type="button" wire:click="$set('selectedDate', '{{ now()->toDateString() }}')" class="h-9 rounded border border-neutral-300 bg-neutral-100 px-2.5 text-xs font-medium text-neutral-700 hover:bg-neutral-200">
-                    Hari Ini
+                    {{ __('admin.i18n.today') }}
                 </button>
             </div>
 
             <select wire:model.live="statusFilter" class="h-9 shrink-0 rounded border border-neutral-300 bg-neutral-0 ps-3 pe-8 min-w-[130px] text-xs text-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600">
-                <option value="">Semua Status</option>
+                <option value="">{{ __('admin.i18n.all_status') }}</option>
                 <option value="assigned">{{ __('fleet.status_assigned') }}</option>
                 <option value="in_progress">{{ __('fleet.status_in_progress') }}</option>
                 <option value="completed">{{ __('fleet.status_completed') }}</option>
@@ -22,11 +22,11 @@
 
     <div class="mb-4 flex items-center justify-between rounded border border-neutral-200 bg-neutral-0 px-4 py-3">
         <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500">Tanggal Aktif:</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500">{{ __('fleet.active_date') }}</span>
             <span class="text-sm font-bold text-neutral-900">{{ $targetDate->translatedFormat('l, d F Y') }}</span>
         </div>
         <div class="text-xs text-neutral-500">
-            Total {{ $assignments->total() }} penugasan aktif pada tanggal ini
+            {{ __('fleet.assignment_total', ['count' => $assignments->total()]) }}
         </div>
     </div>
 
@@ -131,7 +131,7 @@
                     {{ __('fleet.cancel_assignment') }}
                 </h3>
                 <p class="mt-1 text-xs text-neutral-600">
-                    Masukkan alasan pembatalan penugasan driver. Alasan ini akan tercatat dalam audit log.
+                    {{ __('fleet.cancel_reason_hint') }}
                 </p>
 
                 <form wire:submit="cancelAssignment" class="mt-4 space-y-4">

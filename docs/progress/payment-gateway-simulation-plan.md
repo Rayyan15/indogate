@@ -1,6 +1,6 @@
 # Rencana Simulasi Payment Gateway
 
-Status: **backend + UI simulasi dikerjakan 2026-09-23** · Dibuat: 2026-09-23
+Status: **selesai 2026-09-24** (backend, UI simulasi, badge + filter sumber di Keuangan > Pembayaran, antrian `needs_review` untuk Finance, seeder `GatewayDemoSeeder`). Belum: provider gateway asli (menunggu keputusan owner), naskah QA Chrome. · Dibuat: 2026-09-23
 
 Default yang dipakai (owner belum memutuskan, bisa diubah): DP = `PAYMENT_DP_PERCENT` (30%) atau lunas; biaya channel ditanggung agensi (dicatat di `channel_fee_minor`, tidak ditambahkan ke tagihan); transfer manual tetap jalan berdampingan. Aktifkan dengan `PAYMENT_PROVIDER=simulator` di `.env`. Webhook `POST /webhooks/payments/{provider}` dengan header `X-Signature` = HMAC-SHA256(body, `PAYMENT_WEBHOOK_SECRET`).
 

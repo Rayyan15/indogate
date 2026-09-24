@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\BookingGuestDocumentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceDocumentController;
 use App\Http\Controllers\Admin\FleetDutyLetterController;
+use App\Http\Controllers\Admin\PushSubscriptionController;
 use App\Http\Controllers\Admin\FlightRouteController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\PricingRuleController;
@@ -43,8 +44,11 @@ Route::prefix('{locale}')
         // Admin Routes
         Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-            Route::view('/desk', 'admin.desk')->middleware('permission:lead.manage|booking.manage')->name('desk');
+            Route::view('/desk', 'admin.desk')->middleware('permission:desk.cs')->name('desk');
+            Route::view('/control', 'admin.control')->middleware('permission:desk.admin')->name('control');
             Route::view('/notifications', 'admin.notifications.index')->name('notifications.index');
+            Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');
+            Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
             Route::view('/roles', 'admin.roles.index')->middleware('permission:user.manage')->name('roles.index');
             if (app()->isLocal()) {
                 Route::view('/styleguide', 'admin.styleguide')->name('styleguide');

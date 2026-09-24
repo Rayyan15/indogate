@@ -33,13 +33,22 @@ class RolesAndPermissionsSeeder extends Seeder
         'user.manage',
         'activitylog.view',
         'branch.switch',
+        'desk.cs',
+        'desk.admin',
     ];
 
     private const ROLE_PERMISSIONS = [
         // CS = sales + customer support: leads, quotations, bookings only.
         // Catalog editing, fleet, cost/margin stay with admin/finance.
         'CS Admin' => [
-            'lead.manage', 'quotation.create', 'booking.manage',
+            'lead.manage', 'quotation.create', 'booking.manage', 'desk.cs',
+        ],
+        // Branch head's right hand: runs operations and supervises CS, may see
+        // margin, but never verifies payments or touches pricing/users/branches
+        // (segregation of duties; user.manage is global).
+        'Admin' => [
+            'lead.manage', 'quotation.create', 'booking.manage', 'driver.assign', 'catalog.manage',
+            'report.view', 'report.margin.view', 'activitylog.view', 'desk.admin',
         ],
         'Finance Admin' => [
             'currency.manage', 'payment.verify', 'report.margin.view', 'report.view',
@@ -68,6 +77,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $seedUsers = [
             ['email' => 'admin@indogate.com', 'name' => 'Super Admin', 'role' => 'Super Admin'],
             ['email' => 'cs.bali@indogate.com', 'name' => 'CS Bali', 'role' => 'CS Admin'],
+            ['email' => 'admin.bali@indogate.com', 'name' => 'Admin Bali', 'role' => 'Admin'],
             ['email' => 'finance.bali@indogate.com', 'name' => 'Finance Bali', 'role' => 'Finance Admin'],
             ['email' => 'customer@indogate.com', 'name' => 'Sample Customer', 'role' => 'Customer'],
         ];

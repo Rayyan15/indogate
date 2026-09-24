@@ -51,4 +51,10 @@ return [
         'thanks' => 'Thank you, our team will reach out shortly.',
     ],
     'quotation_rate_missing' => 'One or more package items have no rate for the chosen date. Add the rate before generating a quotation.',
+
+    // i18n sweep
+    'search_name_phone_ph' => 'Search name or phone no…',
+    'no_match' => 'No leads match the search filter.',
+    'no_pic' => 'No PIC yet',
+    'no_lead' => 'No leads yet',
 ];

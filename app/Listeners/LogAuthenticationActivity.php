@@ -24,6 +24,9 @@ class LogAuthenticationActivity
     public function handleLogout(Logout $event): void
     {
         if ($event->user) {
+            // Shared devices: the next person to sign in must not inherit this user's push.
+            $event->user->pushSubscriptions()->delete();
+
             activity('auth')
                 ->causedBy($event->user)
                 ->withProperties([

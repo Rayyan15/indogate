@@ -82,4 +82,15 @@ return [
     'cancelled_successfully' => 'Assignment cancelled successfully.',
     'deleted_successfully' => 'Deleted successfully.',
     'has_future_assignments' => 'Cannot deactivate/delete: active assignments remain. Cancel them first.',
+
+    // i18n sweep
+    'all_gender' => 'All Genders',
+    'search_assignment_ph' => 'Search driver, plate, booking…',
+    'active_date' => 'Active Date:',
+    'assignment_total' => 'Total :count active assignments on this date',
+    'cancel_reason_hint' => 'Enter the reason for cancelling this driver assignment. It will be recorded in the audit log.',
+    'calendar_lede' => 'Driver and fleet assignment schedule at branch :branch',
+    'drivers_lede' => 'Drivers at branch :branch',
+    'vehicles_lede' => 'Vehicles at branch :branch',
+    'no_vehicle_data' => 'No vehicle data for this filter yet.',
 ];

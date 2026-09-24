@@ -18,6 +18,14 @@
                 <input type="number" min="0" max="4" wire:model="decimal_places" class="admin-input">
             </x-ui.field>
 
+            <x-ui.field :label="__('pricing.currency.spread_bps')" :hint="__('pricing.currency.spread_hint')" :error="$errors->first('spread_bps')">
+                <input type="number" min="0" max="5000" wire:model="spread_bps" class="admin-input">
+            </x-ui.field>
+
+            <x-ui.field :label="__('pricing.currency.display_rounding')" :hint="__('pricing.currency.rounding_hint')" :error="$errors->first('display_rounding')">
+                <input type="number" min="0" wire:model="display_rounding" class="admin-input">
+            </x-ui.field>
+
             <label class="flex items-center gap-2 text-sm text-neutral-700">
                 <input type="checkbox" wire:model="is_active" class="rounded accent-red-600">
                 {{ __('pricing.common.active') }}

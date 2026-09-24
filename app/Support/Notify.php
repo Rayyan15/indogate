@@ -41,7 +41,7 @@ class Notify
             $ids = $ids->merge(User::permission($permission)->where('branch_id', $branchId)->pluck('id'));
         }
 
-        return User::whereIn('id', $ids->unique())
+        return User::with('branch')->whereIn('id', $ids->unique())
             ->where('branch_id', $branchId)
             ->where('is_active', true)
             ->when(auth()->id(), fn ($q, $actor) => $q->whereKeyNot($actor))

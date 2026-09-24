@@ -3,17 +3,27 @@
 namespace App\Support\Storefront;
 
 use App\Domain\Pricing\Converter;
+use App\Domain\Finance\Fx;
 use App\Domain\Pricing\Money;
 use NumberFormatter;
 
 class StorefrontCurrency
 {
-    public const SUPPORTED_CURRENCIES = ['SAR', 'USD', 'IDR'];
+    /** @return list<string> Currencies that can actually be priced (memoised by Fx). */
+    public static function supported(): array
+    {
+        return Fx::pricedCurrencies() ?: ['IDR'];
+    }
+
+    public static function isSupported(string $currency): bool
+    {
+        return in_array($currency, self::supported(), true);
+    }
 
     public static function current(): string
     {
         $sessionCurrency = session('storefront_currency');
-        if ($sessionCurrency && in_array($sessionCurrency, self::SUPPORTED_CURRENCIES, true)) {
+        if ($sessionCurrency && self::isSupported($sessionCurrency)) {
             return $sessionCurrency;
         }
 
@@ -27,7 +37,7 @@ class StorefrontCurrency
     public static function set(string $currency): void
     {
         $upper = strtoupper(trim($currency));
-        if (in_array($upper, self::SUPPORTED_CURRENCIES, true)) {
+        if (self::isSupported($upper)) {
             session(['storefront_currency' => $upper]);
         }
     }
@@ -45,8 +55,8 @@ class StorefrontCurrency
         $idrMoney = Money::of($amountIdrMinor, 'IDR');
 
         try {
-            $converted = $converter->toDisplayCurrency($idrMoney, $currency);
-            $amountMajor = $currency === 'IDR' ? $converted->amountMinor : $converted->amountMinor / 100;
+            $converted = $converter->toSellingPrice($idrMoney, $currency);
+            $amountMajor = $converted->amountMinor / (10 ** Fx::decimals($currency));
         } catch (\Throwable) {
             // No rate stored for this currency yet: show IDR rather than a made-up rate.
             $currency = 'IDR';

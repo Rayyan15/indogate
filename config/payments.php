@@ -13,7 +13,8 @@ return [
     ],
 
     // Shared secret for webhook HMAC-SHA256 signatures (X-Signature header).
-    'webhook_secret' => env('PAYMENT_WEBHOOK_SECRET', env('APP_KEY')),
+    // Required outside local/testing; without it webhooks are refused (APP_KEY fallback only in local/testing).
+    'webhook_secret' => env('PAYMENT_WEBHOOK_SECRET') ?: (in_array(env('APP_ENV', 'production'), ['local', 'testing'], true) ? env('APP_KEY') : null),
 
     'down_payment_percent' => (int) env('PAYMENT_DP_PERCENT', 30),
 

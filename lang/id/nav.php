@@ -4,6 +4,7 @@ return [
     'overview' => 'Ringkasan',
     'dashboard' => 'Dashboard',
     'cs_desk' => 'Meja CS',
+    'admin_desk' => 'Meja Admin',
     'roles' => 'Hak Akses Role',
     'operations' => 'Operasional',
     'bookings' => 'Pemesanan',

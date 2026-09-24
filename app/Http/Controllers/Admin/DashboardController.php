@@ -12,9 +12,13 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        // Front-line staff (CS) land on their work queue instead of the KPI overview.
-        if (! $user->can('report.view') && $user->canAny(['lead.manage', 'booking.manage'])) {
+        // Each desk role lands on its own work surface instead of the KPI overview.
+        if ($user->can('desk.cs') && ! $user->can('desk.admin')) {
             return redirect()->route('admin.desk');
+        }
+
+        if ($user->can('desk.admin') && ! $user->can('pricing.manage')) {
+            return redirect()->route('admin.control');
         }
 
         return view('admin.dashboard');
