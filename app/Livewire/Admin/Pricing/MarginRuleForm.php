@@ -9,11 +9,13 @@ use App\Enums\SeasonType;
 use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class MarginRuleForm extends Component
 {
+    #[Locked]
     public ?int $ruleId = null;
 
     public string $product_type = '';

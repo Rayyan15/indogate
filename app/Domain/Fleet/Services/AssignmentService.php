@@ -7,10 +7,12 @@ use App\Domain\Fleet\Exceptions\ScheduleConflictException;
 use App\Domain\Fleet\Models\Driver;
 use App\Domain\Fleet\Models\DriverAssignment;
 use App\Domain\Fleet\Models\Vehicle;
+use App\Enums\BookingStatus;
 use App\Support\Branch\BranchScope;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class AssignmentService
@@ -122,6 +124,10 @@ class AssignmentService
             throw new InvalidArgumentException('Tanggal akhir penugasan tidak boleh sebelum tanggal mulai.');
         }
 
+        if (in_array($booking->status, [BookingStatus::CANCELLED, BookingStatus::COMPLETED], true)) {
+            throw new InvalidArgumentException('Booking sudah dibatalkan atau selesai; penugasan tidak dapat dibuat.');
+        }
+
         // 1. Validasi cabang (Branch Isolation)
         if ((int) $driverModel->branch_id !== (int) $booking->branch_id) {
             throw new InvalidArgumentException('Driver tidak berasal dari cabang yang sama dengan pemesanan.');
@@ -149,59 +155,67 @@ class AssignmentService
             throw new InvalidArgumentException('Driver tidak sesuai preferensi gender pemesanan (laki-laki).');
         }
 
-        // 4. Deteksi bentrok jadwal driver
-        $driverConflict = DriverAssignment::withoutGlobalScope(BranchScope::class)
-            ->where('driver_id', $driverModel->id)
-            ->overlapping($startDate, $endDate)
-            ->first();
+        return DB::transaction(function () use ($booking, $driverModel, $vehicleModel, $startDate, $endDate, $notes) {
+            // Kunci baris driver/kendaraan agar cek bentrok + create atomik
+            Driver::withoutGlobalScope(BranchScope::class)->whereKey($driverModel->id)->lockForUpdate()->first();
+            if ($vehicleModel) {
+                Vehicle::withoutGlobalScope(BranchScope::class)->whereKey($vehicleModel->id)->lockForUpdate()->first();
+            }
 
-        if ($driverConflict) {
-            throw new ScheduleConflictException(
-                "Driver {$driverModel->name} sudah ditugaskan pada periode {$driverConflict->date_from->format('d/m/Y')} - {$driverConflict->date_to->format('d/m/Y')}."
-            );
-        }
-
-        // 5. Deteksi bentrok jadwal kendaraan (bila ada)
-        if ($vehicleModel) {
-            $vehicleConflict = DriverAssignment::withoutGlobalScope(BranchScope::class)
-                ->where('vehicle_id', $vehicleModel->id)
+            // 4. Deteksi bentrok jadwal driver
+            $driverConflict = DriverAssignment::withoutGlobalScope(BranchScope::class)
+                ->where('driver_id', $driverModel->id)
                 ->overlapping($startDate, $endDate)
                 ->first();
 
-            if ($vehicleConflict) {
+            if ($driverConflict) {
                 throw new ScheduleConflictException(
-                    "Kendaraan {$vehicleModel->plate} sudah ditugaskan pada periode {$vehicleConflict->date_from->format('d/m/Y')} - {$vehicleConflict->date_to->format('d/m/Y')}."
+                    "Driver {$driverModel->name} sudah ditugaskan pada periode {$driverConflict->date_from->format('d/m/Y')} - {$driverConflict->date_to->format('d/m/Y')}."
                 );
             }
-        }
 
-        // 6. Buat assignment
-        $assignment = DriverAssignment::create([
-            'branch_id' => $booking->branch_id,
-            'booking_id' => $booking->id,
-            'driver_id' => $driverModel->id,
-            'vehicle_id' => $vehicleModel?->id,
-            'date_from' => $startDate->toDateString(),
-            'date_to' => $endDate->toDateString(),
-            'status' => DriverAssignment::STATUS_ASSIGNED,
-            'notes' => $notes,
-        ]);
+            // 5. Deteksi bentrok jadwal kendaraan (bila ada)
+            if ($vehicleModel) {
+                $vehicleConflict = DriverAssignment::withoutGlobalScope(BranchScope::class)
+                    ->where('vehicle_id', $vehicleModel->id)
+                    ->overlapping($startDate, $endDate)
+                    ->first();
 
-        if (function_exists('activity')) {
-            activity('fleet')
-                ->performedOn($assignment)
-                ->causedBy(auth()->user())
-                ->withProperties([
-                    'booking_code' => $booking->code,
-                    'driver_name' => $driverModel->name,
-                    'vehicle_plate' => $vehicleModel?->plate,
-                    'date_from' => $startDate->toDateString(),
-                    'date_to' => $endDate->toDateString(),
-                ])
-                ->log("Penugasan driver {$driverModel->name} untuk booking {$booking->code}");
-        }
+                if ($vehicleConflict) {
+                    throw new ScheduleConflictException(
+                        "Kendaraan {$vehicleModel->plate} sudah ditugaskan pada periode {$vehicleConflict->date_from->format('d/m/Y')} - {$vehicleConflict->date_to->format('d/m/Y')}."
+                    );
+                }
+            }
 
-        return $assignment;
+            // 6. Buat assignment
+            $assignment = DriverAssignment::create([
+                'branch_id' => $booking->branch_id,
+                'booking_id' => $booking->id,
+                'driver_id' => $driverModel->id,
+                'vehicle_id' => $vehicleModel?->id,
+                'date_from' => $startDate->toDateString(),
+                'date_to' => $endDate->toDateString(),
+                'status' => DriverAssignment::STATUS_ASSIGNED,
+                'notes' => $notes,
+            ]);
+
+            if (function_exists('activity')) {
+                activity('fleet')
+                    ->performedOn($assignment)
+                    ->causedBy(auth()->user())
+                    ->withProperties([
+                        'booking_code' => $booking->code,
+                        'driver_name' => $driverModel->name,
+                        'vehicle_plate' => $vehicleModel?->plate,
+                        'date_from' => $startDate->toDateString(),
+                        'date_to' => $endDate->toDateString(),
+                    ])
+                    ->log("Penugasan driver {$driverModel->name} untuk booking {$booking->code}");
+            }
+
+            return $assignment;
+        });
     }
 
     /**

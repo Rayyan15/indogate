@@ -7,12 +7,14 @@ use App\Models\User;
 use App\Rules\NoConflictingRolePermissions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
 
 class UserForm extends Component
 {
+    #[Locked]
     public ?int $userId = null;
 
     public string $name = '';

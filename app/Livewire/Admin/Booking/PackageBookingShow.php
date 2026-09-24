@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -32,6 +33,7 @@ class PackageBookingShow extends Component
     use WithFileUploads;
 
     /** An id, not the Eloquent model — see App\Livewire\Admin\Lead\LeadForm::$leadId docblock. */
+    #[Locked]
     public int $bookingId;
 
     // New-guest form
@@ -73,6 +75,7 @@ class PackageBookingShow extends Component
 
     public bool $showCancelAssignmentModal = false;
 
+    #[Locked]
     public ?int $cancellingAssignmentId = null;
 
     public string $cancel_assignment_reason = '';
@@ -96,6 +99,7 @@ class PackageBookingShow extends Component
 
     public bool $showRefundModal = false;
 
+    #[Locked]
     public ?int $refundingPaymentId = null;
 
     public int $refund_amount_minor = 0;
@@ -247,6 +251,7 @@ class PackageBookingShow extends Component
         $this->authorize('view', $booking);
 
         GenerateBookingVoucher::dispatch($booking->id, $locale, Auth::id());
+        Cache::forget(GenerateBookingVoucher::failedKey($booking->id, Auth::id()));
         $this->exportPending = true;
         $this->downloadUrl = null;
     }
@@ -254,6 +259,13 @@ class PackageBookingShow extends Component
     public function checkVoucherReady(): void
     {
         if (! $this->exportPending) {
+            return;
+        }
+
+        if (Cache::pull(GenerateBookingVoucher::failedKey($this->bookingId, Auth::id()))) {
+            $this->exportPending = false;
+            $this->addError('export', __('booking.show.export_failed'));
+
             return;
         }
 
@@ -391,7 +403,7 @@ class PackageBookingShow extends Component
         ]);
 
         try {
-            (new PaymentService)->recordPayment(
+            $payment = (new PaymentService)->recordPayment(
                 $booking,
                 $this->payment_amount_minor,
                 $this->payment_currency,
@@ -405,6 +417,10 @@ class PackageBookingShow extends Component
 
             $this->showPaymentModal = false;
             $this->financeSuccess = __('finance.payment_recorded_success');
+            if ($payment->type !== 'refund'
+                && $booking->toBookingCurrencyMinor($payment->currency, $payment->amount_minor, $payment->idr_equivalent_minor) > $booking->remainingBalanceMinor()) {
+                $this->financeSuccess .= ' '.__('finance.overpayment_warning');
+            }
         } catch (\Exception $e) {
             $this->financeError = $e->getMessage();
         }

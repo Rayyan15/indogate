@@ -10,6 +10,7 @@ use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class LeadForm extends Component
@@ -21,6 +22,7 @@ class LeadForm extends Component
      * cycle correctly (a second request rehydrates it as an empty model
      * instead of null), so the model is always re-fetched from this id.
      */
+    #[Locked]
     public ?int $leadId = null;
 
     public string $name = '';

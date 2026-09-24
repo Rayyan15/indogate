@@ -47,6 +47,7 @@ return [
         'cancel_reason' => 'Alasan Pembatalan',
         'confirm_cancel' => 'Konfirmasi Batalkan',
         'close' => 'Tutup',
+        'export_failed' => 'Gagal membuat PDF. Coba lagi.',
         'transition_denied' => 'Transisi status tidak diizinkan.',
         'guests' => 'Data Tamu',
         'guest_name' => 'Nama Tamu',

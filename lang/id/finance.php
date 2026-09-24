@@ -86,6 +86,7 @@ return [
     'unpaid' => 'Belum Lunas',
 
     // Feedback
+    'overpayment_warning' => 'Perhatian: jumlah ini melebihi sisa tagihan. Periksa sebelum verifikasi.',
     'payment_recorded_success' => 'Pembayaran berhasil dicatat dan menunggu verifikasi Finance.',
     'payment_verified_success' => 'Pembayaran berhasil diverifikasi dan status pemesanan diperbarui.',
     'cancelled_with_paid_balance' => 'Booking dibatalkan, tetapi masih ada pembayaran terverifikasi. Proses keputusan refund untuk dana yang sudah masuk.',

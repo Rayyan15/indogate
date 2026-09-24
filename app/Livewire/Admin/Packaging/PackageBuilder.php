@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -38,6 +39,7 @@ class PackageBuilder extends Component
 {
     use WithFileUploads;
 
+    #[Locked]
     public ?int $packageId = null;
 
     public array $name = ['en' => '', 'id' => '', 'ar' => ''];
@@ -135,7 +137,13 @@ class PackageBuilder extends Component
     {
         $this->authorize($this->packageId ? 'update' : 'viewAny', $this->packageOrClass());
 
-        $this->current_pax = $pax;
+        $this->current_pax = max(1, $pax);
+        $pax = $this->current_pax;
+        $this->validate([
+            'preview_date' => ['required', 'date'],
+            'channel' => ['required', Rule::enum(PaymentChannel::class)],
+            'display_currency' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
+        ]);
         $this->items = $this->normalizeItems($items);
         $this->durationWarning = $this->validateDuration();
 
@@ -301,6 +309,7 @@ class PackageBuilder extends Component
         $this->authorize('view', Package::findOrFail($this->packageId));
 
         GeneratePackageItineraryPdf::dispatch($this->packageId, $locale, Auth::id());
+        Cache::forget(GeneratePackageItineraryPdf::failedKey($this->packageId, Auth::id()));
         $this->exportPending = true;
         $this->downloadUrl = null;
     }
@@ -308,6 +317,13 @@ class PackageBuilder extends Component
     public function checkExportReady(): void
     {
         if (! $this->exportPending || ! $this->packageId) {
+            return;
+        }
+
+        if (Cache::pull(GeneratePackageItineraryPdf::failedKey($this->packageId, Auth::id()))) {
+            $this->exportPending = false;
+            $this->addError('export', __('packaging.builder.export_failed'));
+
             return;
         }
 

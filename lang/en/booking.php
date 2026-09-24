@@ -47,6 +47,7 @@ return [
         'cancel_reason' => 'Cancellation Reason',
         'confirm_cancel' => 'Confirm Cancellation',
         'close' => 'Close',
+        'export_failed' => 'PDF generation failed. Please try again.',
         'transition_denied' => 'That status transition is not allowed.',
         'guests' => 'Guest Details',
         'guest_name' => 'Guest Name',

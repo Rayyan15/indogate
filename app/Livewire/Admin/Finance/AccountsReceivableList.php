@@ -47,7 +47,7 @@ class AccountsReceivableList extends Component
 
     public function render(): View
     {
-        $query = PackageBooking::with(['quotation.lead', 'payments' => fn ($q) => $q->where('status', 'verified')])
+        $query = PackageBooking::with(['quotation.lead', 'refunds', 'payments' => fn ($q) => $q->where('status', 'verified')])
             ->where('status', '!=', BookingStatus::CANCELLED);
 
         if ($this->search !== '') {
@@ -74,7 +74,7 @@ class AccountsReceivableList extends Component
 
         // Overall branch receivables statistics
         $allUnpaidBookings = PackageBooking::whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::PARTIALLY_PAID])
-            ->with(['payments' => fn ($q) => $q->where('status', 'verified')])
+            ->with(['quotation', 'refunds', 'payments' => fn ($q) => $q->where('status', 'verified')])
             ->get();
 
         $totalReceivableCount = $allUnpaidBookings->count();

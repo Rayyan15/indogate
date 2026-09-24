@@ -18,7 +18,7 @@
             <x-ui.td>{{ $booking->customer->user->name ?? ($booking->customer->full_name ?? 'N/A') }}</x-ui.td>
             <x-ui.td numeric>IDR {{ number_format($booking->total_amount) }}</x-ui.td>
             <x-ui.td><x-ui.status :status="$booking->status">{{ __('admin.common.booking_status.' . $booking->status) }}</x-ui.status></x-ui.td>
-            <x-ui.td class="font-mono text-neutral-500">{{ $booking->created_at->format('d M Y') }}</x-ui.td>
+            <x-ui.td class="font-mono text-neutral-500">{{ \App\Support\Branch\CurrentBranch::local($booking->created_at)->format('d M Y') }}</x-ui.td>
             <x-ui.td>
                 <div class="flex items-center justify-center">
                     <x-ui.icon-button :href="route('admin.bookings.show', $booking)" :title="__('admin.common.view')">

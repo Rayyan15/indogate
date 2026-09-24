@@ -81,4 +81,5 @@ return [
     'assigned_successfully' => 'تم تعيين السائق والمركبة بنجاح.',
     'cancelled_successfully' => 'تم إلغاء المهمة بنجاح.',
     'deleted_successfully' => 'تم الحذف بنجاح.',
+    'has_future_assignments' => 'لا يمكن التعطيل أو الحذف: توجد تعيينات نشطة. ألغِها أولاً.',
 ];

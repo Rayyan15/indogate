@@ -46,6 +46,16 @@ class GenerateBookingVoucher implements ShouldQueue
         Cache::put(self::cacheKey($this->bookingId, $this->requestedByUserId, $this->locale), $path, now()->addHour());
     }
 
+    public function failed(\Throwable $e): void
+    {
+        Cache::put(self::failedKey($this->bookingId, $this->requestedByUserId), true, now()->addMinutes(10));
+    }
+
+    public static function failedKey(int $id, int $userId): string
+    {
+        return 'pdf-export-failed:'.static::class.":{$id}:{$userId}";
+    }
+
     public static function cacheKey(int $bookingId, int $userId, string $locale): string
     {
         return "booking-voucher-ready:{$bookingId}:{$userId}:{$locale}";

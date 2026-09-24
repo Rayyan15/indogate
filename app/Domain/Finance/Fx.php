@@ -17,11 +17,36 @@ use App\Enums\PaymentChannel;
  */
 final class Fx
 {
+    /** Memo lifetime; bounds staleness in long-lived workers (queue, Octane). */
+    private const TTL = 60;
+
+    /** @var array<string, array{0: int, 1: mixed}> key => [expiresAt, value] */
+    private static array $memo = [];
+
+    /** Call after currency/rate writes and between tests. */
+    public static function flush(): void
+    {
+        self::$memo = [];
+    }
+
+    private static function remember(string $key, \Closure $resolve): mixed
+    {
+        $hit = self::$memo[$key] ?? null;
+        if ($hit && $hit[0] >= time()) {
+            return $hit[1];
+        }
+
+        $value = $resolve();
+        self::$memo[$key] = [time() + self::TTL, $value];
+
+        return $value;
+    }
+
     public static function decimals(string $currency): int
     {
         $currency = strtoupper($currency);
 
-        return (int) (Currency::where('code', $currency)->value('decimal_places') ?? ($currency === 'IDR' ? 0 : 2));
+        return self::remember("dec:{$currency}", fn () => (int) (Currency::where('code', $currency)->value('decimal_places') ?? ($currency === 'IDR' ? 0 : 2)));
     }
 
     /**
@@ -35,12 +60,12 @@ final class Fx
             return 1.0;
         }
 
-        $rate = ExchangeRate::currentFor($currency);
-        if (! $rate) {
+        $rate = self::remember('rate:'.$currency.':'.now()->toDateString(), fn () => ExchangeRate::currentFor($currency)?->rate);
+        if ($rate === null) {
             throw new ExchangeRateNotFoundException("Kurs untuk {$currency} belum tersedia. Tambahkan kurs terlebih dahulu.");
         }
 
-        return (float) $rate->rate;
+        return (float) $rate;
     }
 
     /** Display: minor units -> "1.234.567" (IDR) / "1,234.56" style per currency decimals. */

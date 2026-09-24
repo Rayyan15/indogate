@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\ExpireQuotations;
+use App\Console\Commands\TransitionAssignmentStatuses;
 use App\Console\Commands\TransitionBookingStatuses;
 use App\Http\Middleware\EnsureLocaleUrlDefault;
 use App\Http\Middleware\EnsureStaff;
@@ -26,6 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command(ExpireQuotations::class)->everyMinute();
         $schedule->command(TransitionBookingStatuses::class)->hourly();
+        $schedule->command(TransitionAssignmentStatuses::class)->hourly();
+        $schedule->command('fx:fetch')->dailyAt('07:10')->timezone('Asia/Jakarta');
+        $schedule->command('notifications:scheduled quotations')->dailyAt('08:00')->timezone('Asia/Jakarta');
+        $schedule->command('notifications:scheduled follow-ups')->dailyAt('08:05')->timezone('Asia/Jakarta');
+        $schedule->command('notifications:scheduled departures')->dailyAt('16:00')->timezone('Asia/Jakarta');
+        $schedule->command('notifications:scheduled prune')->dailyAt('03:00')->timezone('Asia/Jakarta');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

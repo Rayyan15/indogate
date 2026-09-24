@@ -61,6 +61,7 @@ class ReportsCenter extends Component
 
     public function setTab(string $tab): void
     {
+        abort_unless(in_array($tab, ['sales_margin', 'lead_conversion', 'operations'], true), 404);
         $this->activeTab = $tab;
         $this->resetPage();
     }
@@ -126,24 +127,25 @@ class ReportsCenter extends Component
         $branchTag = $effectiveBranchId ? "cabang-{$effectiveBranchId}" : 'gabungan';
 
         if ($this->activeTab === 'lead_conversion') {
-            $leads = Lead::query()
+            abort_unless(Auth::user()?->can('lead.manage'), 403);
+            $leads = Lead::query()->with('branch')
                 ->tap($branchQuery)
                 ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
-                ->latest()
-                ->get();
+                ->lazyByIdDesc(500);
 
-            $content = $exportService->exportLeadConversion($leads);
+            $stream = fn () => $exportService->streamLeadConversion($leads);
             $filename = "laporan-konversi-lead-{$branchTag}-{$dateRange}.csv";
         } elseif ($this->activeTab === 'operations') {
+            abort_unless(Auth::user()?->can('booking.manage') || Auth::user()?->can('report.view'), 403);
             $bookings = PackageBooking::query()
+                ->with(['branch', 'quotation.lead', 'quotation.package', 'payments'])
                 ->tap($branchQuery)
                 ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
-                ->latest()
-                ->get();
+                ->lazyByIdDesc(500);
 
-            $content = $exportService->exportBookings($bookings);
+            $stream = fn () => $exportService->streamBookings($bookings);
             $filename = "laporan-operasional-{$branchTag}-{$dateRange}.csv";
         } else {
             abort_unless(Auth::user()?->can('report.margin.view') || Auth::user()?->can('payment.verify'), 403);
@@ -153,15 +155,14 @@ class ReportsCenter extends Component
                 ->tap($branchQuery)
                 ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
-                ->latest()
-                ->get();
+                ->lazyByIdDesc(500);
 
-            $content = $exportService->exportSalesMargin($bookings);
+            $stream = fn () => $exportService->streamSalesMargin($bookings);
             $filename = "laporan-penjualan-margin-{$branchTag}-{$dateRange}.csv";
         }
 
-        return response()->streamDownload(function () use ($content) {
-            echo $content;
+        return response()->streamDownload(function () use ($stream) {
+            $stream();
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
@@ -195,7 +196,7 @@ class ReportsCenter extends Component
                 })
                 ->latest('departure_date');
 
-            $allBookings = (clone $bookingsQuery)->get();
+            $allBookings = (clone $bookingsQuery)->lazyById(500);
             $data['bookings'] = $bookingsQuery->paginate(15);
             $marginService = new MarginReportService;
             $data['summary'] = $marginService->computeOverallSummary($allBookings);
@@ -225,8 +226,8 @@ class ReportsCenter extends Component
                 ->withoutGlobalScope(BranchScope::class)
                 ->with(['driver', 'vehicle', 'booking.quotation.lead', 'branch'])
                 ->when($effectiveBranchId, fn ($q) => $q->where('branch_id', $effectiveBranchId))
-                ->when($startDate, fn ($q) => $q->where('date_from', '>=', $startDate))
-                ->when($endDate, fn ($q) => $q->where('date_to', '<=', $endDate))
+                ->when($startDate, fn ($q) => $q->where('date_to', '>=', $startDate))
+                ->when($endDate, fn ($q) => $q->where('date_from', '<=', $endDate))
                 ->latest('date_from');
 
             $data['assignments'] = $assignmentsQuery->paginate(15);

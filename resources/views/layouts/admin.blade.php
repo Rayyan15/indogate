@@ -263,6 +263,8 @@
                     <span>{{ __('nav.view_site') }}</span>
                 </a>
                 <div class="hidden h-4 w-px bg-neutral-200 md:block"></div>
+                @livewire('admin.notification-bell')
+                <div class="hidden h-4 w-px bg-neutral-200 md:block"></div>
                 @livewire('locale-switcher')
                 <div class="hidden h-4 w-px bg-neutral-200 sm:block"></div>
                 @can('branch.switch')

@@ -111,11 +111,11 @@
                             <input type="hidden" name="bookable_type" value="App\Models\Driver">
                             <input type="hidden" name="bookable_id" value="{{ $driver->id }}">
                             <input type="hidden" name="name" value="Driver: {{ $driver->full_name }}">
-                            <input type="hidden" name="price" value="{{ $driverPrice }}">
+                            <input type="hidden" name="price" value="{{ $driver->display_price }}">
                             <div class="flex items-end justify-between">
                                 <div>
                                     <x-ui.eyebrow>{{ __('customer.search.daily_rate') }}</x-ui.eyebrow>
-                                    <p class="mt-1 font-mono text-xl font-semibold text-neutral-900">IDR {{ number_format($driverPrice) }}</p>
+                                    <p class="mt-1 font-mono text-xl font-semibold text-neutral-900">IDR {{ number_format($driver->display_price) }}</p>
                                 </div>
                                 <div class="text-end">
                                     <label class="block text-[11px] text-neutral-400">{{ __('customer.search.days') }}</label>
@@ -130,5 +130,6 @@
                 @endforelse
             @endif
         </div>
+        {{ ($flights ?? $hotels ?? $drivers)?->links() }}
     </div>
 </x-customer-layout>

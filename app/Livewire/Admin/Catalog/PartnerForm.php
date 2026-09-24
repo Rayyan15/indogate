@@ -5,11 +5,13 @@ namespace App\Livewire\Admin\Catalog;
 use App\Domain\Catalog\Models\Partner;
 use App\Enums\PartnerType;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class PartnerForm extends Component
 {
+    #[Locked]
     public ?int $partnerId = null;
 
     /** @var array<string,string> */

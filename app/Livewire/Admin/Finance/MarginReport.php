@@ -43,7 +43,7 @@ class MarginReport extends Component
 
     public function render(): View
     {
-        $query = PackageBooking::with(['quotation.items', 'quotation.lead', 'payments', 'vendorPayments'])
+        $query = PackageBooking::with(['quotation.items', 'quotation.lead', 'payments', 'refunds', 'vendorPayments'])
             ->where('status', '!=', BookingStatus::CANCELLED)
             ->when($this->statusFilter !== '', fn ($q) => $q->where('status', $this->statusFilter))
             ->when($this->search !== '', function ($q) {
@@ -64,7 +64,7 @@ class MarginReport extends Component
         }
 
         // Summary across all matched bookings in branch
-        $allMatched = (clone $query)->get();
+        $allMatched = (clone $query)->lazyById(500);
         $summary = $reportService->computeSummary($allMatched);
 
         return view('livewire.admin.finance.margin-report', [

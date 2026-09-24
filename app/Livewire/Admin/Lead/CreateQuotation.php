@@ -17,11 +17,13 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class CreateQuotation extends Component
 {
     /** An id, not the Eloquent model — see LeadForm::$leadId docblock. */
+    #[Locked]
     public int $leadId;
 
     public ?int $package_id = null;
@@ -37,6 +39,7 @@ class CreateQuotation extends Component
     public ?string $generatedLink = null;
 
     /** Which quotation the "convert to booking" mini-form is open for, null = closed. */
+    #[Locked]
     public ?int $convertingQuotationId = null;
 
     public string $convert_departure_date = '';

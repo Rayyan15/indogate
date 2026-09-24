@@ -8,6 +8,8 @@ use App\Domain\Finance\Contracts\PaymentProviderInterface;
 use App\Domain\Finance\Models\Payment;
 use App\Domain\Finance\Models\PaymentIntent;
 use App\Enums\BookingStatus;
+use App\Notifications\OnlinePaymentFailed;
+use App\Support\Notify;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -152,11 +154,22 @@ class GatewayCheckout
                     default => throw new InvalidArgumentException('Unknown event type.'),
                 };
                 $outcome = 'processed';
+                self::notifyFailed($intent);
             }
 
             DB::table('payment_webhook_events')->where('id', $log)->update(['processed_at' => now()]);
 
             return $outcome;
         });
+    }
+
+    /** Tell the booking creator an online payment attempt failed or expired. */
+    public static function notifyFailed(PaymentIntent $intent): void
+    {
+        $booking = PackageBooking::withoutGlobalScopes()->find($intent->booking_id);
+
+        if ($booking) {
+            Notify::send(new OnlinePaymentFailed(['code' => $booking->code], Notify::url('admin.package-bookings.show', ['packageBooking' => $booking->id]), $booking->branch_id), $intent->id, null, [$booking->created_by]);
+        }
     }
 }

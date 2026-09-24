@@ -1,6 +1,6 @@
 # Rencana Konversi Mata Uang Otomatis (Real-time)
 
-Status: **rencana, belum dikerjakan** · Dibuat: 2026-09-23
+Status: **pengambilan kurs otomatis (fx:fetch, fawazahmed0) dikerjakan 2026-09-24; pratinjau konversi di form admin belum** · Dibuat: 2026-09-23
 
 ## 1. Tujuan
 

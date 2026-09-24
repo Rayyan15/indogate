@@ -86,6 +86,7 @@ return [
     'unpaid' => 'Unpaid',
 
     // Feedback
+    'overpayment_warning' => 'Warning: this amount exceeds the remaining balance. Check before verifying.',
     'payment_recorded_success' => 'Payment recorded successfully and awaiting Finance verification.',
     'payment_verified_success' => 'Payment verified successfully and booking status updated.',
     'cancelled_with_paid_balance' => 'Booking cancelled, but it has verified payments. Process the refund decision for the paid balance.',

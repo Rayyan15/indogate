@@ -5,6 +5,7 @@ namespace App\Casts;
 use App\Domain\Pricing\Money;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
 
 /**
  * Exposes a `{amount_minor}` column paired with a currency column as a
@@ -33,6 +34,10 @@ class MoneyCast implements CastsAttributes
                 $key => $value->amountMinor,
                 $this->currencyColumn => $value->currency,
             ];
+        }
+
+        if ($value !== null && ! is_int($value) && ! (is_string($value) && preg_match('/^-?\d+$/', $value))) {
+            throw new InvalidArgumentException('Money column only accepts int minor units or Money, got '.get_debug_type($value));
         }
 
         return [$key => $value];

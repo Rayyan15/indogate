@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -23,6 +24,7 @@ class AssignmentCalendar extends Component
 
     public bool $showCancelModal = false;
 
+    #[Locked]
     public ?int $cancellingAssignmentId = null;
 
     public string $cancel_reason = '';

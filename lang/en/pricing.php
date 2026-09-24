@@ -38,6 +38,7 @@ return [
         'rate' => 'Rate (IDR per unit)',
         'effective_from' => 'Effective From',
         'created_by' => 'Created By',
+        'system' => 'System',
         'form_title' => 'New Rate',
         'no_data' => 'No rates yet',
         'current_badge' => 'Current',

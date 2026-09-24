@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Domain\Fleet\Models\Driver as DomainDriver;
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\FlightRoute;
 use App\Models\Hotel;
-use App\Models\PricingRule;
 use Illuminate\Http\Request;
 
 class SearchController extends Controller
@@ -32,42 +32,38 @@ class SearchController extends Controller
             }
         }
 
-        $activeRules = PricingRule::where('season_start', '<=', now())
-            ->where('season_end', '>=', now())
-            ->get();
-
-        $flightRules = $activeRules->filter(fn ($r) => in_array($r->service_type, ['flight', 'all']))->max('markup_percent') ?? 0;
-        $hotelRules = $activeRules->filter(fn ($r) => in_array($r->service_type, ['hotel', 'all']))->max('markup_percent') ?? 0;
-        $driverRules = $activeRules->filter(fn ($r) => in_array($r->service_type, ['driver', 'all']))->max('markup_percent') ?? 0;
-
-        $flightsResult = $type === 'flights' ? $flights->paginate(12) : null;
+        $flightsResult = $type === 'flights' ? $flights->paginate(12)->withQueryString() : null;
         if ($flightsResult) {
-            $flightsResult->getCollection()->transform(function ($f) use ($flightRules) {
-                $f->base_price = $f->base_price * (1 + ($flightRules / 100));
+            $flightsResult->getCollection()->transform(function ($f) {
+                $f->base_price = CartController::applyMarkup((float) $f->base_price, 'flight', $f->branch_id);
 
                 return $f;
             });
         }
 
-        $hotelsResult = $type === 'hotels' ? $hotels->paginate(12) : null;
+        $hotelsResult = $type === 'hotels' ? $hotels->paginate(12)->withQueryString() : null;
         if ($hotelsResult) {
-            $hotelsResult->getCollection()->transform(function ($h) use ($hotelRules) {
-                $h->base_price_per_night = $h->base_price_per_night * (1 + ($hotelRules / 100));
+            $hotelsResult->getCollection()->transform(function ($h) {
+                $h->base_price_per_night = CartController::applyMarkup((float) $h->base_price_per_night, 'hotel', $h->branch_id);
 
                 return $h;
             });
         }
 
-        $driversResult = $type === 'drivers' ? $drivers->paginate(12) : null;
-        // drivers price is hardcoded in the view to 500,000. Let's pass the markup to the view for drivers.
-        $driverPrice = 500000 * (1 + ($driverRules / 100));
+        $driversResult = $type === 'drivers' ? $drivers->paginate(12)->withQueryString() : null;
+        if ($driversResult) {
+            $driversResult->getCollection()->transform(function ($d) {
+                $d->display_price = CartController::applyMarkup((float) DomainDriver::DAILY_RATE_BASE, 'driver', $d->branch_id);
+
+                return $d;
+            });
+        }
 
         return view('customer.search.index', [
             'type' => $type,
             'flights' => $flightsResult,
             'hotels' => $hotelsResult,
             'drivers' => $driversResult,
-            'driverPrice' => $driverPrice,
         ]);
     }
 }

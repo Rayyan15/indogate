@@ -2,6 +2,7 @@
 
 namespace App\Domain\Packaging;
 
+use App\Domain\Catalog\Models\BlackoutDate;
 use App\Domain\Catalog\Models\Rate;
 use App\Domain\Packaging\Models\Package;
 use App\Domain\Pricing\Converter;
@@ -48,27 +49,50 @@ class PackageCalculator
         foreach ($package->items as $item) {
             $anchorDate = (clone $previewDate)->modify("+{$item->day_from} days");
 
-            $rate = Rate::query()
-                ->where('inventory_item_id', $item->inventory_item_id)
-                ->whereDate('valid_from', '<=', $anchorDate)
-                ->whereDate('valid_to', '>=', $anchorDate)
-                ->first();
+            $isRoom = $item->inventoryItem->type === InventoryItemType::ROOM;
+            $effectiveQty = $isRoom ? $item->qty : $item->qty * (int) ceil($pax / max(1, $package->base_pax));
 
-            if (! $rate) {
+            // Rooms are priced per night at each night's own rate (M-01); other
+            // products use the anchor date. Inactive items and blackout dates
+            // make the line unpriceable.
+            $nights = $isRoom ? max(1, (int) ($item->nights ?? 1)) : 1;
+            $lines = [];
+            $missing = ! $item->inventoryItem->is_active;
+
+            for ($n = 0; $n < $nights && ! $missing; $n++) {
+                $night = (clone $anchorDate)->modify("+{$n} days");
+
+                $rate = Rate::query()
+                    ->where('inventory_item_id', $item->inventory_item_id)
+                    ->whereDate('valid_from', '<=', $night)
+                    ->whereDate('valid_to', '>=', $night)
+                    ->first();
+
+                $blackedOut = BlackoutDate::query()
+                    ->where('inventory_item_id', $item->inventory_item_id)
+                    ->whereDate('date', $night)
+                    ->exists();
+
+                if (! $rate || $blackedOut) {
+                    $missing = true;
+
+                    break;
+                }
+
+                $lines[] = new PricingLineItem(Money::of($rate->cost_minor, $rate->currency), $effectiveQty);
+            }
+
+            if ($missing) {
                 $itemResults[] = new PackageItemResult($item->id, $item->inventory_item_id, 0, null, rateMissing: true);
 
                 continue;
             }
 
-            $isRoom = $item->inventoryItem->type === InventoryItemType::ROOM;
-            $effectiveQty = $isRoom ? $item->qty : $item->qty * (int) ceil($pax / max(1, $package->base_pax));
-            $lineQty = $isRoom ? $effectiveQty * ($item->nights ?? 1) : $effectiveQty;
-
             $request = new PricingRequest(
                 branchId: $package->branch_id,
                 productType: $item->inventoryItem->type,
                 departureDate: $anchorDate,
-                items: [new PricingLineItem(Money::of($rate->cost_minor, $rate->currency), $lineQty)],
+                items: $lines,
                 channel: $channel,
                 displayCurrency: $displayCurrency,
                 includeFlatChannelFee: false,

@@ -2,11 +2,15 @@
 
 namespace Tests\Feature\Public;
 
+use App\Domain\Pricing\Models\ExchangeRate;
 use App\Support\Storefront\StorefrontCurrency;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CurrencySwitchTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_default_currency_matches_locale(): void
     {
         $this->get('/ar');
@@ -36,6 +40,8 @@ class CurrencySwitchTest extends TestCase
     {
         // 15,000,000 IDR
         $amountIdr = 15000000;
+        ExchangeRate::create(['currency' => 'SAR', 'rate' => '4250', 'effective_from' => now()->subMinute()]);
+        ExchangeRate::create(['currency' => 'USD', 'rate' => '16000', 'effective_from' => now()->subMinute()]);
 
         $formattedSar = StorefrontCurrency::format($amountIdr, 'SAR', 'en');
         $formattedUsd = StorefrontCurrency::format($amountIdr, 'USD', 'en');

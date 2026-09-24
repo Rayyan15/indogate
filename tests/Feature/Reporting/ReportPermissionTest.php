@@ -46,6 +46,20 @@ class ReportPermissionTest extends TestCase
             ->assertSee(__('report.tab_sales_margin'));
     }
 
+    public function test_lead_export_requires_lead_manage_and_tab_is_whitelisted(): void
+    {
+        $this->seed();
+        $finance = User::role('Finance Admin')->firstOrFail();
+        $this->assertFalse($finance->can('lead.manage'));
+
+        Livewire::actingAs($finance)->test(ReportsCenter::class)
+            ->call('setTab', 'lead_conversion')->call('export')->assertForbidden();
+        Livewire::actingAs($finance)->test(DashboardOverview::class)
+            ->call('export', 'leads')->assertForbidden();
+        Livewire::actingAs($finance)->test(ReportsCenter::class)
+            ->call('setTab', 'bogus')->assertNotFound();
+    }
+
     public function test_cs_admin_has_restricted_financials_view_and_cannot_view_full_margins(): void
     {
         $this->seed();

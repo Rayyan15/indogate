@@ -99,6 +99,37 @@ class ExportTest extends TestCase
             ->assertFileDownloaded();
     }
 
+    public function test_streamed_lead_csv_matches_string_export_and_guards_formulas(): void
+    {
+        $this->seed();
+        $branch = $this->baliBranch();
+        $csUser = User::role('CS Admin')->firstOrFail();
+
+        Lead::create([
+            'branch_id' => $branch->id,
+            'name' => '=HYPERLINK("http://evil")',
+            'phone' => '+966500000001',
+            'status' => LeadStatus::CONTACTED,
+            'source' => LeadSource::WEBSITE,
+        ]);
+
+        $service = new ReportExportService;
+        $expected = $service->exportLeadConversion(Lead::withoutGlobalScopes()->lazyById(500));
+
+        ob_start();
+        $service->streamLeadConversion(Lead::withoutGlobalScopes()->lazyById(500));
+        $streamed = ob_get_clean();
+
+        $this->assertSame($expected, $streamed);
+        $this->assertStringContainsString("'=HYPERLINK", $streamed);
+
+        $response = Livewire::actingAs($csUser)
+            ->test(ReportsCenter::class)
+            ->set('activeTab', 'lead_conversion')
+            ->call('export')
+            ->assertFileDownloaded();
+    }
+
     public function test_unauthorized_user_cannot_export_sales_margin(): void
     {
         $this->seed();

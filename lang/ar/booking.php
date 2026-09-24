@@ -47,6 +47,7 @@ return [
         'cancel_reason' => 'سبب الإلغاء',
         'confirm_cancel' => 'تأكيد الإلغاء',
         'close' => 'إغلاق',
+        'export_failed' => 'فشل إنشاء ملف PDF. حاول مرة أخرى.',
         'transition_denied' => 'انتقال الحالة هذا غير مسموح.',
         'guests' => 'بيانات الضيوف',
         'guest_name' => 'اسم الضيف',

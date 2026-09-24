@@ -7,11 +7,13 @@ use App\Domain\Pricing\Rules\SeasonDoesNotOverlap;
 use App\Enums\SeasonType;
 use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class SeasonForm extends Component
 {
+    #[Locked]
     public ?int $seasonId = null;
 
     public string $name = '';

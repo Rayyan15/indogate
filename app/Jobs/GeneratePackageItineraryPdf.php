@@ -44,6 +44,16 @@ class GeneratePackageItineraryPdf implements ShouldQueue
         Cache::put(self::cacheKey($this->packageId, $this->requestedByUserId, $this->locale), $path, now()->addHour());
     }
 
+    public function failed(\Throwable $e): void
+    {
+        Cache::put(self::failedKey($this->packageId, $this->requestedByUserId), true, now()->addMinutes(10));
+    }
+
+    public static function failedKey(int $id, int $userId): string
+    {
+        return 'pdf-export-failed:'.static::class.":{$id}:{$userId}";
+    }
+
     public static function cacheKey(int $packageId, int $userId, string $locale): string
     {
         return "package-export-ready:{$packageId}:{$userId}:{$locale}";

@@ -16,8 +16,8 @@
             <x-ui.tr wire:key="rate-{{ $rate->id }}">
                 <x-ui.td class="font-mono font-medium text-neutral-900">{{ $rate->currency }}</x-ui.td>
                 <x-ui.td class="font-mono">{{ $rate->rate }}</x-ui.td>
-                <x-ui.td>{{ $rate->effective_from->format('Y-m-d H:i') }}</x-ui.td>
-                <x-ui.td>{{ $rate->creator?->name ?? '—' }}</x-ui.td>
+                <x-ui.td>{{ \App\Support\Branch\CurrentBranch::local($rate->effective_from)->format('Y-m-d H:i') }}</x-ui.td>
+                <x-ui.td>{{ $rate->creator?->name ?? __('pricing.exchange_rate.system') }}</x-ui.td>
             </x-ui.tr>
         @empty
             <tr><td colspan="4" class="p-0">

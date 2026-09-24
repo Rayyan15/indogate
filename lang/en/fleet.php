@@ -81,4 +81,5 @@ return [
     'assigned_successfully' => 'Driver and vehicle assigned successfully.',
     'cancelled_successfully' => 'Assignment cancelled successfully.',
     'deleted_successfully' => 'Deleted successfully.',
+    'has_future_assignments' => 'Cannot deactivate/delete: active assignments remain. Cancel them first.',
 ];

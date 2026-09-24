@@ -61,6 +61,7 @@ return [
         'channel_cost' => 'Channel Cost',
         'sell_idr_minor' => 'Sell Price (IDR)',
         'display_price' => 'Display Price',
+        'export_failed' => 'PDF generation failed. Please try again.',
         'export_pdf' => 'Export Itinerary PDF',
         'export_pending' => 'Generating PDF in the background...',
         'export_ready' => 'PDF ready to download',

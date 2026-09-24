@@ -1,4 +1,5 @@
 <div>
+    @error('fleet')<div class="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{{ $message }}</div>@enderror
     <x-ui.page-header eyebrow="M8 · {{ __('fleet.fleet') }}" :title="__('fleet.drivers')" lede="{{ __('fleet.drivers') }} di cabang {{ \App\Support\Branch\CurrentBranch::model()?->name }}">
         <x-slot name="actions">
             <x-ui.search-input wire:model.live.debounce.300ms="search" placeholder="{{ __('fleet.driver_name') }} / {{ __('fleet.driver_phone') }}…" class="w-48 shrink-0" />

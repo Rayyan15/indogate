@@ -9,6 +9,7 @@ use App\Domain\Finance\Services\PaymentService;
 use App\Enums\LeadStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Activitylog\Models\Activity;
 use Tests\Concerns\BuildsBookingFixtures;
 use Tests\Concerns\BuildsLeadFixtures;
 use Tests\TestCase;
@@ -59,6 +60,19 @@ class FinanceFixesTest extends TestCase
 
         $this->expectException(SelfApprovalException::class);
         $service->verifyPayment($payment, $finance);
+    }
+
+    public function test_overpayment_is_recorded_with_warning_flag_not_blocked(): void
+    {
+        $booking = $this->booking();
+        $cs = User::role('CS Admin')->firstOrFail();
+        $service = app(PaymentService::class);
+
+        $service->recordPayment($booking, 1_000, 'IDR', creator: $cs);
+        $over = $service->recordPayment($booking, (int) $booking->total_minor * 2, 'IDR', creator: $cs);
+
+        $log = Activity::where('subject_id', $over->id)->latest('id')->first();
+        $this->assertTrue($log->properties['overpayment_warning']);
     }
 
     public function test_refund_moves_paid_booking_back_to_partially_paid(): void

@@ -73,18 +73,24 @@ class CartController extends Controller
             'driver' => DomainDriver::DAILY_RATE_BASE,
         };
 
+        return [
+            'price' => self::applyMarkup((float) $base, $serviceType, $model->branch_id),
+            'branch_id' => $model->branch_id,
+        ];
+    }
+
+    /** Single source of legacy markup: owning branch's active rule, max wins. */
+    public static function applyMarkup(float $base, string $serviceType, ?int $branchId): float
+    {
         $today = today()->toDateString();
         $markup = PricingRule::withoutGlobalScope(BranchScope::class)
-            ->where('branch_id', $model->branch_id)
+            ->where('branch_id', $branchId)
             ->whereIn('service_type', [$serviceType, 'all'])
             ->where('season_start', '<=', $today)
             ->where('season_end', '>=', $today)
             ->max('markup_percent') ?? 0;
 
-        return [
-            'price' => round((float) $base * (1 + ($markup / 100)), 2),
-            'branch_id' => $model->branch_id,
-        ];
+        return round($base * (1 + ($markup / 100)), 2);
     }
 
     public function remove(Request $request, $index)

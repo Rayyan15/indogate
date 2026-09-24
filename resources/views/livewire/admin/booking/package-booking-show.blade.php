@@ -179,6 +179,7 @@
                     </div>
                 @else
                     {{-- No assignment yet --}}
+                    @if(! in_array($booking->status, [\App\Enums\BookingStatus::CANCELLED, \App\Enums\BookingStatus::COMPLETED], true))
                     @can('driver.assign')
                         <div class="mt-4 space-y-4">
                             @if($genderWarning)
@@ -263,6 +264,7 @@
                     @else
                         <p class="mt-3 text-xs text-neutral-500 italic">{{ __('fleet.no_assignment') }}</p>
                     @endcan
+                    @endif
                 @endif
             </div>
         </div>
@@ -292,16 +294,16 @@
                 <div class="mt-3 space-y-2 text-xs">
                     <div class="flex justify-between">
                         <span class="text-neutral-500">{{ __('finance.total_billed') }}:</span>
-                        <strong class="text-neutral-900">{{ $booking->currency }} {{ number_format($booking->total_minor, 0, ',', '.') }}</strong>
+                        <strong class="text-neutral-900">{{ $booking->currency }} {{ \App\Domain\Finance\Fx::format((int) $booking->total_minor, $booking->currency) }}</strong>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-neutral-500">{{ __('finance.total_paid') }}:</span>
-                        <strong class="text-emerald-700">{{ $booking->currency }} {{ number_format($booking->totalPaidMinor(), 0, ',', '.') }}</strong>
+                        <strong class="text-emerald-700">{{ $booking->currency }} {{ \App\Domain\Finance\Fx::format((int) $booking->totalPaidMinor(), $booking->currency) }}</strong>
                     </div>
                     <div class="flex justify-between border-t border-neutral-100 pt-1 font-semibold">
                         <span class="text-neutral-700">{{ __('finance.remaining_balance') }}:</span>
                         <span class="{{ $booking->remainingBalanceMinor() > 0 ? 'text-red-600' : 'text-emerald-700' }}">
-                            {{ $booking->currency }} {{ number_format($booking->remainingBalanceMinor(), 0, ',', '.') }}
+                            {{ $booking->currency }} {{ \App\Domain\Finance\Fx::format((int) $booking->remainingBalanceMinor(), $booking->currency) }}
                         </span>
                     </div>
                 </div>
@@ -340,7 +342,7 @@
                             <div wire:key="payment-{{ $payment->id }}" class="rounded border border-neutral-100 bg-neutral-50 p-2 text-xs">
                                 <div class="flex items-center justify-between">
                                     <span class="font-bold text-neutral-900">
-                                        {{ $payment->currency }} {{ number_format($payment->amount_minor, 0, ',', '.') }}
+                                        {{ $payment->currency }} {{ \App\Domain\Finance\Fx::format((int) $payment->amount_minor, $payment->currency) }}
                                     </span>
                                     @php
                                         $badgeClass = match($payment->status) {
@@ -355,7 +357,7 @@
                                 </div>
                                 <div class="mt-1 flex items-center justify-between text-[11px] text-neutral-500">
                                     <span>{{ __('finance.type_'.$payment->type) }} · {{ strtoupper($payment->channel) }}</span>
-                                    <span>{{ $payment->created_at->format('d/m/Y') }}</span>
+                                    <span>{{ \App\Support\Branch\CurrentBranch::local($payment->created_at)->format('d/m/Y') }}</span>
                                 </div>
                                 <div class="mt-1 flex items-center gap-2 text-[11px]">
                                     <span class="inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium {{ $payment->source === 'gateway' ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-neutral-200 bg-neutral-0 text-neutral-600' }}">
@@ -416,7 +418,7 @@
                                     <span class="min-w-0 truncate text-neutral-600">
                                         <span class="font-mono tabular-nums text-neutral-900" dir="ltr">{{ $intent->currency }} {{ \App\Domain\Finance\Fx::format((int) $intent->amount_minor, $intent->currency) }}</span>
                                         · {{ $intent->method ? __('payment.methods.'.$intent->method) : $intent->channel }}
-                                        · {{ $intent->created_at->format('d/m H:i') }}
+                                        · {{ \App\Support\Branch\CurrentBranch::local($intent->created_at)->format('d/m H:i') }}
                                     </span>
                                     <span class="inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium {{ $intentBadge }}">{{ __('payment.admin.intent_status.'.$intent->status) }}</span>
                                 </li>
@@ -437,6 +439,7 @@
                 @if($exportPending)
                     <p class="mt-2 text-xs text-neutral-500">{{ __('booking.show.voucher_generating') }}</p>
                 @endif
+                @error('export')<p class="mt-2 text-xs text-red-600">{{ $message }}</p>@enderror
                 @if($downloadUrl)
                     <a href="{{ $downloadUrl }}" target="_blank" class="mt-2 block text-xs text-blue-600 hover:underline">{{ __('booking.show.voucher_download') }}</a>
                 @endif

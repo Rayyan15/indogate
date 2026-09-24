@@ -6,6 +6,7 @@ use App\Domain\Fleet\Models\Vehicle;
 use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -19,6 +20,7 @@ class VehicleList extends Component
 
     public bool $showModal = false;
 
+    #[Locked]
     public ?int $editingVehicleId = null;
 
     public string $plate = '';
@@ -109,6 +111,12 @@ class VehicleList extends Component
         $vehicle = Vehicle::findOrFail($id);
         $this->authorize('delete', $vehicle);
 
+        if ($this->hasFutureAssignments($vehicle)) {
+            $this->addError('fleet', __('fleet.has_future_assignments'));
+
+            return;
+        }
+
         $vehicle->delete();
     }
 
@@ -117,7 +125,21 @@ class VehicleList extends Component
         $vehicle = Vehicle::findOrFail($id);
         $this->authorize('update', $vehicle);
 
+        if ($vehicle->is_active && $this->hasFutureAssignments($vehicle)) {
+            $this->addError('fleet', __('fleet.has_future_assignments'));
+
+            return;
+        }
+
         $vehicle->update(['is_active' => ! $vehicle->is_active]);
+    }
+
+    private function hasFutureAssignments(Vehicle $vehicle): bool
+    {
+        return $vehicle->assignments()
+            ->where('status', '!=', 'cancelled')
+            ->whereDate('date_to', '>=', now()->toDateString())
+            ->exists();
     }
 
     public function render(): View

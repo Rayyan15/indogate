@@ -38,6 +38,7 @@ return [
         'rate' => 'Kurs (IDR per unit)',
         'effective_from' => 'Berlaku Sejak',
         'created_by' => 'Dibuat Oleh',
+        'system' => 'Sistem',
         'form_title' => 'Kurs Baru',
         'no_data' => 'Belum ada kurs',
         'current_badge' => 'Terkini',

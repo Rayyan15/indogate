@@ -44,6 +44,7 @@ Route::prefix('{locale}')
         Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
             Route::view('/desk', 'admin.desk')->middleware('permission:lead.manage|booking.manage')->name('desk');
+            Route::view('/notifications', 'admin.notifications.index')->name('notifications.index');
             Route::view('/roles', 'admin.roles.index')->middleware('permission:user.manage')->name('roles.index');
             if (app()->isLocal()) {
                 Route::view('/styleguide', 'admin.styleguide')->name('styleguide');
@@ -86,7 +87,6 @@ Route::prefix('{locale}')
             });
 
             Route::resource('bookings', BookingController::class)->only(['index', 'show']);
-            Route::middleware('permission:driver.assign')->post('bookings/{booking}/assign-driver', [BookingController::class, 'assignDriver'])->name('bookings.assign-driver');
 
             Route::get('bookings/{booking}/payment-proof', [BookingController::class, 'paymentProof'])->name('bookings.payment-proof');
             Route::middleware('permission:payment.verify')->group(function () {

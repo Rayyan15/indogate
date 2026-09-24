@@ -7,6 +7,8 @@ use App\Domain\Packaging\Models\Package;
 use App\Enums\LeadSource;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Notifications\NewWebsiteLead;
+use App\Support\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -76,6 +78,8 @@ class LeadCaptureController extends Controller
                 'note' => implode(' | ', $noteParts),
             ]);
         }
+
+        Notify::send(new NewWebsiteLead(['name' => $lead->name], Notify::url('admin.leads.edit', ['lead' => $lead->id]), $lead->branch_id), $lead->id, 'lead.manage');
 
         return back()->with('status', __('storefront.inquiry_success'));
     }

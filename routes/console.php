@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Finance\Models\PaymentIntent;
+use App\Domain\Finance\Services\GatewayCheckout;
 use App\Domain\Packaging\Models\Package;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -18,10 +19,13 @@ Artisan::command('packages:refresh-prices', function () {
 })->purpose('Recompute storefront starting prices from the pricing engine');
 
 Artisan::command('payments:expire-intents', function () {
-    $count = PaymentIntent::withoutGlobalScopes()
+    $stale = PaymentIntent::withoutGlobalScopes()
         ->where('status', PaymentIntent::STATUS_PENDING)
         ->where('expires_at', '<', now())
+        ->get();
+    $count = PaymentIntent::withoutGlobalScopes()->whereKey($stale->modelKeys())
         ->update(['status' => PaymentIntent::STATUS_EXPIRED, 'updated_at' => now()]);
+    $stale->each(fn ($intent) => GatewayCheckout::notifyFailed($intent));
     $this->info("Expired {$count} payment intent(s).");
 })->purpose('Mark unpaid online payment intents past their deadline as expired');
 

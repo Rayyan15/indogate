@@ -3,6 +3,7 @@
 namespace App\Support\Branch;
 
 use App\Models\Branch;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
@@ -39,5 +40,11 @@ class CurrentBranch
     public static function clearOverride(): void
     {
         Session::forget(self::SESSION_KEY);
+    }
+
+    /** Display a stored (UTC) timestamp in the active branch's timezone. */
+    public static function local(?CarbonInterface $date): ?CarbonInterface
+    {
+        return $date?->copy()->setTimezone(self::model()?->timezone ?: 'Asia/Jakarta');
     }
 }

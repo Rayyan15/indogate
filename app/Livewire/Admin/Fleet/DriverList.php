@@ -6,6 +6,7 @@ use App\Domain\Fleet\Models\Driver;
 use App\Support\Branch\CurrentBranch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -21,6 +22,7 @@ class DriverList extends Component
 
     public bool $showModal = false;
 
+    #[Locked]
     public ?int $editingDriverId = null;
 
     public string $name = '';
@@ -125,6 +127,12 @@ class DriverList extends Component
         $driver = Driver::findOrFail($id);
         $this->authorize('delete', $driver);
 
+        if ($this->hasFutureAssignments($driver)) {
+            $this->addError('fleet', __('fleet.has_future_assignments'));
+
+            return;
+        }
+
         $driver->delete();
     }
 
@@ -133,7 +141,21 @@ class DriverList extends Component
         $driver = Driver::findOrFail($id);
         $this->authorize('update', $driver);
 
+        if ($driver->is_active && $this->hasFutureAssignments($driver)) {
+            $this->addError('fleet', __('fleet.has_future_assignments'));
+
+            return;
+        }
+
         $driver->update(['is_active' => ! $driver->is_active]);
+    }
+
+    private function hasFutureAssignments(Driver $driver): bool
+    {
+        return $driver->assignments()
+            ->where('status', '!=', 'cancelled')
+            ->whereDate('date_to', '>=', now()->toDateString())
+            ->exists();
     }
 
     public function render(): View

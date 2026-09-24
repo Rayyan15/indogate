@@ -81,4 +81,5 @@ return [
     'assigned_successfully' => 'Driver dan kendaraan berhasil ditugaskan.',
     'cancelled_successfully' => 'Penugasan berhasil dibatalkan.',
     'deleted_successfully' => 'Data berhasil dihapus.',
+    'has_future_assignments' => 'Tidak bisa dinonaktifkan/dihapus: masih ada penugasan aktif. Batalkan penugasan dulu.',
 ];

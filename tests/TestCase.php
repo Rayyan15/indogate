@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Domain\Finance\Fx;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\URL;
 
@@ -16,6 +17,8 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Fx::flush();
 
         app()->setLocale('id');
         URL::defaults(['locale' => 'id']);

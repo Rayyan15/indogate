@@ -1,6 +1,6 @@
 # Rencana Notifikasi (In-App + Push) — Panel Admin
 
-Status: **rencana, belum dikerjakan** · Dibuat: 2026-09-23
+Status: **Fase 1 (lonceng in-app) dikerjakan 2026-09-24; Fase 2 (web push) belum** · Dibuat: 2026-09-23
 
 ## 1. Tujuan
 

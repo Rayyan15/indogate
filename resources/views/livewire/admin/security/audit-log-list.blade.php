@@ -78,7 +78,7 @@
                         @endphp
                         <tr class="hover:bg-neutral-50/70 transition-colors">
                             <td class="px-5 py-3.5 whitespace-nowrap font-mono text-xs text-neutral-600">
-                                <div>{{ $log->created_at->format('Y-m-d H:i:s') }}</div>
+                                <div>{{ \App\Support\Branch\CurrentBranch::local($log->created_at)->format('Y-m-d H:i:s') }}</div>
                                 <div class="text-[11px] text-neutral-400">{{ $log->created_at->diffForHumans() }}</div>
                             </td>
                             <td class="px-5 py-3.5 whitespace-nowrap">

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Pricing\Models;
 
+use App\Domain\Finance\Fx;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,13 @@ class ExchangeRate extends Model
             'rate' => 'decimal:8',
             'effective_from' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $flush = fn () => Fx::flush();
+        static::saved($flush);
+        static::deleted($flush);
     }
 
     public function getActivitylogOptions(): LogOptions

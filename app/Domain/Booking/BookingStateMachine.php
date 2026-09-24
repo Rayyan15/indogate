@@ -4,6 +4,7 @@ namespace App\Domain\Booking;
 
 use App\Domain\Booking\Exceptions\InvalidBookingTransitionException;
 use App\Domain\Booking\Models\PackageBooking;
+use App\Domain\Fleet\Models\DriverAssignment;
 use App\Enums\BookingStatus;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +75,13 @@ class BookingStateMachine
                 'user_id' => $actor?->id,
                 'reason' => $reason,
             ]);
+
+            if ($to === BookingStatus::CANCELLED) {
+                DriverAssignment::withoutGlobalScopes()
+                    ->where('booking_id', $booking->getKey())
+                    ->whereIn('status', [DriverAssignment::STATUS_ASSIGNED, DriverAssignment::STATUS_IN_PROGRESS])
+                    ->update(['status' => DriverAssignment::STATUS_CANCELLED, 'updated_at' => now()]);
+            }
 
             activity()
                 ->causedBy($actor)

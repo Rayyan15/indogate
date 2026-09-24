@@ -21,7 +21,7 @@
                     </div>
                     <div>
                         <x-ui.eyebrow>{{ __('admin.bookings.booking_date') }}</x-ui.eyebrow>
-                        <dd class="mt-1 font-mono text-sm text-neutral-700">{{ $booking->created_at->format('d M Y, H:i') }}</dd>
+                        <dd class="mt-1 font-mono text-sm text-neutral-700">{{ \App\Support\Branch\CurrentBranch::local($booking->created_at)->format('d M Y, H:i') }}</dd>
                     </div>
                     <div>
                         <x-ui.eyebrow>{{ __('admin.bookings.assigned_driver') }}</x-ui.eyebrow>
@@ -42,32 +42,19 @@
         </main>
 
         <aside class="space-y-6 lg:col-span-4">
-            <x-ui.panel :title="__('admin.bookings.assign_driver')">
-                <form action="{{ route('admin.bookings.assign-driver', $booking) }}" method="POST" class="space-y-4">
-                    @csrf
-                    <select name="driver_id" class="admin-input w-full">
-                        <option value="">{{ __('admin.bookings.select_driver') }}</option>
-                        @foreach($drivers as $driver)
-                        <option value="{{ $driver->id }}" {{ $booking->driver_id == $driver->id ? 'selected' : '' }}>{{ $driver->full_name }} ({{ ucfirst($driver->gender) }})</option>
-                        @endforeach
-                    </select>
-                    <x-ui.button variant="primary" type="submit" class="w-full">{{ __('admin.bookings.assign_driver') }}</x-ui.button>
-                </form>
-            </x-ui.panel>
-
             <x-ui.panel :eyebrow="__('admin.bookings.finance_eyebrow')" :title="__('admin.bookings.payment_history')">
                 @if(session('error'))
                     <p class="mb-3 text-xs text-danger">{{ session('error') }}</p>
                 @endif
 
                 @if($booking->payment_proof_path)
-                    <p class="text-xs text-neutral-500">{{ __('admin.bookings.proof_submitted_at', ['date' => $booking->payment_submitted_at?->format('d M Y, H:i')]) }}</p>
+                    <p class="text-xs text-neutral-500">{{ __('admin.bookings.proof_submitted_at', ['date' => \App\Support\Branch\CurrentBranch::local($booking->payment_submitted_at)?->format('d M Y, H:i')]) }}</p>
                     <a href="{{ route('admin.bookings.payment-proof', $booking) }}" target="_blank" class="mt-2 block">
                         <img src="{{ route('admin.bookings.payment-proof', $booking) }}" alt="{{ __('admin.bookings.payment_proof') }}" class="max-h-72 w-full rounded border border-neutral-200 object-contain">
                     </a>
 
                     @if($booking->status === \App\Models\Booking::STATUS_CONFIRMED && $booking->payment_verified_at)
-                        <p class="mt-3 text-xs text-neutral-600">{{ __('admin.bookings.verified_by', ['name' => $booking->paymentVerifier?->name ?? '—', 'date' => $booking->payment_verified_at->format('d M Y, H:i')]) }}</p>
+                        <p class="mt-3 text-xs text-neutral-600">{{ __('admin.bookings.verified_by', ['name' => $booking->paymentVerifier?->name ?? '—', 'date' => \App\Support\Branch\CurrentBranch::local($booking->payment_verified_at)->format('d M Y, H:i')]) }}</p>
                     @elseif($booking->status === \App\Models\Booking::STATUS_PAYMENT_REJECTED)
                         <p class="mt-3 text-xs text-danger">{{ __('admin.bookings.rejected_reason', ['reason' => $booking->payment_rejection_reason]) }}</p>
                     @endif

@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Packaging;
 
+use App\Domain\Catalog\Models\BlackoutDate;
 use App\Domain\Catalog\Models\InventoryItem;
 use App\Domain\Catalog\Models\Partner;
 use App\Domain\Catalog\Models\Rate;
@@ -75,5 +76,25 @@ class PackageCalculatorTest extends TestCase
         $this->assertTrue($result->itemResults[1]->rateMissing);
         // total only reflects the resolvable hotel line: 1_000_000 * 3 nights = 3_000_000 cost + 20% = 3_600_000
         $this->assertSame(3_600_000, $result->grandSellIdrMinor->amountMinor);
+    }
+
+    public function test_room_nights_use_each_nights_rate_and_blackout_flags_line(): void
+    {
+        $branch = $this->branch();
+        $room = $this->hotelRoom($branch, 1_000_000);
+        // Peak rate from 2026-06-02 onward; latest matching row wins is not assumed, so split ranges.
+        Rate::where('inventory_item_id', $room->id)->update(['valid_to' => '2026-06-01']);
+        Rate::create(['inventory_item_id' => $room->id, 'valid_from' => '2026-06-02', 'valid_to' => '2026-12-31', 'cost_minor' => 2_000_000, 'currency' => 'IDR']);
+
+        $package = Package::create(['branch_id' => $branch->id, 'name' => ['en' => 'T'], 'base_pax' => 2, 'duration_days' => 3]);
+        $package->items()->create(['inventory_item_id' => $room->id, 'day_from' => 0, 'day_to' => 1, 'qty' => 1, 'nights' => 2, 'sort_order' => 0]);
+        $pkg = fn () => $package->fresh(['items.inventoryItem']);
+        $calc = fn () => (new PackageCalculator)->calculate($pkg(), 2, new \DateTimeImmutable('2026-06-01'), PaymentChannel::BANK_TRANSFER, 'IDR');
+
+        // 1_000_000 + 2_000_000 cost, +20%
+        $this->assertSame(3_600_000, $calc()->grandSellIdrMinor->amountMinor);
+
+        BlackoutDate::create(['inventory_item_id' => $room->id, 'date' => '2026-06-02']);
+        $this->assertTrue($calc()->itemResults[0]->rateMissing);
     }
 }

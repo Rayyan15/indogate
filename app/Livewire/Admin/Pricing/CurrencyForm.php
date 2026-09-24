@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Pricing;
 
 use App\Domain\Pricing\Models\Currency;
 use Illuminate\Contracts\View\View;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -49,12 +50,17 @@ class CurrencyForm extends Component
         $this->authorize('pricing.manage');
 
         $validated = $this->validate([
-            'code' => ['required', 'string', 'size:3', 'alpha'],
+            'code' => ['required', 'string', 'size:3', 'alpha', Rule::unique('currencies', 'code')->ignore($this->originalCode, 'code')],
             'symbol' => ['required', 'string', 'max:8'],
             'decimal_places' => ['required', 'integer', 'min:0', 'max:4'],
             'is_active' => ['boolean'],
         ]);
         $validated['code'] = strtoupper($validated['code']);
+
+        // Code is the PK referenced by exchange_rates; never rename on edit (M-08).
+        if ($this->originalCode !== null) {
+            $validated['code'] = $this->originalCode;
+        }
 
         Currency::updateOrCreate(
             ['code' => $this->originalCode ?? $validated['code']],

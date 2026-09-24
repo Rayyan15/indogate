@@ -59,7 +59,7 @@
                             {{ $item->booking?->code }}
                         </a>
                         <div class="text-[10px] text-neutral-400">
-                            {{ $item->created_at->translatedFormat('d M Y H:i') }}
+                            {{ \App\Support\Branch\CurrentBranch::local($item->created_at)->translatedFormat('d M Y H:i') }}
                         </div>
                     </x-ui.td>
                     <x-ui.td>

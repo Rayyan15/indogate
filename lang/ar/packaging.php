@@ -53,6 +53,7 @@ return [
         'channel_cost' => 'تكلفة القناة',
         'sell_idr_minor' => 'سعر البيع (روبية)',
         'display_price' => 'سعر العرض',
+        'export_failed' => 'فشل إنشاء ملف PDF. حاول مرة أخرى.',
         'export_pdf' => 'تصدير برنامج الرحلة PDF',
         'export_pending' => 'جارٍ إنشاء PDF في الخلفية...',
         'export_ready' => 'ملف PDF جاهز للتحميل',

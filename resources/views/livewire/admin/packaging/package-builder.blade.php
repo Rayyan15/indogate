@@ -809,6 +809,7 @@
                                 <span>{{ __('packaging.builder.export_pending') }}</span>
                             </div>
                         @endif
+                        @error('export')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
                         @if($downloadUrl)
                             <div class="pt-1">
                                 <a href="{{ $downloadUrl }}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline">

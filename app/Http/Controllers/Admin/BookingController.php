@@ -5,13 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmed;
 use App\Models\Booking;
-use App\Models\Driver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 
 /**
  * Storefront (cart) bookings. Payment verification here is the manual
@@ -33,27 +31,8 @@ class BookingController extends Controller
         $this->authorize('view', $booking);
 
         $booking->load('customer.user', 'items', 'paymentVerifier');
-        $drivers = Driver::where('branch_id', $booking->branch_id)->where('is_active', true)->get();
 
-        return view('admin.bookings.show', compact('booking', 'drivers'));
-    }
-
-    public function assignDriver(Request $request, Booking $booking)
-    {
-        $this->authorize('assignDriver', $booking);
-
-        $request->validate([
-            'driver_id' => [
-                'required',
-                Rule::exists('drivers', 'id')
-                    ->where('branch_id', $booking->branch_id)
-                    ->where('is_active', true)
-                    ->whereNull('deleted_at'),
-            ],
-        ]);
-        $booking->update(['driver_id' => $request->driver_id]);
-
-        return redirect()->route('admin.bookings.show', $booking)->with('success', 'Driver berhasil ditugaskan.');
+        return view('admin.bookings.show', compact('booking'));
     }
 
     public function paymentProof(Booking $booking)

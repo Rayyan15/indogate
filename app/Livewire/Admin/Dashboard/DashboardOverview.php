@@ -110,42 +110,42 @@ class DashboardOverview extends Component
         $branchTag = $effectiveBranchId ? "cabang-{$effectiveBranchId}" : 'gabungan';
 
         if ($type === 'leads') {
-            $leads = Lead::query()
+            abort_unless(Auth::user()?->can('lead.manage'), 403);
+            $leads = Lead::query()->with('branch')
                 ->tap($branchQuery)
                 ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
-                ->latest()
-                ->get();
+                ->lazyByIdDesc(500);
 
-            $content = $exportService->exportLeadConversion($leads);
+            $stream = fn () => $exportService->streamLeadConversion($leads);
             $filename = "laporan-konversi-lead-{$branchTag}-{$dateRange}.csv";
         } elseif ($type === 'operations') {
+            abort_unless(Auth::user()?->can('booking.manage') || Auth::user()?->can('report.view'), 403);
             $bookings = PackageBooking::query()
+                ->with(['branch', 'quotation.lead', 'quotation.package', 'payments'])
                 ->tap($branchQuery)
                 ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
-                ->latest()
-                ->get();
+                ->lazyByIdDesc(500);
 
-            $content = $exportService->exportBookings($bookings);
+            $stream = fn () => $exportService->streamBookings($bookings);
             $filename = "laporan-operasional-{$branchTag}-{$dateRange}.csv";
         } else {
             abort_unless(Auth::user()?->can('report.margin.view') || Auth::user()?->can('payment.verify'), 403);
 
             $bookings = PackageBooking::query()
-                ->with(['payments', 'vendorPayments', 'quotation.items', 'quotation.lead', 'quotation.package'])
+                ->with(['payments', 'refunds', 'vendorPayments', 'quotation.items', 'quotation.lead', 'quotation.package'])
                 ->tap($branchQuery)
                 ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
                 ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
-                ->latest()
-                ->get();
+                ->lazyByIdDesc(500);
 
-            $content = $exportService->exportSalesMargin($bookings);
+            $stream = fn () => $exportService->streamSalesMargin($bookings);
             $filename = "laporan-penjualan-margin-{$branchTag}-{$dateRange}.csv";
         }
 
-        return response()->streamDownload(function () use ($content) {
-            echo $content;
+        return response()->streamDownload(function () use ($stream) {
+            $stream();
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);

@@ -5,11 +5,13 @@ namespace App\Livewire\Admin\Pricing;
 use App\Domain\Pricing\Models\PaymentChannelCost;
 use App\Enums\PaymentChannel;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class PaymentChannelCostForm extends Component
 {
+    #[Locked]
     public ?int $costId = null;
 
     public string $channel = '';

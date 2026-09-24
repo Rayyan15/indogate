@@ -14,6 +14,9 @@ use App\Domain\Finance\Models\Refund;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentChannel;
 use App\Models\User;
+use App\Notifications\ManualPaymentPending;
+use App\Notifications\OnlinePaymentReceived;
+use App\Support\Notify;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -92,6 +95,10 @@ class PaymentService
                 throw new InvalidArgumentException('Pemesanan sudah lunas; pembayaran tambahan tidak dapat dicatat.');
             }
 
+            // Soft warning for Finance (BF-17): amount beyond remaining balance is flagged in the audit log, not blocked.
+            $thisMinor = $booking->toBookingCurrencyMinor($currency, $amountMinor, $idrEquivalentMinor);
+            $overpays = $type !== 'refund' && $thisMinor > $booking->remainingBalanceMinor();
+
             $proofPath = $proofFile?->store('payment-proofs', 'local');
 
             $payment = Payment::create([
@@ -119,8 +126,11 @@ class PaymentService
                     'currency' => $currency,
                     'type' => $type,
                     'fx_rate' => $fxRate,
+                    'overpayment_warning' => $overpays,
                 ])
                 ->log('Payment recorded and awaiting verification');
+
+            Notify::send(new ManualPaymentPending(['code' => $booking->code], Notify::url('admin.package-bookings.show', ['packageBooking' => $booking->id]), $booking->branch_id), $payment->id, 'payment.verify');
 
             return $payment;
         });
@@ -303,6 +313,8 @@ class PaymentService
             if ($booking->status !== BookingStatus::CANCELLED) {
                 $this->reconcileBookingStatus($booking, null);
             }
+
+            Notify::send(new OnlinePaymentReceived(['code' => $booking->code], Notify::url('admin.package-bookings.show', ['packageBooking' => $booking->id]), $booking->branch_id), $intent->id, 'payment.verify', [$booking->created_by]);
 
             return $payment;
         });

@@ -10,17 +10,59 @@ use Illuminate\Support\Collection;
 class ReportExportService
 {
     /**
-     * Export Sales & Margin report to CSV string with UTF-8 BOM.
+     * Sales & Margin CSV (UTF-8 BOM) as a string.
      *
-     * @param  Collection<int, PackageBooking>  $bookings
+     * @param  iterable<int, PackageBooking>  $bookings
      */
-    public function exportSalesMargin(Collection $bookings): string
+    public function exportSalesMargin(iterable $bookings): string
     {
-        $handle = fopen('php://temp', 'r+');
+        return $this->toString(fn ($h) => $this->writeSalesMargin($h, $bookings));
+    }
+
+    /** @param  iterable<int, PackageBooking>  $bookings */
+    public function streamSalesMargin(iterable $bookings): void
+    {
+        $this->toOutput(fn ($h) => $this->writeSalesMargin($h, $bookings));
+    }
+
+    /**
+     * Lead Conversion CSV (UTF-8 BOM) as a string.
+     *
+     * @param  iterable<int, Lead>  $leads
+     */
+    public function exportLeadConversion(iterable $leads): string
+    {
+        return $this->toString(fn ($h) => $this->writeLeadConversion($h, $leads));
+    }
+
+    /** @param  iterable<int, Lead>  $leads */
+    public function streamLeadConversion(iterable $leads): void
+    {
+        $this->toOutput(fn ($h) => $this->writeLeadConversion($h, $leads));
+    }
+
+    /**
+     * Operational Package Bookings CSV (UTF-8 BOM) as a string.
+     * Callers should eager load branch, quotation.lead, quotation.package, payments.
+     *
+     * @param  iterable<int, PackageBooking>  $bookings
+     */
+    public function exportBookings(iterable $bookings): string
+    {
+        return $this->toString(fn ($h) => $this->writeBookings($h, $bookings));
+    }
+
+    /** @param  iterable<int, PackageBooking>  $bookings */
+    public function streamBookings(iterable $bookings): void
+    {
+        $this->toOutput(fn ($h) => $this->writeBookings($h, $bookings));
+    }
+
+    private function writeSalesMargin($handle, iterable $bookings): void
+    {
         // UTF-8 BOM for Excel
         fwrite($handle, "\xEF\xBB\xBF");
 
-        // Header
         $this->row($handle, [
             'Kode Pemesanan',
             'Cabang',
@@ -59,22 +101,10 @@ class ReportExportService
                 number_format($calc['margin_percentage'], 1).'%',
             ]);
         }
-
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-
-        return (string) $csv;
     }
 
-    /**
-     * Export Lead Conversion report to CSV string with UTF-8 BOM.
-     *
-     * @param  Collection<int, Lead>  $leads
-     */
-    public function exportLeadConversion(Collection $leads): string
+    private function writeLeadConversion($handle, iterable $leads): void
     {
-        $handle = fopen('php://temp', 'r+');
         fwrite($handle, "\xEF\xBB\xBF");
 
         $this->row($handle, [
@@ -104,22 +134,10 @@ class ReportExportService
                 $lead->follow_up_at?->format('Y-m-d H:i') ?? '-',
             ]);
         }
-
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-
-        return (string) $csv;
     }
 
-    /**
-     * Export operational Package Bookings report to CSV string with UTF-8 BOM.
-     *
-     * @param  Collection<int, PackageBooking>  $bookings
-     */
-    public function exportBookings(Collection $bookings): string
+    private function writeBookings($handle, iterable $bookings): void
     {
-        $handle = fopen('php://temp', 'r+');
         fwrite($handle, "\xEF\xBB\xBF");
 
         $this->row($handle, [
@@ -135,8 +153,12 @@ class ReportExportService
             'Status',
         ]);
 
+        if ($bookings instanceof Collection) {
+            $bookings->loadMissing(['branch', 'quotation.lead', 'quotation.package', 'payments']);
+        }
+
         foreach ($bookings as $b) {
-            $verifiedPaid = (int) $b->payments()->where('status', 'verified')->sum('idr_equivalent_minor');
+            $verifiedPaid = (int) $b->payments->where('status', 'verified')->sum('idr_equivalent_minor');
 
             $this->row($handle, [
                 $b->code,
@@ -151,12 +173,24 @@ class ReportExportService
                 $b->status?->value ?? (string) $b->status,
             ]);
         }
+    }
 
+    private function toString(callable $write): string
+    {
+        $handle = fopen('php://temp', 'r+');
+        $write($handle);
         rewind($handle);
         $csv = stream_get_contents($handle);
         fclose($handle);
 
         return (string) $csv;
+    }
+
+    private function toOutput(callable $write): void
+    {
+        $handle = fopen('php://output', 'w');
+        $write($handle);
+        fclose($handle);
     }
 
     /**

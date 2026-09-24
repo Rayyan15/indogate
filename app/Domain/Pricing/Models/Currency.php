@@ -2,6 +2,7 @@
 
 namespace App\Domain\Pricing\Models;
 
+use App\Domain\Finance\Fx;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -24,6 +25,13 @@ class Currency extends Model
             'decimal_places' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $flush = fn () => Fx::flush();
+        static::saved($flush);
+        static::deleted($flush);
     }
 
     public function getActivitylogOptions(): LogOptions

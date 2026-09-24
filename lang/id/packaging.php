@@ -61,6 +61,7 @@ return [
         'channel_cost' => 'Biaya Kanal',
         'sell_idr_minor' => 'Harga Jual (IDR)',
         'display_price' => 'Harga Tampilan',
+        'export_failed' => 'Gagal membuat PDF. Coba lagi.',
         'export_pdf' => 'Ekspor Itinerary PDF',
         'export_pending' => 'Sedang membuat PDF di latar belakang...',
         'export_ready' => 'PDF siap diunduh',

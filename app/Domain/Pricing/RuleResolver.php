@@ -23,7 +23,7 @@ class RuleResolver
             ->where('product_type', $productType->value)
             ->where('is_active', true)
             ->where('season_type', $season?->type->value)
-            ->first();
+            ->orderBy('id')->first();
 
         if (! $rule && $season !== null) {
             $rule = MarginRule::query()
@@ -31,7 +31,7 @@ class RuleResolver
                 ->where('product_type', $productType->value)
                 ->where('is_active', true)
                 ->whereNull('season_type')
-                ->first();
+                ->orderBy('id')->first();
         }
 
         if (! $rule) {

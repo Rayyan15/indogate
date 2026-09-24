@@ -48,18 +48,9 @@ class StorefrontCurrency
             $converted = $converter->toDisplayCurrency($idrMoney, $currency);
             $amountMajor = $currency === 'IDR' ? $converted->amountMinor : $converted->amountMinor / 100;
         } catch (\Throwable) {
-            $fallbackRates = [
-                'SAR' => '4250.00000000',
-                'USD' => '16000.00000000',
-            ];
-
-            if (isset($fallbackRates[$currency])) {
-                $majorAmount = bcdiv((string) $idrMoney->amountMinor, $fallbackRates[$currency], 2);
-                $amountMajor = (float) $majorAmount;
-            } else {
-                $currency = 'IDR';
-                $amountMajor = $idrMoney->amountMinor;
-            }
+            // No rate stored for this currency yet: show IDR rather than a made-up rate.
+            $currency = 'IDR';
+            $amountMajor = $idrMoney->amountMinor;
         }
 
         $regional = config("laravellocalization.supportedLocales.$locale.regional", 'en_US');

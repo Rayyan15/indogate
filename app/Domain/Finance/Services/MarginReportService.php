@@ -76,7 +76,7 @@ class MarginReportService
     /**
      * Compute summary across a collection of bookings.
      */
-    public function computeSummary(Collection $bookings): array
+    public function computeSummary(iterable $bookings): array
     {
         $totalGross = 0;
         $totalFees = 0;
@@ -113,7 +113,7 @@ class MarginReportService
      * @param  Collection<int, PackageBooking>|\Illuminate\Support\Collection<int, PackageBooking>  $bookings
      * @return array<string, mixed>
      */
-    public function computeOverallSummary($bookings): array
+    public function computeOverallSummary(iterable $bookings): array
     {
         return $this->computeSummary($bookings);
     }

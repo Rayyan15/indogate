@@ -9,6 +9,7 @@ use App\Domain\Finance\Services\PaymentService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -24,6 +25,7 @@ class PaymentList extends Component
 
     public bool $showRejectModal = false;
 
+    #[Locked]
     public ?int $selectedPaymentId = null;
 
     public string $rejectionReason = '';

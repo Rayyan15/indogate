@@ -43,6 +43,7 @@ return [
         'rate' => 'السعر (روبية لكل وحدة)',
         'effective_from' => 'ساري من',
         'created_by' => 'أنشأه',
+        'system' => 'النظام',
         'form_title' => 'سعر جديد',
         'no_data' => 'لا توجد أسعار بعد',
         'current_badge' => 'الحالي',

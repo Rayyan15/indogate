@@ -35,7 +35,7 @@
         <div style="text-align: {{ ($locale ?? app()->getLocale()) === 'ar' ? 'left' : 'right' }};">
             <div class="title">{{ __('finance.receipt') }}</div>
             <div class="subtitle">{{ __('finance.receipt_number') }}: RCT/{{ $payment->branch?->code }}/{{ date('Y') }}/{{ $payment->id }}</div>
-            <div class="subtitle">{{ __('finance.date') }}: {{ $payment->verified_at ? $payment->verified_at->translatedFormat('d F Y') : now()->translatedFormat('d F Y') }}</div>
+            <div class="subtitle">{{ __('finance.date') }}: {{ $payment->verified_at ? \App\Support\Branch\CurrentBranch::local($payment->verified_at)->translatedFormat('d F Y') : now()->translatedFormat('d F Y') }}</div>
         </div>
     </div>
 

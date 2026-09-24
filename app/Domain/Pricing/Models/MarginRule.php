@@ -4,8 +4,10 @@ namespace App\Domain\Pricing\Models;
 
 use App\Enums\InventoryItemType;
 use App\Enums\SeasonType;
+use App\Models\Branch;
 use App\Support\Branch\BelongsToBranch;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 

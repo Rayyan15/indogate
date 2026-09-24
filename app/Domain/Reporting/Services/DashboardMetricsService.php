@@ -114,16 +114,17 @@ class DashboardMetricsService
             ->when($startDate !== null, fn (Builder $q) => $q->where('created_at', '>=', $startDate))
             ->when($endDate !== null, fn (Builder $q) => $q->where('created_at', '<=', $endDate));
 
-        $all = (clone $query)->get(['id', 'status']);
+        $counts = (clone $query)->reorder()->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status');
+        $n = fn (BookingStatus $s) => (int) ($counts[$s->value] ?? 0);
 
         return [
-            'total' => $all->count(),
-            'confirmed' => $all->where('status', BookingStatus::CONFIRMED->value)->count(),
-            'partially_paid' => $all->where('status', BookingStatus::PARTIALLY_PAID->value)->count(),
-            'paid' => $all->where('status', BookingStatus::PAID->value)->count(),
-            'in_progress' => $all->where('status', BookingStatus::IN_PROGRESS->value)->count(),
-            'completed' => $all->where('status', BookingStatus::COMPLETED->value)->count(),
-            'cancelled' => $all->where('status', BookingStatus::CANCELLED->value)->count(),
+            'total' => (int) $counts->sum(),
+            'confirmed' => $n(BookingStatus::CONFIRMED),
+            'partially_paid' => $n(BookingStatus::PARTIALLY_PAID),
+            'paid' => $n(BookingStatus::PAID),
+            'in_progress' => $n(BookingStatus::IN_PROGRESS),
+            'completed' => $n(BookingStatus::COMPLETED),
+            'cancelled' => $n(BookingStatus::CANCELLED),
         ];
     }
 
@@ -136,7 +137,7 @@ class DashboardMetricsService
     {
         $bookingsQuery = PackageBooking::query()
             ->withoutGlobalScope(BranchScope::class)
-            ->with(['payments', 'vendorPayments', 'quotation.items'])
+            ->with(['payments', 'refunds', 'vendorPayments', 'quotation.items'])
             ->where('status', '!=', BookingStatus::CANCELLED->value)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->when($startDate !== null, fn (Builder $q) => $q->where('created_at', '>=', $startDate))
@@ -230,7 +231,10 @@ class DashboardMetricsService
         $assignmentsQuery = DriverAssignment::query()
             ->withoutGlobalScope(BranchScope::class)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
-            ->whereIn('status', [DriverAssignment::STATUS_ASSIGNED, DriverAssignment::STATUS_IN_PROGRESS]);
+            ->whereIn('status', [DriverAssignment::STATUS_ASSIGNED, DriverAssignment::STATUS_IN_PROGRESS])
+            // Overlap with selected range; no range = assignments running today.
+            ->whereDate('date_from', '<=', ($endDate ?? now())->toDateString())
+            ->whereDate('date_to', '>=', ($startDate ?? now())->toDateString());
 
         $activeAssignments = (clone $assignmentsQuery)->count();
         $vehiclesInUse = (clone $assignmentsQuery)->distinct('vehicle_id')->count('vehicle_id');
@@ -285,10 +289,13 @@ class DashboardMetricsService
      */
     public function getPackagePerformance(?int $branchId, ?Carbon $startDate, ?Carbon $endDate): array
     {
-        $packages = Package::query()->get(['id', 'name']);
+        $packages = Package::query()
+            ->withoutGlobalScope(BranchScope::class)
+            ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
+            ->get(['id', 'name']);
         $bookings = PackageBooking::query()
             ->withoutGlobalScope(BranchScope::class)
-            ->with(['quotation.package', 'payments', 'vendorPayments', 'quotation.items'])
+            ->with(['quotation.package', 'payments', 'refunds', 'vendorPayments', 'quotation.items'])
             ->where('status', '!=', BookingStatus::CANCELLED->value)
             ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->when($startDate !== null, fn (Builder $q) => $q->where('created_at', '>=', $startDate))
