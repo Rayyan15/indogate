@@ -11,6 +11,7 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700|fraunces:300,400,400i,500|jetbrains-mono:400,500,600&display=swap" rel="stylesheet">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @livewireStyles
     </head>
     <body class="flex min-h-screen flex-col bg-neutral-50 font-body text-neutral-700 antialiased selection:bg-red-100 selection:text-red-900">
 
@@ -26,6 +27,7 @@
                 </div>
 
                 <div class="flex items-center gap-6">
+                    <x-currency-switcher />
                     <a href="{{ route('cart.index') }}" class="relative p-2 text-neutral-500 transition-colors hover:text-neutral-900">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         @if(session()->has('cart') && count(session('cart')) > 0)
@@ -92,5 +94,6 @@
             </div>
         @endif
 
+        @livewireScripts
     </body>
 </html>

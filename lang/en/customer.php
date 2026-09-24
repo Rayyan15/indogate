@@ -123,4 +123,9 @@ return [
         'sign_out' => 'Sign out',
         'copyright' => '© :year Indogate. All rights reserved.',
     ],
+    'currency' => [
+        'label' => 'Currency',
+        'idr_total' => 'IDR total: :amount.',
+        'indicative_note' => 'Amounts in other currencies are indicative only; the final amount is charged in IDR.',
+    ],
 ];

@@ -37,6 +37,6 @@ class SearchCartPriceParityTest extends TestCase
 
         $this->actingAs($user)->get(route('search.index', ['locale' => 'id', 'type' => 'flights']))
             ->assertOk()
-            ->assertSee('IDR '.number_format($cartPrice), false);
+            ->assertSee(\App\Support\Storefront\StorefrontCurrency::format((int) $cartPrice), false);
     }
 }

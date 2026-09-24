@@ -50,7 +50,7 @@
                             <input type="hidden" name="quantity" value="1">
                             <div>
                                 <x-ui.eyebrow>{{ __('customer.search.total_price') }}</x-ui.eyebrow>
-                                <p class="mt-1 font-mono text-xl font-semibold text-neutral-900">IDR {{ number_format($flight->base_price) }}</p>
+                                <p class="mt-1 font-mono text-xl font-semibold text-neutral-900">{{ \App\Support\Storefront\StorefrontCurrency::format((int) $flight->base_price) }}</p>
                             </div>
                             <x-ui.button variant="secondary" type="submit" class="w-full">{{ __('customer.search.select_flight') }}</x-ui.button>
                         </form>
@@ -80,7 +80,7 @@
                             <div class="flex items-end justify-between">
                                 <div>
                                     <x-ui.eyebrow>{{ __('customer.search.per_night') }}</x-ui.eyebrow>
-                                    <p class="mt-1 font-mono text-xl font-semibold text-neutral-900">IDR {{ number_format($hotel->base_price_per_night) }}</p>
+                                    <p class="mt-1 font-mono text-xl font-semibold text-neutral-900">{{ \App\Support\Storefront\StorefrontCurrency::format((int) $hotel->base_price_per_night) }}</p>
                                 </div>
                                 <div class="text-end">
                                     <label class="block text-[11px] text-neutral-400">{{ __('customer.search.nights') }}</label>
@@ -115,7 +115,7 @@
                             <div class="flex items-end justify-between">
                                 <div>
                                     <x-ui.eyebrow>{{ __('customer.search.daily_rate') }}</x-ui.eyebrow>
-                                    <p class="mt-1 font-mono text-xl font-semibold text-neutral-900">IDR {{ number_format($driver->display_price) }}</p>
+                                    <p class="mt-1 font-mono text-xl font-semibold text-neutral-900">{{ \App\Support\Storefront\StorefrontCurrency::format((int) $driver->display_price) }}</p>
                                 </div>
                                 <div class="text-end">
                                     <label class="block text-[11px] text-neutral-400">{{ __('customer.search.days') }}</label>

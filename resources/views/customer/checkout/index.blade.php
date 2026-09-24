@@ -36,8 +36,12 @@
 
             <aside class="lg:col-span-4">
                 <x-ui.folio :eyebrow="__('customer.checkout.order_summary')" :title="__('customer.checkout.your_itinerary')"
-                    :rows="collect($cart)->map(fn($item) => [$item['name'] . ' (×' . $item['quantity'] . ')', 'IDR ' . number_format($item['price'] * $item['quantity'])])->all()"
-                    :total-label="__('customer.checkout.total_amount')" :total="'IDR ' . number_format($totalAmount)" />
+                    :rows="collect($cart)->map(fn($item) => [$item['name'] . ' (×' . $item['quantity'] . ')', \App\Support\Storefront\StorefrontCurrency::format((int) ($item['price'] * $item['quantity']))])->all()"
+                    :total-label="__('customer.checkout.total_amount')" :total="\App\Support\Storefront\StorefrontCurrency::format((int) $totalAmount)">
+                    @if(\App\Support\Storefront\StorefrontCurrency::current() !== 'IDR')
+                        <p class="text-xs text-neutral-500">{{ __('customer.currency.idr_total', ['amount' => 'IDR ' . number_format($totalAmount)]) }} {{ __('customer.currency.indicative_note') }}</p>
+                    @endif
+                </x-ui.folio>
             </aside>
         </div>
     </div>

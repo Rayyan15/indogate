@@ -123,4 +123,9 @@ return [
         'sign_out' => 'Keluar',
         'copyright' => '© :year Indogate. Seluruh hak cipta dilindungi.',
     ],
+    'currency' => [
+        'label' => 'Mata uang',
+        'idr_total' => 'Total IDR: :amount.',
+        'indicative_note' => 'Jumlah dalam mata uang lain hanya perkiraan; tagihan akhir dibayar dalam IDR.',
+    ],
 ];
